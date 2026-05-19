@@ -315,7 +315,7 @@
             <div>
                 <div class="card-icon">🚗</div>
                 <h3>Tekniikka: Sähköauton akku</h3>
-                <p>Miten lasketaan 2016-mallisen Nissan Leafin akun todellinen kunto (SOH 70%) ja toimintasäde talvipakkasella?</p>
+                <p>Miten lasketaan 2016-mallisen Nissan Leafin akun todellinen kunto (SOH 70%) and toimintasäde talvipakkasella?</p>
             </div>
             <div>
                 <button class="mind-btn" onclick="runDemo('auto')">Laske analyysi</button>
@@ -380,7 +380,7 @@
 
     <div class="demo-card" style="border-color: var(--brand-yellow); margin-top: 30px;" data-tags="kuva kuvastudio tekoäly gemini aikakone vaari mummo classic">
         <h3>🖼️ MIND - Kuvastudio & Aikakone</h3>
-        <p>Haluatko kokeilla maailman tehokkainta kuvatekoälyä ilman välikäsiä ja turhia maksuja? Tässä on valmis looginen ohje valintasi mukaan.</p>
+        <p>Haluatko kokeilla tekoälyä ilman välikäsiä ja turhia maksuja? Kopioi alta ohje ja käytä sitä virallisessa Kuvastossa.</p>
         
         <div class="prompt-box" id="promptText">
 Lataa oma kuvasi tähän ja sano: "Muokkaa tästä kuvasta tyylikäs, noin 10 vuotta nuorempi ja vähän siloteltu versio siten, että alkuperäiset kasvonpiirteet säilyvät rehellisinä."
@@ -411,7 +411,16 @@ Lataa oma kuvasi tähän ja sano: "Muokkaa tästä kuvasta tyylikäs, noin 10 vu
 </div>
 
 <script>
-    // Ajetaan heti kun sivu latautuu
+    // ESTETÄÄN SELAINTA AVAAMASTA RAAHATTUJA KUVIA VÄÄRÄÄN PAIKKAAN
+    window.addEventListener("dragover", function(e) {
+        e.preventDefault();
+    }, false);
+
+    window.addEventListener("drop", function(e) {
+        e.preventDefault();
+        alert("[MIND-HUOMIO]: Älä pudota kuvaa tähän. Kopioi ensin ohje ylhäältä ja pudota kuvasi vasta avautuvaan Gemini-kuvastoon!");
+    }, false);
+
     window.onload = function() {
         paivitaLaskuri();
     };
