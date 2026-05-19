@@ -7,91 +7,76 @@
     <style>
         :root {
             --brand-yellow: #f1c40f;
-            --brand-dark: #121212;
-            --brand-gray: #1a1a1a;
-            --brand-border: #333;
-            --text-light: #e0e0e0;
+            --brand-dark: #0f1115;
+            --brand-gray: #161a22;
+            --brand-border: #242b35;
+            --text-light: #e6edf3;
+            
+            /* Kuvien mukaiset dynaamiset sävyt laatikkoihin */
+            --bg-active: linear-gradient(135deg, #1e293b, #0f172a);
+            --bg-calm: linear-gradient(135deg, #2d1f18, #1c120c);
+            --border-active: #38bdf8;
+            --border-calm: #fb923c;
         }
 
         body {
             background-color: var(--brand-dark);
             color: var(--text-light);
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             line-height: 1.6;
             margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            padding: 0;
             min-height: 100vh;
-            transition: background-color 0.2s, color 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Navigointipalkki */
+        .nav-bar {
+            width: 100%;
+            background-color: #0b2545; /* Tyylikäs tummansininen yläpalkki */
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        .nav-bar a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 20px;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1100px;
             width: 100%;
-            border: 1px solid var(--brand-border);
-            padding: 30px;
-            background-color: var(--brand-gray);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            border-radius: 8px;
+            padding: 40px 20px;
+            box-sizing: border-box;
         }
 
-        /* Yläpalkki */
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            font-size: 13px;
-            color: #888;
-            border-bottom: 1px solid #222;
-            padding-bottom: 10px;
-        }
-
-        .mode-selector button {
-            background: none;
-            border: 1px solid #444;
-            color: #aaa;
-            padding: 5px 10px;
-            cursor: pointer;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 11px;
-            margin-left: 5px;
-        }
-
-        .mode-selector button.active {
-            background: var(--brand-yellow);
-            color: var(--brand-dark);
-            border-color: var(--brand-yellow);
-        }
-
-        .lang-link {
-            color: var(--brand-yellow);
-            text-decoration: none;
-            margin-right: 10px;
-            font-weight: bold;
-        }
-
-        /* Brändiotsikko ja Keltainen Logo */
+        /* Nova Brändi-otsikko */
         .brand-header {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 5px;
+            text-align: center;
+            margin-bottom: 40px;
         }
 
-        .brand-logo {
-            width: 35px;
-            height: 35px;
-            border: 3px solid var(--brand-yellow);
+        /* Keltainen, nelisakarainen symboli ympyrän sisällä (Nova) */
+        .nova-logo {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--brand-yellow);
             border-radius: 50%;
             position: relative;
-            flex-shrink: 0;
+            margin-bottom: 15px;
+            box-shadow: 0 0 15px rgba(241, 196, 15, 0.3);
         }
-
-        .brand-logo::before, .brand-logo::after {
+        .nova-logo::before, .nova-logo::after {
             content: '';
             position: absolute;
             background-color: var(--brand-yellow);
@@ -99,140 +84,146 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
-        .brand-logo::before { width: 4px; height: 20px; }
-        .brand-logo::after { width: 20px; height: 4px; }
+        /* Nelisakarainen prongi */
+        .nova-logo::before { width: 6px; height: 34px; border-radius: 2px; }
+        .nova-logo::after { width: 34px; height: 6px; border-radius: 2px; }
 
         h1 {
             color: #fff;
-            font-size: 32px;
-            letter-spacing: 2px;
+            font-size: 38px;
+            letter-spacing: 4px;
             margin: 0;
+            font-weight: 800;
         }
 
         .tagline {
             color: var(--brand-yellow);
-            font-size: 14px;
+            font-size: 15px;
             text-transform: uppercase;
             font-weight: bold;
-            margin: 10px 0 25px 0;
-            border-bottom: 2px solid var(--brand-yellow);
-            padding-bottom: 10px;
+            margin-top: 5px;
+            letter-spacing: 2px;
         }
 
-        /* Täysin ikäriippumaton looginen valintavyöhyke */
-        .logic-selector-zone {
-            background: #222;
-            border: 1px solid var(--brand-border);
-            padding: 15px;
-            margin-bottom: 25px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .logic-selector-zone label {
-            font-weight: bold;
-            color: #fff;
-        }
-
-        .logic-select {
-            background: var(--brand-dark);
-            color: #fff;
-            border: 1px solid #444;
-            padding: 8px 12px;
+        .intro-text {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 40px auto;
             font-size: 16px;
-            border-radius: 4px;
+            color: #8b949e;
         }
 
-        /* Neljän Teeman Ruudukko */
-        .demo-grid {
+        /* PÄÄNÄKYMÄT: KAKSI SUURTA OVEA (Kuvien inspiroima) */
+        .view-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-            gap: 20px;
-            margin-top: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
         }
 
-        .demo-card {
-            background: #222;
-            border: 1px solid #333;
-            padding: 20px;
-            border-radius: 6px;
+        .view-card {
+            border-radius: 12px;
+            padding: 30px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            transition: all 0.2s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .view-card:hover {
+            transform: translateY(-5px);
         }
 
-        .card-icon {
-            font-size: 40px;
+        /* Aktiivinen näkymä (Sinertävä/Teollinen) */
+        .card-active {
+            background: var(--bg-active);
+            border-top: 4px solid var(--border-active);
+        }
+        .card-active h2 { color: var(--border-active); }
+
+        /* Rauhallinen näkymä (Lämmin rusehtava) */
+        .card-calm {
+            background: var(--bg-calm);
+            border-top: 4px solid var(--border-calm);
+        }
+        .card-calm h2 { color: var(--border-calm); }
+
+        .view-card h2 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .view-card p {
+            color: #abafb8;
+            font-size: 15px;
+            margin: 0 0 20px 0;
+        }
+
+        /* Toiminnalliset elementit korttien sisällä */
+        .feature-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 6px;
             margin-bottom: 15px;
-            color: var(--brand-yellow);
-            line-height: 1;
         }
 
-        .demo-card h3 { margin: 0 0 10px 0; color: #fff; font-size: 18px; }
-        .demo-card p { margin: 0 0 15px 0; font-size: 14px; color: #ccc; }
+        /* Painikkeet ja Hakukentät */
+        .search-box {
+            width: 100%;
+            padding: 12px;
+            background: #0f1115;
+            border: 1px solid #30363d;
+            color: #fff;
+            font-size: 15px;
+            box-sizing: border-box;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        .search-box:focus { border-color: var(--brand-yellow); outline: none; }
 
-        /* Painikkeet */
         .mind-btn {
             background: var(--brand-yellow);
             color: var(--brand-dark);
             border: none;
-            padding: 10px 15px;
+            padding: 12px 20px;
             font-weight: bold;
             font-size: 13px;
             cursor: pointer;
             text-transform: uppercase;
-            border-radius: 4px;
+            border-radius: 6px;
             width: 100%;
             text-align: center;
+            letter-spacing: 1px;
+            transition: background 0.2s;
         }
-
         .mind-btn:hover { background: #f39c12; }
 
         .result-box {
             margin-top: 15px;
             padding: 12px;
-            background: var(--brand-dark);
+            background: rgba(0,0,0,0.5);
             border-left: 3px solid var(--brand-yellow);
             display: none;
             font-family: monospace;
             font-size: 13px;
-            color: var(--brand-yellow);
+            color: #ffdd67;
+            border-radius: 0 4px 4px 0;
         }
 
-        /* Hakukenttä ja testipenkki */
-        .search-box {
-            width: 100%;
+        .prompt-box {
+            background: rgba(0,0,0,0.6);
+            border: 1px dashed rgba(241, 196, 15, 0.5);
             padding: 12px;
-            background: #222;
-            border: 1px solid #444;
             color: #fff;
-            font-size: 16px;
-            box-sizing: border-box;
-            margin: 20px 0;
-            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+            border-radius: 6px;
+            line-height: 1.4;
+            margin-bottom: 15px;
         }
 
-        .search-box:focus { border-color: var(--brand-yellow); outline: none; }
-
-        /* Classic Mode (Vaalea Teema) ylikirjoitukset */
-        body.classic-mode { background-color: #f5f5f5; color: #222; }
-        body.classic-mode .container { background-color: #fff; border-color: #ccc; }
-        body.classic-mode h1 { color: #121212; }
-        body.classic-mode p { color: #333; }
-        body.classic-mode .demo-card { background: #f9f9f9; border: 2px solid #bbb; }
-        body.classic-mode .demo-card h3 { color: #000; }
-        body.classic-mode .logic-selector-zone { background: #eee; border-color: #ccc; color: #000; }
-        body.classic-mode .logic-selector-zone label { color: #000; }
-        body.classic-mode .logic-select { background: #fff; color: #000; border-color: #888; }
-        body.classic-mode .result-box { background: #fff; color: #b58900; border-left-width: 5px; }
-
-        .footer { margin-top: 40px; font-size: 11px; color: #555; text-align: right; }
-        
-        /* Musiikkilinkki tyyli */
         .music-link {
             display: inline-block;
             margin-top: 10px;
@@ -247,185 +238,153 @@
         }
         .music-link:hover { background: #e74c3c; }
 
-        /* Prompt-laatikko tyyli */
-        .prompt-box {
-            background: #111;
-            border: 1px dashed var(--brand-yellow);
-            padding: 12px;
-            color: #fff;
-            font-family: monospace;
-            font-size: 13px;
-            margin: 15px 0;
-            border-radius: 4px;
-            line-height: 1.4;
+        /* Alaosan automaattiset välineet */
+        .system-footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
         }
-        body.classic-mode .prompt-box { background: #fff; color: #333; }
+
+        .footer {
+            margin-top: 60px;
+            font-size: 12px;
+            color: #555;
+            text-align: center;
+            border-top: 1px solid var(--brand-border);
+            padding-top: 20px;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
 
+<div class="nav-bar">
+    <a href="#">Etusivu</a>
+    <a href="#">Tarinat</a>
+    <a href="#">Miten se toimii</a>
+    <a href="#">Tuki</a>
+</div>
+
 <div class="container">
-    <div class="top-bar">
-        <div class="lang-select">
-            <a href="#" class="lang-link" onclick="vaihdaKieli('FI')">[ FI ]</a>
-            <a href="#" class="lang-link" onclick="vaihdaKieli('EN')">[ EN ]</a>
-        </div>
-        <div class="mode-selector">
-            <button id="btn-dynamic" class="active" onclick="asetaMoodi('dynamic')">Dynamic</button>
-            <button id="btn-classic" onclick="asetaMoodi('classic')">Classic</button>
-        </div>
-    </div>
-
+    
     <div class="brand-header">
-        <div class="brand-logo"></div>
+        <div class="nova-logo"></div>
         <h1>MIND</h1>
-    </div>
-    <div id="txt-tagline" class="tagline">Uuden ajan käyttöliittymä terveeseen järkeen.</div>
-
-    <p id="txt-intro1">Maailma on täynnä tekoälypöhinää ja monimutkaista jargonia. Ihmiset vierastavat "AI"-termejä, koska ne on tehty vaikeiksi ymmärtää.</p>
-
-    <div class="logic-selector-zone">
-        <label id="lbl-logic" for="logiikkavalinta">Valitse MIND-suodatuksen taso:</label>
-        <select id="logiikkavalinta" class="logic-select" onchange="suodataLogiikanMukaan()">
-            <option value="all">Näytä kaikki teemat</option>
-            <option value="classic">Selkeä arjen logiikka (Painota vastausta)</option>
-            <option value="dynamic">Tekninen bittilogiikka (Painota raakaa dataa)</option>
-        </select>
+        <div class="tagline">Uuden ajan käyttöliittymä terveeseen järkeen.</div>
     </div>
 
-    <input type="text" id="mindSearch" class="search-box" placeholder="Suodata sisältöä avainsanoilla (esim. auto, kahvi, tiktok)...">
+    <div class="intro-text">
+        Maailma on täynnä monimutkaista tekoälypöhinää ja klikkiotsikoita. MIND suodattaa kohinan pois ja palauttaa puhtaan logiikan – olitpa sitten teknologiaan uppoutunut nuori tai arjen selkeyttä hakeva seniori.
+    </div>
 
-    <div id="demoContainer" class="demo-grid">
+    <div class="view-grid">
         
-        <div class="demo-card" data-tags="kahvi tarjous mutsi arki classic">
+        <div class="view-card card-active">
             <div>
-                <div class="card-icon">🌙</div>
-                <h3 id="card1-title">Arjen logiikka: Kahvitarjoukset</h3>
-                <p id="card1-desc">Miten 81-vuotias Äiti käyttää järjestelmää huomaamattaan etsiessään olennaisia hintatietoja ilman teknistä sählinkiä?</p>
-            </div>
-            <div>
-                <button class="mind-btn" id="card1-btn" onclick="runDemo('kahvi')">Katso vastaus</button>
-                <div id="res-kahvi" class="result-box">
-                    [LOGIIKKA]: Suodatetaan miljoonat sivut -> MIND palauttaa vain puhtaan tiedon ilman mainoksia: "K-Citymarket: 3.95€/paketti". Solmu aukesi.
+                <h2>Aktiivinen näkymä</h2>
+                <p>Raakaa bittilogiikkaa, teknistä dataa, koodauskulmia ja modernien algoritmien perkausta ilman suodattimia.</p>
+                
+                <div class="feature-box">
+                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">Tekninen testipenkki:</label>
+                    <button class="mind-btn" style="background: #34495e; color: #fff; margin-bottom: 10px;" onclick="runDemo('koodi')">Aja DNS-diagnoosi</button>
+                    <div id="res-koodi" class="result-box">[STATUS]: Verisignin globaalit eräajot laahaavat viikonloppuna. Koodi on ehjä GitHub Pagesissa. Älä koske mihinkään.</div>
+                    
+                    <button class="mind-btn" style="background: #34495e; color: #fff; margin-bottom: 10px;" onclick="runDemo('auto')">Sähköauton akkulogiikka</button>
+                    <div id="res-auto" class="result-box">[ANALYYSI]: Rauta ei valehtele. SOH 70% talvella tarkoittaa, että todellinen toimintasäde on 85 km. Logiikka laskee sen puolestasi.</div>
+
+                    <button class="mind-btn" style="background: #34495e; color: #fff;" onclick="runDemo('some')">Somen algoritmit (TikTok)</button>
+                    <div id="res-some" class="result-box">[MIND-SUODATUS]: TikTok tarkkailee syötettä sekunnin murto-osina ja syöttää dopamiinia heti, jos silmä pysähtyy yli 1.5 sekunniksi. Luuri taskuun ja takaisin reaalimaailmaan.</div>
                 </div>
             </div>
+            
+            <div class="feature-box" style="margin-bottom: 0;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">Hae avainsanalla:</label>
+                <input type="text" id="mindSearchActive" class="search-box" placeholder="Esim. koodi, auto, some..." oninput="synkronoiHaku(this.value)">
+            </div>
         </div>
 
-        <div class="demo-card" data-tags="auto sähköauto akku tekniikka dynamic">
+        <div class="view-card card-calm">
             <div>
-                <div class="card-icon">🚗</div>
-                <h3>Tekniikka: Sähköauton akku</h3>
-                <p>Miten lasketaan 2016-mallisen Nissan Leafin akun todellinen kunto (SOH 70%) and toimintasäde talvipakkasella?</p>
-            </div>
-            <div>
-                <button class="mind-btn" onclick="runDemo('auto')">Laske analyysi</button>
-                <div id="res-auto" class="result-box">
-                    [MIND-LOGIIKKA]: Rauta ei valehtele. SOH 70% talvella tarkoittaa, että todellinen toimintasäde on 85 km. Logiikka laskee sen puolestasi.
+                <h2>Rauhallinen näkymä</h2>
+                <p>Selkeää arjen logiikkaa, aitoja elämäntilanteita, historiaa, rehellisiä tarinoita ja suoria käytännön hyötylinkkejä.</p>
+                
+                <div class="feature-box">
+                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">Arjen esimerkit & Hyöty:</label>
+                    <button class="mind-btn" style="background: #e67e22; color: #fff; margin-bottom: 10px;" onclick="runDemo('kahvi')">Miten Äiti (81v) löytää kahvitarjouksen?</button>
+                    <div id="res-kahvi" class="result-box">[LOGIIKKA]: Suodatetaan miljoonat mainosbannerit -> Vastaus: "K-Citymarket: 3.95€/paketti". Solmu aukesi ilman sählinkiä.</div>
                 </div>
-            </div>
-        </div>
 
-        <div class="demo-card" data-tags="koodi verkkosivu cmd netlify dynamic">
-            <div>
-                <div class="card-icon">🖱️</div>
-                <h3>Verkko: Missä sivu luuraa?</h3>
-                <p>Mitä bitit tekevät taustalla, kun komentoriviltä haetaan uuden domainin tai Netlifyn synkronointia viikonloppuna?</p>
-            </div>
-            <div>
-                <button class="mind-btn" onclick="runDemo('koodi')">Aja DNS-diagnoosi</button>
-                <div id="res-koodi" class="result-box">
-                    [STATUS]: Verisignin globaalit eräajot laahaavat viikonloppuna. Ratkaisu: Koodi on ehjä Netlifyssä. Älä koske mihinkään, ota iisisti.
-                </div>
-            </div>
-        </div>
-
-        <div class="demo-card" data-tags="some facebook instagram tiktok nuoriso classic dynamic">
-            <div>
-                <div class="card-icon">📱</div>
-                <h3>Somen logiikka: FB, Insta & TikTok</h3>
-                <p>Miten modernit some-alustojen algoritmit toimivat taustalla ja miksi ne koukuttavat nuorisoa tuntikausiksi?</p>
-            </div>
-            <div>
-                <button class="mind-btn" onclick="runDemo('some')">Katso MIND-suodatus</button>
-                <div id="res-some" class="result-box">
-                    [MIND-SUODATUS]: Ei taikuutta vaan raakaa koodia. TikTok tarkkailee syötettä sekunnin murto-osina ja syöttää dopamiinia heti, jos silmä pysähtyy yli 1.5 sekunniksi. Ratkaisu: Bitti poikki, luuri taskuun ja takaisin reaalimaailmaan.
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="demo-card" style="border-color: var(--brand-yellow); margin-top: 30px;" data-tags="laskuri logiikka koodi localstorage classic dynamic">
-        <div>
-            <div class="card-icon">📊</div>
-            <h3>MIND - Paikallinen kävijämittari</h3>
-            <p>Tämä lohko lukee selaimesi paikallisen muistikannan lennosta ilman ulkopuolisia välikäsiä.</p>
-        </div>
-        <div>
-            <div id="laskuriStatus" class="result-box" style="display: block; background: #222; margin-bottom: 0;">
-                [LASKURI]: Haetaan dataa muistista...
-            </div>
-        </div>
-    </div>
-
-    <div class="demo-card" style="border-color: var(--brand-yellow); margin-top: 30px;" data-tags="musiikki soundtrack some spotify nuoriso classic">
-        <h3>🎸 MIND - Tilanne-Soundtrack</h3>
-        <p>Kirjoita tähän nykyinen elämäntilanteesi tai arjen solmukohta, niin MIND-logiikka määrittää siihen sopivan musiikillisen taajuuden.</p>
-        <input type="text" id="musicIn" class="search-box" placeholder="Esim. stressi, autoremontti, konehuone laahaa, väsymys..." style="margin-top: 5px;">
-        <button class="mind-btn" onclick="generoiSoundtrack()">Generoi Soundtrack</button>
-        <div id="musicAnalysis" class="result-box" style="background: #222;">
-            [MIND-MUSA]: Odotetaan syötettä...
-        </div>
-    </div>
-
-    <div class="demo-card" style="border-color: var(--brand-yellow); margin-top: 30px;" data-tags="kuva kuvastudio tekoäly gemini aikakone vaari mummo classic">
-        <h3>🖼️ MIND - Kuvastudio & Aikakone</h3>
-        <p>Haluatko kokeilla tekoälyä ilman välikäsiä ja turhia maksuja? Kopioi alta ohje ja käytä sitä virallisessa Kuvastossa.</p>
-        
-        <div class="prompt-box" id="promptText">
+                <div class="feature-box">
+                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">🖼️ Kuvastudio & Aikakone</label>
+                    <div class="prompt-box" id="promptText">
 Lataa oma kuvasi tähän ja sano: "Muokkaa tästä kuvasta tyylikäs, noin 10 vuotta nuorempi ja vähän siloteltu versio siten, että alkuperäiset kasvonpiirteet säilyvät rehellisinä."
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="mind-btn" style="background: #4a3728; color: #fff; font-size: 11px; flex: 1;" onclick="kopioiPrompt()">📋 Kopioi ohje</button>
+                        <a href="https://gemini.google.com" target="_blank" class="mind-btn" style="background: #2980b9; color: #fff; text-decoration: none; font-size: 11px; flex: 1; line-height: 2.2;">🚀 Avaa Gemini</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="feature-box" style="margin-bottom: 0;">
+                <label style="font-weight: bold; display: block; margin-bottom: 5px;">🎸 MIND - Tilanne-Soundtrack</label>
+                <input type="text" id="musicIn" class="search-box" placeholder="Kirjoita tilanne (esim. väsymys, autoremontti)..." style="margin-bottom: 10px;">
+                <button class="mind-btn" style="background: #27ae60; color: #fff;" onclick="generoiSoundtrack()">Määritä musiikkitaajuus</button>
+                <div id="musicAnalysis" class="result-box"></div>
+            </div>
         </div>
 
-        <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
-            <button class="mind-btn" style="background: #34495e; color: #fff; flex: 1; min-width: 160px;" onclick="kopioiPrompt()">📋 Kopioi ohje muistiin</button>
-            <a href="https://gemini.google.com" target="_blank" class="mind-btn" style="background: #2980b9; color: #fff; text-decoration: none; line-height: 2.5; font-size: 13px; flex: 1; min-width: 160px;">🚀 Avaa Kuvastudio (Gemini)</a>
-        </div>
     </div>
 
-    <div class="demo-card" style="border-color: var(--brand-yellow); margin-top: 30px;">
-        <h3>MIND - Testipenkki</h3>
-        <form name="mind-palaute" onsubmit="event.preventDefault(); document.getElementById('liveAnalysis').innerHTML = '[MIND-KLIKKAUS]: Konehuone käsitteli tiedon paikallisesti. Ei turhia ulkopuolisia serverikutsuja.';">
-            <input type="text" id="userIn" name="kayttajan_teksti" class="search-box" placeholder="Kirjoita tähän joku arjen asia..." oninput="analysoiLennosta()">
-            <div id="liveAnalysis" class="result-box" style="display: block; background: #222; color: #aaa;">
-                [MIND-ODOTUSTILA]: Kirjoita jotain yläpuolelle...
+    <div class="system-footer-grid">
+        
+        <div class="view-card" style="background: #11141a; padding: 20px;">
+            <h3>📊 Paikallinen diagnostiikka</h3>
+            <div id="laskuriStatus" style="font-family: monospace; font-size: 13px; color: #9fadc6; line-height: 1.5;">
+                Haetaan selaimesi paikallista muistikantaa...
             </div>
-            <button type="submit" class="mind-btn" style="background: #27ae60; color: #fff; margin-top: 15px; width: auto;">
-                Aja analyysi paikallisesti
-            </button>
-        </form>
+        </div>
+
+        <div class="view-card" style="background: #11141a; padding: 20px;">
+            <h3>⚡ Reaaliaikainen testipenkki</h3>
+            <input type="text" id="userIn" class="search-box" placeholder="Kirjoita jotain (esim. puhelin)..." style="margin-bottom: 5px;" oninput="analysoiLennosta()">
+            <div id="liveAnalysis" style="font-family: monospace; font-size: 12px; color: #798291;">
+                Odotetaan syötettä... Järjestelmä käsittelee tiedon täysin paikallisesti.
+            </div>
+        </div>
+
     </div>
 
     <div class="footer">
-        © 2026 mind-why.com | Powered by 30 years of ICT Logic
+        © 2026 mind-why.com | Powered by Nova & 30 Years of ICT Logic
     </div>
 </div>
 
 <script>
-    // ESTETÄÄN SELAINTA AVAAMASTA RAAHATTUJA KUVIA VÄÄRÄÄN PAIKKAAN
-    window.addEventListener("dragover", function(e) {
-        e.preventDefault();
-    }, false);
-
+    // ESTETÄÄN SELAINTA AVAAMASTA RAAHATTUJA KUVIA VÄÄRÄÄN PAIKKAAN (Esteri & Pertti -suojaus)
+    window.addEventListener("dragover", function(e) { e.preventDefault(); }, false);
     window.addEventListener("drop", function(e) {
         e.preventDefault();
-        alert("[MIND-HUOMIO]: Älä pudota kuvaa tähän. Kopioi ensin ohje ylhäältä ja pudota kuvasi vasta avautuvaan Gemini-kuvastoon!");
+        alert("[MIND-HUOMIO]: Älä pudota kuvaa tähän. Kopioi ensin ohje 'Rauhallinen näkymä' -puolelta ja pudota kuvasi vasta avautuvaan viralliseen Gemini-kuvastoon!");
     }, false);
 
     window.onload = function() {
         paivitaLaskuri();
     };
 
-    // Paikallisen laskurin logiikka (localStorage)
+    function runDemo(id) {
+        var resBox = document.getElementById('res-' + id);
+        resBox.style.display = (resBox.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function kopioiPrompt() {
+        var teksti = document.getElementById('promptText').innerText.trim();
+        navigator.clipboard.writeText(teksti).then(function() {
+            alert("Ohje kopioitu leikepöydälle! Voit nyt avata Geminin ja painaa siellä Ctrl + V ladattuasi kuvan.");
+        });
+    }
+
     function paivitaLaskuri() {
         var statusLohko = document.getElementById('laskuriStatus');
         if (typeof(Storage) !== "undefined") {
@@ -434,144 +393,70 @@ Lataa oma kuvasi tähän ja sano: "Muokkaa tästä kuvasta tyylikäs, noin 10 vu
             } else {
                 localStorage.visitCount = 1;
             }
-            
             var kerrat = localStorage.visitCount;
-            var analyysi = "";
-            if (kerrat <= 3) {
-                analyysi = "Uusi tuttavuus. Järjestelmää testataan.";
-            } else if (kerrat <= 10) {
-                analyysi = "Aktiivinen käyttäjä. Bittilogiikka puree arkeen.";
-            } else {
-                analyysi = "ICT-tason pääkäyttäjä havaittu. Koodi on hallussa.";
-            }
-
-            statusLohko.innerHTML = "[MIND-DATA]: Olet vieraillut tällä sivulla <strong>" + kerrat + "</strong> kertaa.<br>[ANALYYSI]: " + analyysi;
-        } else {
-            statusLohko.innerHTML = "[VIRHE]: Selaimesi ei tue paikallista muistia.";
+            var analyysi = kerrat <= 3 ? "Järjestelmää testataan." : (kerrat <= 10 ? "Aktiivinen bittilogiikka puree arkeen." : "ICT-tason pääkäyttäjä havaittu.");
+            statusLohko.innerHTML = "[MIND-DATA]: Vierailut selaimesi muistissa: <strong>" + kerrat + "</strong> kpl.<br>[STATUS]: " + analyysi;
         }
     }
 
-    // Kuvastion tekstin kopiointitoiminto
-    function kopioiPrompt() {
-        var teksti = document.getElementById('promptText').innerText.trim();
-        navigator.clipboard.writeText(teksti).then(function() {
-            alert("Ohje kopioitu leikepöydälle! Voit nyt ladata kuvasi avautuvaan Geminiin ja painaa siellä Ctrl + V.");
-        }, function() {
-            alert("Kopiointi epäonnistui automaattisesti. Voit maalata ja kopioida tekstin käsin laatikosta.");
-        });
-    }
-
-    // Tilanne-soundtrackin generointimoottori
     function generoiSoundtrack() {
         var syote = document.getElementById('musicIn').value.toLowerCase().trim();
         var lohko = document.getElementById('musicAnalysis');
-        
-        if (syote.length === 0) {
-            alert("Kirjoita kenttään ensin jotain (esim. stressi tai auto)!");
-            return;
-        }
+        if (syote.length === 0) { alert("Kirjoita kenttään jotain!"); return; }
 
         var genre = "Puhdas suomirock";
-        var kuvaus = "Rujo ja rehellinen soundi miehen nostamiseen suosta. Ei turhaa hienostelua.";
+        var kuvaus = "Rehellinen soundi miehen nostamiseen suosta.";
         var haku = "äijärock suomi classics";
 
-        if (syote.includes('stressi') || syote.includes('pääsykoe') || syote.includes('fokus')) {
+        if (syote.includes('stressi') || syote.includes('fokus')) {
             genre = "Kylmä mekaaninen konetekno / Synthwave";
-            kuvaus = "Sähköistä biittiä, joka laittaa aivot fokukseen ja estää dopamiinihukan.";
+            kuvaus = "Sähköistä biittiä, joka laittaa aivot fokukseen.";
             haku = "cyberpunk synthwave focus beats";
         } else if (syote.includes('kone') || syote.includes('koodi') || syote.includes('konehuone')) {
             genre = "Amiga Chiptune & Demoscene";
-            kuvaus = "Puhdasta 8-bittistä mekaanista musaa ICT-miehen pitkiin eräajoihin.";
+            kuvaus = "8-bittistä mekaanista musaa pitkiin eräajoihin.";
             haku = "amiga 500 chiptunes demoscene";
-        } else if (syote.includes('auto') || syote.includes('remontti') || syote.includes('leaf')) {
+        } else if (syote.includes('auto') || syote.includes('remontti')) {
             genre = "Autotallirock & Heavy Metal";
-            kuvaus = "Raskasta rautaa ja särökitaroita. Täydellinen taajuus mutterien vääntämiseen.";
+            kuvaus = "Täydellinen taajuus mutterien vääntämiseen.";
             haku = "80s heavy metal driving hits";
-        } else if (syote.includes('väsy') || syote.includes('yö') || syote.includes('lepo')) {
+        } else if (syote.includes('väsy') || syote.includes('lepo')) {
             genre = "Ambient / Dark Jazz";
-            kuvaus = "Matala taajuus kierrosten laskemiseen. Poistaa turhan taustakohinan.";
+            kuvaus = "Matala taajuus kierrosten laskemiseen.";
             haku = "dark jazz ambient lofi slow";
         }
 
         var ytLinkki = "https://www.youtube.com/results?search_query=" + encodeURIComponent(haku);
-        
-        lohko.innerHTML = "[MIND-ANALYYSI]: Tilanne vaatii tietyn taajuuden.<br>" +
-                          "[SUOSITUS]: <strong>" + genre + "</strong><br>" +
-                          "[PERUSTELU]: " + kuvaus + "<br><br>" +
-                          "<a href='" + ytLinkki + "' target='_blank' class='music-link'>▶️ Avaa tilanne-soundtrack YouTubessa</a>";
-        
+        lohko.innerHTML = "<strong>" + genre + "</strong><br>" + kuvaus + "<br>" +
+                          "<a href='" + ytLinkki + "' target='_blank' class='music-link'>▶️ Avaa YouTubessa</a>";
         lohko.style.display = "block";
     }
-
-    // Teeman vaihto
-    function asetaMoodi(moodi) {
-        var body = document.body;
-        var btnDynamic = document.getElementById('btn-dynamic');
-        var btnClassic = document.getElementById('btn-classic');
-
-        if (moodi === 'classic') {
-            body.classList.add('classic-mode');
-            btnClassic.classList.add('active');
-            btnDynamic.classList.remove('active');
-        } else {
-            body.classList.remove('classic-mode');
-            btnDynamic.classList.add('active');
-            btnClassic.classList.remove('active');
-        }
-    }
-
-    // Toiminto, joka vaihtaa näkymän valinnan perusteella
-    function suodataLogiikanMukaan() {
-        var valinta = document.getElementById('logiikkavalinta').value;
-        if (valinta === 'classic') {
-            asetaMoodi('classic');
-        } else if (valinta === 'dynamic') {
-            asetaMoodi('dynamic');
-        }
-    }
-
-    // Avaa/sulkee neljän kortin vastaukset
-    function runDemo(id) {
-        var resBox = document.getElementById('res-' + id);
-        resBox.style.display = (resBox.style.display === 'block') ? 'none' : 'block';
-    }
-
-    // Tekstihaku
-    document.getElementById('mindSearch').addEventListener('input', function(e) {
-        var filter = e.target.value.toLowerCase();
-        var cards = document.getElementsByClassName('demo-card');
-        for (var i = 0; i < cards.length; i++) {
-            var tags = cards[i].getAttribute('data-tags');
-            if (tags && tags.toLowerCase().indexOf(filter) > -1) {
-                cards[i].style.display = "";
-            } else if (tags) {
-                cards[i].style.display = "none";
-            }
-        }
-    });
 
     function analysoiLennosta() {
         var teksti = document.getElementById('userIn').value;
         var lohko = document.getElementById('liveAnalysis');
-        if (teksti.length === 0) {
-            lohko.innerHTML = "[MIND-ODOTUSTILA]: Kirjoita jotain yläpuolelle...";
-            return;
-        }
-        lohko.style.color = "var(--brand-yellow)";
+        if (teksti.length === 0) { lohko.innerHTML = "Odotetaan syötettä..."; return; }
         if (teksti.toLowerCase().includes('puhelin')) {
-            lohko.innerHTML = "[MIND-ANALYYSI]: Jos vanha puhelin toimii, älä koske siihen. Säästä rahat.";
+            lohko.innerHTML = "[MIND]: Jos vanha luuri toimii, älä osta uutta. Säästä rahat.";
+            lohko.style.color = "var(--brand-yellow)";
         } else {
-            lohko.innerHTML = "[MIND-LIVE-STATUS]: Luetaan syötettä... Mieli analysoi.";
+            lohko.innerHTML = "[LIVE]: Luetaan syötettä lennosta...";
+            lohko.style.color = "#798291";
         }
     }
 
-    function vaihdaKieli(kieli) {
-        if (kieli === 'EN') {
-            document.getElementById('txt-tagline').innerText = "A modern interface for common sense.";
-            document.getElementById('lbl-logic').innerText = "Select MIND filtering level:";
-        } else {
-            document.getElementById('txt-tagline').innerText = "Uuden ajan käyttöliittymä terveeseen järkeen.";
-            document.getElementById('lbl-logic').innerText = "Valitse MIND-suodatuksen taso:";
+    // Yksinkertainen hakutoiminto korttien sisällön korostamiseen
+    function synkronoiHaku(val) {
+        var filter = val.toLowerCase();
+        var buttons = document.getElementsByClassName('mind-btn');
+        for (var i = 0; i < buttons.length; i++) {
+            if (buttons[i].innerText.toLowerCase().indexOf(filter) > -1) {
+                buttons[i].style.opacity = "1";
+            } else if (filter.length > 0) {
+                buttons[i].style.opacity = "0.4";
+            } else {
+                buttons[i].style.opacity = "1";
+            }
         }
     }
 </script>
