@@ -286,7 +286,7 @@
             <div>
                 <div class="card-icon">🚗</div>
                 <h3>Tekniikka: Sähköauton akku</h3>
-                <p>Miten lasketaan 2016-mallisen Nissan Leafin akun todellinen kunto (SOH 70%) ja toimintasäde talvipakkasella?</p>
+                <p>Miten lasketaan 2016-mallisen Nissan Leafin akun todellinen kunto (SOH 70%) and toimintasäde talvipakkasella?</p>
             </div>
             <div>
                 <button class="mind-btn" onclick="runDemo('auto')">Laske analyysi</button>
@@ -326,6 +326,19 @@
 
     </div>
 
+    <div class="demo-card" style="border-color: var(--brand-yellow); margin-top: 30px;" data-tags="laskuri logiikka koodi localstorage classic dynamic">
+        <div>
+            <div class="card-icon">📊</div>
+            <h3>MIND - Paikallinen kävijämittari</h3>
+            <p>Tämä lohko lukee selaimesi paikallisen muistikannan lennosta ilman ulkopuolisia välikäsiä.</p>
+        </div>
+        <div>
+            <div id="laskuriStatus" class="result-box" style="display: block; background: #222; margin-bottom: 0;">
+                [LASKURI]: Haetaan dataa muistista...
+            </div>
+        </div>
+    </div>
+
     <div class="demo-card" style="border-color: var(--brand-yellow); margin-top: 30px;">
         <h3>MIND - Testipenkki</h3>
         <form name="mind-palaute" onsubmit="event.preventDefault(); document.getElementById('liveAnalysis').innerHTML = '[MIND-KLIKKAUS]: Konehuone käsitteli tiedon paikallisesti. Ei turhia ulkopuolisia serverikutsuja.';">
@@ -345,6 +358,37 @@
 </div>
 
 <script>
+    // Ajetaan heti kun sivu latautuu
+    window.onload = function() {
+        paivitaLaskuri();
+    };
+
+    // Paikallisen laskurin logiikka (localStorage)
+    function paivitaLaskuri() {
+        var statusLohko = document.getElementById('laskuriStatus');
+        if (typeof(Storage) !== "undefined") {
+            if (localStorage.visitCount) {
+                localStorage.visitCount = Number(localStorage.visitCount) + 1;
+            } else {
+                localStorage.visitCount = 1;
+            }
+            
+            var kerrat = localStorage.visitCount;
+            var analyysi = "";
+            if (kerrat <= 3) {
+                analyysi = "Uusi tuttavuus. Järjestelmää testataan.";
+            } else if (kerrat <= 10) {
+                analyysi = "Aktiivinen käyttäjä. Bittilogiikka puree arkeen.";
+            } else {
+                analyysi = "ICT-tason pääkäyttäjä havaittu. Koodi on hallussa.";
+            }
+
+            statusLohko.innerHTML = "[MIND-DATA]: Olet vieraillut tällä sivulla <strong>" + kerrat + "</strong> kertaa.<br>[ANALYYSI]: " + analyysi;
+        } else {
+            statusLohko.innerHTML = "[VIRHE]: Selaimesi ei tue paikallista muistia.";
+        }
+    }
+
     // Teeman vaihto
     function asetaMoodi(moodi) {
         var body = document.body;
