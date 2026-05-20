@@ -19,6 +19,8 @@
         body.classic-mode .container { background-color: #fff; border: 2px solid #000; box-shadow: none; }
         body.classic-mode .demo-card { background: #eee; border: 1px solid #ccc; }
         body.classic-mode .logic-selector-zone { background: #ddd; border: 1px solid #bbb; }
+        body.classic-mode h1 { color: #000; }
+        body.classic-mode .demo-card p a { color: #555 !important; }
 
         .container { max-width: 800px; width: 100%; border: 1px solid var(--brand-border); padding: 30px; background-color: var(--brand-gray); box-shadow: 0 4px 10px rgba(0,0,0,0.5); border-radius: 8px; transition: 0.3s; }
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; font-size: 13px; color: #888; border-bottom: 1px solid #222; padding-bottom: 10px; }
@@ -30,7 +32,6 @@
         .brand-logo::before, .brand-logo::after { content: ''; position: absolute; background-color: var(--brand-yellow); top: 50%; left: 50%; transform: translate(-50%, -50%); }
         .brand-logo::before { width: 4px; height: 20px; } .brand-logo::after { width: 20px; height: 4px; }
         h1 { color: #fff; font-size: 32px; letter-spacing: 2px; margin: 0; }
-        body.classic-mode h1 { color: #000; }
         .tagline { color: var(--brand-yellow); font-size: 14px; text-transform: uppercase; font-weight: bold; margin: 10px 0 25px 0; border-bottom: 2px solid var(--brand-yellow); padding-bottom: 10px; }
         .logic-selector-zone { background: #222; border: 1px solid var(--brand-border); padding: 15px; margin-bottom: 25px; border-radius: 4px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
         .logic-select { background: var(--brand-dark); color: #fff; border: 1px solid #444; padding: 8px 12px; font-size: 16px; border-radius: 4px; }
@@ -38,6 +39,9 @@
         .demo-card { background: #222; border: 1px solid #333; padding: 20px; border-radius: 6px; }
         .search-box { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; font-size: 16px; margin: 20px 0; box-sizing: border-box; }
         .footer { margin-top: 40px; font-size: 11px; color: #555; text-align: right; }
+        /* Linkkien perusmuotoilu */
+        .demo-card p a { text-decoration: none; color: #aaa; display: block; margin-bottom: 5px; }
+        .demo-card p a:hover { color: var(--brand-yellow); }
     </style>
 </head>
 <body>
@@ -68,15 +72,23 @@
     <div class="demo-grid" id="main-menu">
         <div class="demo-card">
             <h3 id="m1-title">MIND Luovuus & AI</h3>
-            <p id="m1-item">✨ Gemini (AI & Kuvat)</p>
+            <p><a href="https://gemini.google.com" target="_blank">✨ Gemini (AI & Kuvat)</a></p>
         </div>
         <div class="demo-card">
             <h3 id="m2-title">Some & Viihde</h3>
-            <p>📺 YouTube<br>🎵 TikTok<br>📸 Instagram</p>
+            <p>
+                <a href="https://www.youtube.com" target="_blank">📺 YouTube</a>
+                <a href="https://www.tiktok.com" target="_blank">🎵 TikTok</a>
+                <a href="https://www.instagram.com" target="_blank">📸 Instagram</a>
+            </p>
         </div>
         <div class="demo-card">
             <h3 id="m3-title">Arki & Yhteys</h3>
-            <p>🛒 K-Ruoka<br>⚡ Nopeustesti<br>📞 <span id="m3-call">Soita Jyrkille: 040 849 9100</span></p>
+            <p>
+                <a href="https://www.k-ruoka.fi" target="_blank">🛒 K-Ruoka</a>
+                <a href="https://www.speedtest.net" target="_blank">⚡ Nopeustesti</a>
+                <a href="tel:+358408499100" id="m3-call">📞 Soita Jyrkille: 040 849 9100</a>
+            </p>
         </div>
     </div>
 
@@ -104,8 +116,6 @@
         document.getElementById('txt-tagline').innerText = t.tagline;
         document.getElementById('lbl-logic').innerText = t['lbl-logic'];
         document.getElementById('m1-title').innerText = t.m1;
-        document.getElementById('m1-item').innerText = t.m1i;
-        document.getElementById('m2-title').innerText = t.m2;
         document.getElementById('m3-title').innerText = t.m3;
         document.getElementById('m3-call').innerText = t.call;
     }
