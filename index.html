@@ -3,7 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MIND - WHY</title>
+    <title>MIND - WHY | Minimalist Dashboard</title>
+    <meta name="description" content="Minimalist dashboard for ICT professionals. Focus, speed, and essential developer tools in one place.">
+    <meta name="keywords" content="dashboard, productivity, dev-tools, ICT, minimalist, web-dev">
+    <meta name="author" content="Jyrki">
+    <meta property="og:title" content="MIND - WHY">
+    <meta property="og:description" content="Uuden ajan käyttöliittymä terveeseen järkeen.">
+    <meta property="og:type" content="website">
+    <link rel="canonical" href="https://mind-why.com/">
+    
     <style>
         :root {
             --brand-yellow: #f1c40f;
@@ -59,6 +67,15 @@
             <a href="https://gemini.google.com" target="_blank">✨ Gemini (AI & Kuvat)</a>
         </div>
         <div class="demo-card">
+            <h3>Dev Tools</h3>
+            <div style="font-size: 12px; margin-top: 5px;">
+                <input type="text" id="b64Input" placeholder="Base64 encode text..." style="width: 100%; padding: 4px; margin-bottom: 5px; background: #333; border: 1px solid #444; color: #fff;">
+                <button onclick="encodeB64()" style="background: var(--brand-yellow); border: none; padding: 3px 8px; cursor: pointer; font-weight: bold; width: 100%;">Encode to Base64</button>
+                <p id="b64Result" style="margin-top: 5px; color: #aaa; word-break: break-all;"></p>
+                <a href="https://ifconfig.me" target="_blank">🔍 Check My IP</a>
+            </div>
+        </div>
+        <div class="demo-card">
             <h3>Some & Viihde</h3>
             <a href="https://www.youtube.com" target="_blank">📺 YouTube</a>
             <a href="https://www.tiktok.com" target="_blank">🎵 TikTok</a>
@@ -80,6 +97,11 @@
 </div>
 
 <script>
+    function encodeB64() {
+        let text = document.getElementById('b64Input').value;
+        document.getElementById('b64Result').innerText = btoa(text);
+    }
+
     document.getElementById('mindSearch').addEventListener('input', function() {
         let filter = this.value.toLowerCase();
         let cards = document.querySelectorAll('.demo-card');
