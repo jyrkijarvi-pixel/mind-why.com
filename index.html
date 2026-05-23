@@ -48,7 +48,7 @@
         <input type="text" id="mindSearch" class="search-box" placeholder="Suodata kortteja tai kirjoita kysymys...">
         <button onclick="suoritaHaku()" style="padding: 0 20px; background: var(--brand-yellow); border: none; font-weight: bold; cursor: pointer; color: #000;">HAE</button>
     </div>
-    <p id="search-help" style="font-size: 11px; color: #777; margin-bottom: 20px;">* Kirjoita kysymys ja paina HAE-nappia.</p>
+    <p id="search-help" style="font-size: 11px; color: #777; margin-bottom: 20px;">* Kopioi kysymys leikepöydälle ja siirry Geminiin.</p>
 
     <div class="demo-grid" id="main-menu">
         <div class="demo-card">
@@ -86,8 +86,8 @@
 
 <script>
     const translations = {
-        fi: { tagline: "Uuden ajan käyttöliittymä terveeseen järkeen.", luovuus: "MIND Luovuus & AI", devtools: "Dev Tools", viihde: "Some & Viihde", arki: "Arki & Yhteys", search: "Suodata kortteja tai kirjoita kysymys...", help: "* Kirjoita kysymys ja paina HAE-nappia." },
-        en: { tagline: "New age interface for common sense.", luovuus: "MIND Creativity & AI", devtools: "Dev Tools", viihde: "Social & Entertainment", arki: "Daily & Contact", search: "Filter cards or ask a question...", help: "* Write a question and press the SEARCH button." }
+        fi: { tagline: "Uuden ajan käyttöliittymä terveeseen järkeen.", luovuus: "MIND Luovuus & AI", devtools: "Dev Tools", viihde: "Some & Viihde", arki: "Arki & Yhteys", search: "Suodata kortteja tai kirjoita kysymys...", help: "* Kopioi kysymys leikepöydälle ja siirry Geminiin." },
+        en: { tagline: "New age interface for common sense.", luovuus: "MIND Creativity & AI", devtools: "Dev Tools", viihde: "Social & Entertainment", arki: "Daily & Contact", search: "Filter cards or ask a question...", help: "* Copy question to clipboard and go to Gemini." }
     };
 
     function suoritaHaku() {
@@ -95,15 +95,17 @@
         const query = inputField.value;
         if (!query) return;
 
-        inputField.value = 'Ohjataan...';
-        inputField.disabled = true;
+        // Kopioidaan leikepöydälle
+        navigator.clipboard.writeText(query).then(() => {
+            inputField.value = 'Kopioitu! Liitä Geminiin (Ctrl+V)';
+            inputField.disabled = true;
 
-        window.open('https://gemini.google.com/?q=' + encodeURIComponent(query + ' (Vastaa ytimekkäästi, ei mainoksia tai turhaa höpinää)'), '_blank');
-        
-        setTimeout(() => { 
-            inputField.value = ''; 
-            inputField.disabled = false; 
-        }, 1000);
+            setTimeout(() => {
+                window.open('https://gemini.google.com/', '_blank');
+                inputField.value = '';
+                inputField.disabled = false;
+            }, 1000);
+        });
     }
 
     document.getElementById('mindSearch').addEventListener('keypress', function (e) {
