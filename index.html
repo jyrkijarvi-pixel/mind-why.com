@@ -86,6 +86,15 @@
         en: { tagline: "New age interface for common sense.", luovuus: "MIND Creativity & AI", devtools: "Dev Tools", viihde: "Social & Entertainment", arki: "Daily & Contact", search: "Filter cards or ask a question..." }
     };
 
+    // Uusi toiminto: Enter-painallus hakukentässä
+    document.getElementById('mindSearch').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            const query = this.value;
+            // Ohjataan Geminiin suodattavalla ohjeella
+            window.open('https://gemini.google.com/?q=' + encodeURIComponent(query + ' (Vastaa ytimekkäästi, ei mainoksia tai turhaa höpinää)'), '_blank');
+        }
+    });
+
     function setLang(lang) {
         document.getElementById('btn-fi').classList.toggle('active', lang === 'fi');
         document.getElementById('btn-en').classList.toggle('active', lang === 'en');
