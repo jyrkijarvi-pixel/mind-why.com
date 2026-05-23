@@ -44,11 +44,13 @@
     <div class="brand-header"><div class="brand-logo"></div><h1>ELDERMIND</h1></div>
     <div class="tagline" id="tagline">Uuden ajan käyttöliittymä terveeseen järkeen.</div>
 
-    <div style="display: flex; gap: 10px; margin: 20px 0 5px 0;">
+    <div style="display: flex; gap: 10px; margin: 20px 0 5px 0; align-items: center;">
         <input type="text" id="mindSearch" class="search-box" placeholder="Suodata kortteja tai kirjoita kysymys...">
-        <button onclick="suoritaHaku()" style="padding: 0 20px; background: var(--brand-yellow); border: none; font-weight: bold; cursor: pointer; color: #000;">HAE</button>
+        <button id="search-btn" onclick="suoritaHaku()" style="padding: 12px 20px; background: var(--brand-yellow); border: none; font-weight: bold; cursor: pointer; color: #000; min-width: 120px;">HAE</button>
     </div>
-    <p id="search-help" style="font-size: 11px; color: #777; margin-bottom: 20px;">* Kopioi kysymys leikepöydälle ja siirry Geminiin.</p>
+    <p id="search-help" style="font-size: 12px; color: #aaa; margin-bottom: 20px;">
+        Ohje: Paina HAE -> Teksti kopioituu -> Gemini aukeaa -> Liitä (Ctrl+V) ja Enter.
+    </p>
 
     <div class="demo-grid" id="main-menu">
         <div class="demo-card">
@@ -86,25 +88,26 @@
 
 <script>
     const translations = {
-        fi: { tagline: "Uuden ajan käyttöliittymä terveeseen järkeen.", luovuus: "MIND Luovuus & AI", devtools: "Dev Tools", viihde: "Some & Viihde", arki: "Arki & Yhteys", search: "Suodata kortteja tai kirjoita kysymys...", help: "* Kopioi kysymys leikepöydälle ja siirry Geminiin." },
-        en: { tagline: "New age interface for common sense.", luovuus: "MIND Creativity & AI", devtools: "Dev Tools", viihde: "Social & Entertainment", arki: "Daily & Contact", search: "Filter cards or ask a question...", help: "* Copy question to clipboard and go to Gemini." }
+        fi: { tagline: "Uuden ajan käyttöliittymä terveeseen järkeen.", luovuus: "MIND Luovuus & AI", devtools: "Dev Tools", viihde: "Some & Viihde", arki: "Arki & Yhteys", search: "Suodata kortteja tai kirjoita kysymys...", help: "Ohje: Paina HAE -> Teksti kopioituu -> Gemini aukeaa -> Liitä (Ctrl+V) ja Enter." },
+        en: { tagline: "New age interface for common sense.", luovuus: "MIND Creativity & AI", devtools: "Dev Tools", viihde: "Social & Entertainment", arki: "Daily & Contact", search: "Filter cards or ask a question...", help: "Instruction: Press SEARCH -> Text copied -> Gemini opens -> Paste (Ctrl+V) and Enter." }
     };
 
     function suoritaHaku() {
         const inputField = document.getElementById('mindSearch');
+        const btn = document.getElementById('search-btn');
         const query = inputField.value;
         if (!query) return;
 
-        // Kopioidaan leikepöydälle
         navigator.clipboard.writeText(query).then(() => {
-            inputField.value = 'Kopioitu! Liitä Geminiin (Ctrl+V)';
-            inputField.disabled = true;
-
+            btn.innerText = 'KOPIOITU!';
+            btn.style.background = '#27ae60';
+            
             setTimeout(() => {
                 window.open('https://gemini.google.com/', '_blank');
+                btn.innerText = 'HAE';
+                btn.style.background = 'var(--brand-yellow)';
                 inputField.value = '';
-                inputField.disabled = false;
-            }, 1000);
+            }, 800);
         });
     }
 
