@@ -20,7 +20,7 @@
         .tagline { color: var(--brand-yellow); font-size: 14px; text-transform: uppercase; font-weight: bold; margin: 10px 0 25px 0; border-bottom: 2px solid var(--brand-yellow); padding-bottom: 10px; }
         .demo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px; }
         .demo-card { background: #222; border: 1px solid #333; padding: 20px; border-radius: 6px; }
-        .search-box { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; font-size: 16px; margin: 20px 0; box-sizing: border-box; }
+        .search-box { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; font-size: 16px; margin: 20px 0 5px 0; box-sizing: border-box; }
         .demo-card a { color: var(--brand-yellow); text-decoration: none; display: block; margin-top: 5px; font-weight: bold; }
         .footer { margin-top: 40px; font-size: 11px; color: #555; text-align: right; border-top: 1px solid #333; padding-top: 10px; }
         .support-link { color: #777; text-decoration: none; margin-left: 10px; }
@@ -45,6 +45,7 @@
     <div class="tagline" id="tagline">Uuden ajan käyttöliittymä terveeseen järkeen.</div>
 
     <input type="text" id="mindSearch" class="search-box" placeholder="Suodata kortteja tai kirjoita kysymys...">
+    <p id="search-help" style="font-size: 11px; color: #777; margin-bottom: 20px;">* Paina Enter: Siirrytään Gemini AI -tuloksiin.</p>
 
     <div class="demo-grid" id="main-menu">
         <div class="demo-card">
@@ -82,16 +83,18 @@
 
 <script>
     const translations = {
-        fi: { tagline: "Uuden ajan käyttöliittymä terveeseen järkeen.", luovuus: "MIND Luovuus & AI", devtools: "Dev Tools", viihde: "Some & Viihde", arki: "Arki & Yhteys", search: "Suodata kortteja tai kirjoita kysymys..." },
-        en: { tagline: "New age interface for common sense.", luovuus: "MIND Creativity & AI", devtools: "Dev Tools", viihde: "Social & Entertainment", arki: "Daily & Contact", search: "Filter cards or ask a question..." }
+        fi: { tagline: "Uuden ajan käyttöliittymä terveeseen järkeen.", luovuus: "MIND Luovuus & AI", devtools: "Dev Tools", viihde: "Some & Viihde", arki: "Arki & Yhteys", search: "Suodata kortteja tai kirjoita kysymys...", help: "* Paina Enter: Siirrytään Gemini AI -tuloksiin." },
+        en: { tagline: "New age interface for common sense.", luovuus: "MIND Creativity & AI", devtools: "Dev Tools", viihde: "Social & Entertainment", arki: "Daily & Contact", search: "Filter cards or ask a question...", help: "* Press Enter: Proceed to Gemini AI results." }
     };
 
-    // Uusi toiminto: Enter-painallus hakukentässä
     document.getElementById('mindSearch').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             const query = this.value;
-            // Ohjataan Geminiin suodattavalla ohjeella
+            if (!query) return;
+            this.value = 'Ohjataan Geminin käyttöliittymään...';
+            this.disabled = true;
             window.open('https://gemini.google.com/?q=' + encodeURIComponent(query + ' (Vastaa ytimekkäästi, ei mainoksia tai turhaa höpinää)'), '_blank');
+            setTimeout(() => { this.value = ''; this.disabled = false; }, 2000);
         }
     });
 
@@ -100,6 +103,7 @@
         document.getElementById('btn-en').classList.toggle('active', lang === 'en');
         document.getElementById('tagline').innerText = translations[lang].tagline;
         document.getElementById('mindSearch').placeholder = translations[lang].search;
+        document.getElementById('search-help').innerText = translations[lang].help;
         document.querySelectorAll('[data-i18n]').forEach(el => el.innerText = translations[lang][el.dataset.i18n]);
     }
 
