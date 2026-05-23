@@ -91,10 +91,17 @@
         if (e.key === 'Enter') {
             const query = this.value;
             if (!query) return;
+
+            // Ilmoitetaan prosessista
             this.value = 'Ohjataan Geminin käyttöliittymään...';
             this.disabled = true;
-            window.open('https://gemini.google.com/?q=' + encodeURIComponent(query + ' (Vastaa ytimekkäästi, ei mainoksia tai turhaa höpinää)'), '_blank');
-            setTimeout(() => { this.value = ''; this.disabled = false; }, 2000);
+
+            // 500ms viive estää selaimen "blanko-ohjaus" -häiriön
+            setTimeout(() => {
+                window.open('https://gemini.google.com/?q=' + encodeURIComponent(query + ' (Vastaa ytimekkäästi, ei mainoksia tai turhaa höpinää)'), '_blank');
+                this.value = '';
+                this.disabled = false;
+            }, 500);
         }
     });
 
