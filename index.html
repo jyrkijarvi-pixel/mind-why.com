@@ -39,7 +39,7 @@
         </div>
     </div>
 
-    <div class="brand-header"><div class="brand-logo"></div><h1 id="title">ELDERMIND</h1></div>
+    <div class="brand-header"><div class="brand-logo"></div><h1>ELDERMIND</h1></div>
     <div class="tagline" id="tagline">Uuden ajan käyttöliittymä terveeseen järkeen.</div>
 
     <input type="text" id="mindSearch" class="search-box" placeholder="Suodata kortteja tai kirjoita kysymys...">
@@ -58,12 +58,15 @@
         </div>
         <div class="demo-card">
             <h3 data-i18n="viihde">Some & Viihde</h3>
-            <a href="https://www.youtube.com">📺 YouTube</a>
-            <a href="https://www.tiktok.com">🎵 TikTok</a>
+            <a href="https://www.youtube.com" target="_blank">📺 YouTube</a>
+            <a href="https://www.tiktok.com" target="_blank">🎵 TikTok</a>
+            <a href="https://www.instagram.com" target="_blank">📸 Instagram</a>
+            <a href="https://www.facebook.com" target="_blank">📘 Facebook</a>
         </div>
         <div class="demo-card">
             <h3 data-i18n="arki">Arki & Yhteys</h3>
-            <a href="https://www.k-ruoka.fi">🛒 K-Ruoka</a>
+            <a href="https://www.k-ruoka.fi" target="_blank">🛒 K-Ruoka</a>
+            <a href="https://www.speedtest.net" target="_blank">⚡ Nopeustesti</a>
             <a href="tel:+358408499100">📞 040 849 9100</a>
         </div>
     </div>
@@ -84,7 +87,6 @@
     }
 
     function encodeB64() { document.getElementById('b64Result').innerText = btoa(document.getElementById('b64Input').value); }
-
     function asetaMoodi(m) { document.body.classList.toggle('classic-mode', m === 'classic'); document.getElementById('btn-dynamic').classList.toggle('active', m === 'dynamic'); document.getElementById('btn-classic').classList.toggle('active', m === 'classic'); }
 </script>
 </body>
