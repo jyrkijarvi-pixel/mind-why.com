@@ -20,7 +20,7 @@
         .tagline { color: var(--brand-yellow); font-size: 14px; text-transform: uppercase; font-weight: bold; margin: 10px 0 25px 0; border-bottom: 2px solid var(--brand-yellow); padding-bottom: 10px; }
         .demo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px; }
         .demo-card { background: #222; border: 1px solid #333; padding: 20px; border-radius: 6px; }
-        .search-box { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; font-size: 16px; margin: 20px 0 5px 0; box-sizing: border-box; }
+        .search-box { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; font-size: 16px; margin: 0; box-sizing: border-box; }
         .demo-card a { color: var(--brand-yellow); text-decoration: none; display: block; margin-top: 5px; font-weight: bold; }
         .footer { margin-top: 40px; font-size: 11px; color: #555; text-align: right; border-top: 1px solid #333; padding-top: 10px; }
         .support-link { color: #777; text-decoration: none; margin-left: 10px; }
@@ -44,8 +44,11 @@
     <div class="brand-header"><div class="brand-logo"></div><h1>ELDERMIND</h1></div>
     <div class="tagline" id="tagline">Uuden ajan käyttöliittymä terveeseen järkeen.</div>
 
-    <input type="text" id="mindSearch" class="search-box" placeholder="Suodata kortteja tai kirjoita kysymys...">
-    <p id="search-help" style="font-size: 11px; color: #777; margin-bottom: 20px;">* Paina Enter: Siirrytään Gemini AI -tuloksiin.</p>
+    <div style="display: flex; gap: 10px; margin: 20px 0 5px 0;">
+        <input type="text" id="mindSearch" class="search-box" placeholder="Suodata kortteja tai kirjoita kysymys...">
+        <button onclick="suoritaHaku()" style="padding: 0 20px; background: var(--brand-yellow); border: none; font-weight: bold; cursor: pointer; color: #000;">HAE</button>
+    </div>
+    <p id="search-help" style="font-size: 11px; color: #777; margin-bottom: 20px;">* Kirjoita kysymys ja paina HAE-nappia.</p>
 
     <div class="demo-grid" id="main-menu">
         <div class="demo-card">
@@ -83,26 +86,28 @@
 
 <script>
     const translations = {
-        fi: { tagline: "Uuden ajan käyttöliittymä terveeseen järkeen.", luovuus: "MIND Luovuus & AI", devtools: "Dev Tools", viihde: "Some & Viihde", arki: "Arki & Yhteys", search: "Suodata kortteja tai kirjoita kysymys...", help: "* Paina Enter: Siirrytään Gemini AI -tuloksiin." },
-        en: { tagline: "New age interface for common sense.", luovuus: "MIND Creativity & AI", devtools: "Dev Tools", viihde: "Social & Entertainment", arki: "Daily & Contact", search: "Filter cards or ask a question...", help: "* Press Enter: Proceed to Gemini AI results." }
+        fi: { tagline: "Uuden ajan käyttöliittymä terveeseen järkeen.", luovuus: "MIND Luovuus & AI", devtools: "Dev Tools", viihde: "Some & Viihde", arki: "Arki & Yhteys", search: "Suodata kortteja tai kirjoita kysymys...", help: "* Kirjoita kysymys ja paina HAE-nappia." },
+        en: { tagline: "New age interface for common sense.", luovuus: "MIND Creativity & AI", devtools: "Dev Tools", viihde: "Social & Entertainment", arki: "Daily & Contact", search: "Filter cards or ask a question...", help: "* Write a question and press the SEARCH button." }
     };
 
+    function suoritaHaku() {
+        const inputField = document.getElementById('mindSearch');
+        const query = inputField.value;
+        if (!query) return;
+
+        inputField.value = 'Ohjataan...';
+        inputField.disabled = true;
+
+        window.open('https://gemini.google.com/?q=' + encodeURIComponent(query + ' (Vastaa ytimekkäästi, ei mainoksia tai turhaa höpinää)'), '_blank');
+        
+        setTimeout(() => { 
+            inputField.value = ''; 
+            inputField.disabled = false; 
+        }, 1000);
+    }
+
     document.getElementById('mindSearch').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            const query = this.value;
-            if (!query) return;
-
-            // Ilmoitetaan prosessista
-            this.value = 'Ohjataan Geminin käyttöliittymään...';
-            this.disabled = true;
-
-            // 500ms viive estää selaimen "blanko-ohjaus" -häiriön
-            setTimeout(() => {
-                window.open('https://gemini.google.com/?q=' + encodeURIComponent(query + ' (Vastaa ytimekkäästi, ei mainoksia tai turhaa höpinää)'), '_blank');
-                this.value = '';
-                this.disabled = false;
-            }, 500);
-        }
+        if (e.key === 'Enter') suoritaHaku();
     });
 
     function setLang(lang) {
