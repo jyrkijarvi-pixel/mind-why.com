@@ -1,26 +1,26 @@
 export default async function handler(req, res) {
-  // Sallitaan vain POST-pyynnöt
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: "Vain POST-pyynnöt sallittu" });
+  // Turvatarkistus: Vain oma sivustosi saa käyttää tätä
+  const referer = req.headers.referer;
+  if (!referer || !referer.includes("mind-why.com")) {
+    return res.status(403).json({ error: "Access denied" });
   }
 
+  if (req.method !== 'POST') return res.status(405).end();
   const { query } = req.body;
 
   try {
-    // Tavily API -kutsu
     const response = await fetch("https://api.tavily.com/search", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        api_key: process.env.TAVILY_API_KEY, // Tämä hakee sen salaisen avaimen Vercelistä
+        api_key: process.env.TAVILY_API_KEY,
         query: query,
         search_depth: "basic"
       }),
     });
-
     const data = await response.json();
     res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({ error: "Haku epäonnistui palvelimella" });
+    res.status(500).json({ error: "Virhe haussa" });
   }
 }
