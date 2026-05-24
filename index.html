@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ELDERMIND | Dashboard</title>
+    <title>ELDERMIND | Master Dashboard</title>
     <style>
         :root { --brand-yellow: #f1c40f; --brand-dark: #121212; --brand-gray: #1a1a1a; --brand-border: #333; --text-light: #e0e0e0; }
         body { background-color: var(--brand-dark); color: var(--text-light); font-family: Arial, sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; transition: 0.3s; }
@@ -22,7 +22,7 @@
         .demo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px; }
         .demo-card { background: #222; border: 1px solid #333; padding: 20px; border-radius: 6px; }
         .demo-card a { color: var(--brand-yellow); text-decoration: none; display: block; margin-top: 5px; font-weight: bold; }
-        .footer { margin-top: 40px; font-size: 11px; color: #555; text-align: right; border-top: 1px solid #333; padding-top: 10px; }
+        .footer { margin-top: 40px; font-size: 11px; color: #555; text-align: center; border-top: 1px solid #333; padding-top: 10px; }
     </style>
 </head>
 <body>
@@ -41,41 +41,49 @@
     <div class="brand-header"><div class="brand-logo"></div><h1>ELDERMIND</h1></div>
     
     <input type="text" id="mindSearch" class="search-box" placeholder="Kysy jotain...">
-    <button class="action-btn" onclick="ohjaaGeminiin()">HAE GEMINISTÄ</button>
+    <button class="action-btn" id="searchBtn" onclick="ohjaaGeminiin()" data-i18n="searchBtn">HAE GEMINISTÄ</button>
 
     <div class="demo-grid">
         <div class="demo-card">
-            <h3>Luovuus & AI</h3>
+            <h3 data-i18n="luovuus">MIND Luovuus & AI</h3>
             <a href="https://gemini.google.com" target="_blank">✨ Gemini (AI & Kuvat)</a>
         </div>
         <div class="demo-card">
-            <h3>Dev Tools</h3>
+            <h3 data-i18n="devtools">Dev Tools</h3>
             <input type="text" id="b64Input" placeholder="Base64 encode..." style="width: 100%; padding: 4px; background: #333; border: 1px solid #444; color: #fff;">
             <button onclick="encodeB64()" style="width: 100%; padding: 3px; background: var(--brand-yellow); border: none; font-weight: bold; cursor:pointer;">Encode</button>
             <p id="b64Result" style="color: #aaa; word-break: break-all; font-size: 12px;"></p>
             <a href="https://ifconfig.me" target="_blank">🔍 Check My IP</a>
         </div>
         <div class="demo-card">
-            <h3>Some & Viihde</h3>
+            <h3 data-i18n="some">Some & Viihde</h3>
             <a href="https://www.youtube.com" target="_blank">📺 YouTube</a>
             <a href="https://www.tiktok.com" target="_blank">🎵 TikTok</a>
             <a href="https://www.instagram.com" target="_blank">📸 Instagram</a>
             <a href="https://www.facebook.com" target="_blank">📘 Facebook</a>
         </div>
         <div class="demo-card">
-            <h3>Arki & Yhteys</h3>
+            <h3 data-i18n="arki">Arki & Yhteys</h3>
             <a href="https://www.k-ruoka.fi" target="_blank">🛒 K-Ruoka</a>
             <a href="https://www.speedtest.net" target="_blank">⚡ Nopeustesti</a>
             <a href="tel:+358408499100">📞 040 849 9100</a>
         </div>
     </div>
+    
     <div class="footer">
+        <a href="https://hits.seeyouforme.com"><img src="https://hits.seeyouforme.com/api/count/incr/badge.svg?url=https%3A%2F%2Fmind-why.com&count_bg=%23F1C40F&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=false"/></a>
+        <br><br>
         © 2026 mind-why.com | Powered by ICT Logic
         <br><a href="https://paypal.me/JyrkiAntero" target="_blank" style="color: #777;">Support via PayPal</a>
     </div>
 </div>
 
 <script>
+    const langData = {
+        fi: { luovuus: "MIND Luovuus & AI", devtools: "Dev Tools", some: "Some & Viihde", arki: "Arki & Yhteys", search: "Kysy jotain...", searchBtn: "HAE GEMINISTÄ" },
+        en: { luovuus: "MIND Creativity & AI", devtools: "Dev Tools", some: "Social & Entertainment", arki: "Daily & Contact", search: "Ask something...", searchBtn: "SEARCH GEMINI" }
+    };
+
     function ohjaaGeminiin() {
         const query = document.getElementById('mindSearch').value;
         if (!query) return;
@@ -90,6 +98,10 @@
     function setLang(lang) {
         document.getElementById('btn-fi').classList.toggle('active', lang === 'fi');
         document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            el.innerText = langData[lang][el.getAttribute('data-i18n')];
+        });
+        document.getElementById('mindSearch').placeholder = langData[lang].search;
     }
 </script>
 </body>
