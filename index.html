@@ -1,28 +1,60 @@
 <!DOCTYPE html>
-<html lang="fi">
+<html lang="fi" id="html-root">
 <head>
     <meta charset="UTF-8">
-    <title>ELDERMIND | Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELDERMIND | Minimalist Dashboard</title>
     <style>
-        body { background-color: #121212; color: #e0e0e0; font-family: Arial; padding: 20px; }
-        .container { max-width: 800px; margin: auto; }
-        .search-box { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; }
-        button { padding: 10px 20px; margin-top: 10px; cursor: pointer; background: #f1c40f; border: none; font-weight: bold; }
+        :root { --brand-yellow: #f1c40f; --brand-dark: #121212; --brand-gray: #1a1a1a; --brand-border: #333; --text-light: #e0e0e0; }
+        body { background-color: var(--brand-dark); color: var(--text-light); font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
+        .container { max-width: 800px; width: 100%; border: 1px solid var(--brand-border); padding: 30px; background-color: var(--brand-gray); border-radius: 8px; }
+        .brand-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+        .brand-logo { width: 35px; height: 35px; border: 3px solid var(--brand-yellow); border-radius: 50%; position: relative; }
+        .brand-logo::before { content: ''; position: absolute; width: 4px; height: 20px; background-color: var(--brand-yellow); top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .brand-logo::after { content: ''; position: absolute; width: 20px; height: 4px; background-color: var(--brand-yellow); top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        h1 { color: #fff; font-size: 32px; margin: 0; }
+        .search-box { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; font-size: 16px; margin-bottom: 10px; }
+        button { padding: 12px 20px; background: var(--brand-yellow); border: none; font-weight: bold; cursor: pointer; color: #000; width: 100%; }
+        .demo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 30px; }
+        .demo-card { background: #222; border: 1px solid #333; padding: 15px; border-radius: 6px; }
+        .demo-card a { color: var(--brand-yellow); text-decoration: none; display: block; margin-top: 5px; }
+        .footer { margin-top: 40px; font-size: 11px; color: #555; text-align: right; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>ELDERMIND</h1>
-    <input type="text" id="mindSearch" class="search-box" placeholder="Kysy jotain...">
+    <div class="brand-header"><div class="brand-logo"></div><h1>ELDERMIND</h1></div>
+    
+    <input type="text" id="mindSearch" class="search-box" placeholder="Kirjoita kysymys Geminiin...">
     <button onclick="ohjaaGeminiin()">HAE GEMINISTÄ</button>
+
+    <div class="demo-grid">
+        <div class="demo-card">
+            <h3>Luovuus & AI</h3>
+            <a href="https://gemini.google.com" target="_blank">✨ Gemini</a>
+        </div>
+        <div class="demo-card">
+            <h3>Dev Tools</h3>
+            <a href="https://ifconfig.me" target="_blank">🔍 Check My IP</a>
+        </div>
+        <div class="demo-card">
+            <h3>Some & Viihde</h3>
+            <a href="https://www.youtube.com" target="_blank">📺 YouTube</a>
+            <a href="https://www.tiktok.com" target="_blank">🎵 TikTok</a>
+        </div>
+        <div class="demo-card">
+            <h3>Arki</h3>
+            <a href="https://www.k-ruoka.fi" target="_blank">🛒 K-Ruoka</a>
+            <a href="tel:+358408499100">📞 040 849 9100</a>
+        </div>
+    </div>
+    <div class="footer">© 2026 mind-why.com | Powered by ICT Logic</div>
 </div>
 
 <script>
 function ohjaaGeminiin() {
     const query = document.getElementById('mindSearch').value;
     if (!query) return;
-    
-    // Kopioidaan leikepöydälle, jotta voit vain liittää (Ctrl+V) chattiin
     navigator.clipboard.writeText(query).then(() => {
         window.open('https://gemini.google.com/', '_blank');
     });
