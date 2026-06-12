@@ -49,10 +49,8 @@
             <a href="https://gemini.google.com" target="_blank">✨ Gemini (AI & Kuvat)</a>
         </div>
         <div class="demo-card">
-            <h3 data-i18n="devtools">Dev Tools</h3>
-            <input type="text" id="b64Input" placeholder="Base64 encode..." style="width: 100%; padding: 4px; background: #333; border: 1px solid #444; color: #fff;">
-            <button onclick="encodeB64()" style="width: 100%; padding: 3px; background: var(--brand-yellow); border: none; font-weight: bold; cursor:pointer;">Encode</button>
-            <p id="b64Result" style="color: #aaa; word-break: break-all; font-size: 12px;"></p>
+            <h3 data-i18n="lataus">Liikenne & Lataus</h3>
+            <a href="https://latauskartta.fi" target="_blank">🔋 Latauskartta.fi</a>
             <a href="https://ifconfig.me" target="_blank">🔍 Check My IP</a>
         </div>
         <div class="demo-card">
@@ -66,7 +64,6 @@
             <h3 data-i18n="arki">Arki & Yhteys</h3>
             <a href="https://www.k-ruoka.fi" target="_blank">🛒 K-Ruoka</a>
             <a href="https://www.speedtest.net" target="_blank">⚡ Nopeustesti</a>
-            
         </div>
     </div>
     
@@ -82,16 +79,15 @@
 
 <script>
     const langData = {
-        fi: { luovuus: "MIND Luovuus & AI", devtools: "Dev Tools", some: "Some & Viihde", arki: "Arki & Yhteys", search: "Kysy jotain...", searchBtn: "HAE GEMINISTÄ" },
-        en: { luovuus: "MIND Creativity & AI", devtools: "Dev Tools", some: "Social & Entertainment", arki: "Daily & Contact", search: "Ask something...", searchBtn: "SEARCH GEMINI" }
+        fi: { luovuus: "MIND Luovuus & AI", lataus: "Liikenne & Lataus", some: "Some & Viihde", arki: "Arki & Yhteys", search: "Kysy jotain...", searchBtn: "HAE GEMINISTÄ" },
+        en: { luovuus: "MIND Creativity & AI", lataus: "Traffic & Charging", some: "Social & Entertainment", arki: "Daily & Contact", search: "Ask something...", searchBtn: "SEARCH GEMINI" }
     };
 
     function ohjaaGeminiin() {
         const query = document.getElementById('mindSearch').value;
         if (!query) return;
-        navigator.clipboard.writeText(query).then(() => { window.open('https://gemini.google.com/', '_blank'); });
+        window.open('https://gemini.google.com/app?q=' + encodeURIComponent(query), '_blank');
     }
-    function encodeB64() { document.getElementById('b64Result').innerText = btoa(document.getElementById('b64Input').value); }
     function asetaMoodi(m) { 
         document.body.classList.toggle('classic-mode', m === 'classic'); 
         document.getElementById('btn-dynamic').classList.toggle('active', m === 'dynamic'); 
