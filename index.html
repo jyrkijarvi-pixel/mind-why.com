@@ -1,106 +1,93 @@
 <!DOCTYPE html>
-<html lang="fi" id="html-root">
+<html lang="fi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ELDERMIND | Master Dashboard</title>
+    <title>ELDERMIND | Cyber-Kioski</title>
     <style>
-        :root { --brand-yellow: #f1c40f; --brand-dark: #121212; --brand-gray: #1a1a1a; --brand-border: #333; --text-light: #e0e0e0; }
-        body { background-color: var(--brand-dark); color: var(--text-light); font-family: Arial, sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; transition: 0.3s; }
-        body.classic-mode { background-color: #f4f4f4; color: #333; }
-        .container { max-width: 800px; width: 100%; border: 1px solid var(--brand-border); padding: 30px; background-color: var(--brand-gray); border-radius: 8px; }
-        .top-bar { display: flex; justify-content: space-between; margin-bottom: 25px; font-size: 13px; color: #888; border-bottom: 1px solid #222; padding-bottom: 10px; }
-        button { background: none; border: 1px solid #444; color: #aaa; padding: 5px 10px; cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 11px; margin-left: 5px; }
-        button.active { background: var(--brand-yellow); color: var(--brand-dark); border-color: var(--brand-yellow); }
+        :root { --yellow: #f1c40f; --dark: #0a0a0a; --panel: #1a1a1a; --border: #333; --text: #dcdcdc; }
+        body { background: var(--dark); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .container { max-width: 800px; width: 100%; }
+        
+        /* Glassmorphism Panel */
+        .kiosk { background: rgba(26, 26, 26, 0.8); backdrop-filter: blur(10px); border: 1px solid var(--border); padding: 30px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        
         .brand-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
-        .brand-logo { width: 35px; height: 35px; border: 3px solid var(--brand-yellow); border-radius: 50%; position: relative; }
-        .brand-logo::before, .brand-logo::after { content: ''; position: absolute; background-color: var(--brand-yellow); top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        .brand-logo::before { width: 4px; height: 20px; } .brand-logo::after { width: 20px; height: 4px; }
-        h1 { color: #fff; font-size: 32px; margin: 0; }
-        .search-box { width: 100%; padding: 12px; background: #222; border: 1px solid #444; color: #fff; font-size: 16px; margin-bottom: 10px; box-sizing: border-box; }
-        .action-btn { width: 100%; background: var(--brand-yellow); border: none; padding: 12px; font-weight: bold; cursor: pointer; color: #000; margin-bottom: 20px; }
-        .demo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 20px; }
-        .demo-card { background: #222; border: 1px solid #333; padding: 20px; border-radius: 6px; }
-        .demo-card a { color: var(--brand-yellow); text-decoration: none; display: block; margin-top: 5px; font-weight: bold; }
-        .footer { margin-top: 40px; font-size: 12px; color: #555; text-align: center; border-top: 1px solid #333; padding-top: 20px; }
+        .logo { width: 40px; height: 40px; border: 3px solid var(--yellow); border-radius: 50%; position: relative; }
+        .logo::before, .logo::after { content: ''; position: absolute; background: var(--yellow); top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .logo::before { width: 4px; height: 22px; } .logo::after { width: 22px; height: 4px; }
+        
+        h1 { margin: 0; font-size: 28px; letter-spacing: 1px; }
+        
+        .search-area { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        input { background: #000; border: 1px solid var(--border); padding: 15px; color: #fff; border-radius: 6px; font-size: 16px; }
+        .action-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+        .chip { background: #222; border: 1px solid #444; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        .chip:hover { border-color: var(--yellow); color: var(--yellow); }
+        
+        .action-btn { background: var(--yellow); color: #000; border: none; padding: 15px; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .card { background: #151515; padding: 15px; border-radius: 8px; border: 1px solid #222; }
+        .card h3 { color: var(--yellow); font-size: 14px; margin-bottom: 10px; }
+        .card a { display: block; color: #aaa; text-decoration: none; padding: 4px 0; font-size: 14px; }
+        .card a:hover { color: #fff; }
+        
+        #notesArea { width: 100%; height: 80px; background: #111; border: 1px solid #333; color: #888; padding: 10px; margin-top: 20px; border-radius: 6px; font-size: 13px; resize: none; }
     </style>
 </head>
 <body>
+
 <div class="container">
-    <div class="top-bar">
-        <div>
-            <button id="btn-dynamic" class="active" onclick="asetaMoodi('dynamic')">Dynamic</button>
-            <button id="btn-classic" onclick="asetaMoodi('classic')">Classic</button>
+    <div class="kiosk">
+        <div class="brand-header">
+            <div class="logo"></div>
+            <h1>ELDERMIND</h1>
         </div>
-        <div>
-            <button id="btn-fi" class="active" onclick="setLang('fi')">FI</button>
-            <button id="btn-en" onclick="setLang('en')">EN</button>
-        </div>
-    </div>
 
-    <div class="brand-header"><div class="brand-logo"></div><h1>ELDERMIND</h1></div>
-    
-    <input type="text" id="mindSearch" class="search-box" placeholder="Kysy jotain...">
-    <button class="action-btn" id="searchBtn" onclick="ohjaaGeminiin()" data-i18n="searchBtn">HAE GEMINISTÄ</button>
+        <div class="search-area">
+            <div class="action-chips">
+                <span class="chip" onclick="fill('Selitä teknisesti: ')">Selitä</span>
+                <span class="chip" onclick="fill('Koodaa tämä: ')">Koodaa</span>
+                <span class="chip" onclick="fill('Analysoi tämä: ')">Analysoi</span>
+                <span class="chip" onclick="fill('Luo kuva: ')">Kuvita</span>
+            </div>
+            <input type="text" id="query" placeholder="Kysy Gemini-tekoälyltä...">
+            <button class="action-btn" onclick="go()">HAE GEMINISTÄ</button>
+        </div>
 
-    <div class="demo-grid">
-        <div class="demo-card">
-            <h3 data-i18n="luovuus">MIND Luovuus & AI</h3>
-            <a href="https://gemini.google.com" target="_blank">✨ Gemini (AI & Kuvat)</a>
+        <div class="grid">
+            <div class="card">
+                <h3>LIIKENNE & AI</h3>
+                <a href="https://gemini.google.com" target="_blank">✨ Gemini AI</a>
+                <a href="https://latauskartta.fi" target="_blank">🔋 Latauskartta.fi</a>
+            </div>
+            <div class="card">
+                <h3>TYÖKALUT</h3>
+                <a href="https://speedtest.net" target="_blank">⚡ Nopeustesti</a>
+                <a href="https://ifconfig.me" target="_blank">🌐 IP-osoite</a>
+            </div>
         </div>
-        <div class="demo-card">
-            <h3 data-i18n="lataus">Liikenne & Lataus</h3>
-            <a href="https://latauskartta.fi" target="_blank">🔋 Latauskartta.fi</a>
-            <a href="https://ifconfig.me" target="_blank">🔍 Check My IP</a>
-        </div>
-        <div class="demo-card">
-            <h3 data-i18n="some">Some & Viihde</h3>
-            <a href="https://www.youtube.com" target="_blank">📺 YouTube</a>
-            <a href="https://www.tiktok.com" target="_blank">🎵 TikTok</a>
-            <a href="https://www.instagram.com" target="_blank">📸 Instagram</a>
-            <a href="https://www.facebook.com" target="_blank">📘 Facebook</a>
-        </div>
-        <div class="demo-card">
-            <h3 data-i18n="arki">Arki & Yhteys</h3>
-            <a href="https://www.k-ruoka.fi" target="_blank">🛒 K-Ruoka</a>
-            <a href="https://www.speedtest.net" target="_blank">⚡ Nopeustesti</a>
-        </div>
-    </div>
-    
-    <div class="footer">
-        © 2026 mind-why.com | Powered by ICT Logic
-        <br><a href="https://paypal.me/JyrkiAntero" target="_blank" style="color: #555;">Support via PayPal</a>
-        
-        <div style="margin-top: 30px;">
-            <a href="/rutajarvi-laukeela/" style="color: #1a1a1a; text-decoration: none; font-size: 8px; cursor: default; user-select: none;">Rutajärvi-Laukeela</a>
-        </div>
+
+        <textarea id="notesArea" placeholder="Nopeat muistiinpanot (tallennettu selaimeen)..."></textarea>
     </div>
 </div>
 
 <script>
-    const langData = {
-        fi: { luovuus: "MIND Luovuus & AI", lataus: "Liikenne & Lataus", some: "Some & Viihde", arki: "Arki & Yhteys", search: "Kysy jotain...", searchBtn: "HAE GEMINISTÄ" },
-        en: { luovuus: "MIND Creativity & AI", lataus: "Traffic & Charging", some: "Social & Entertainment", arki: "Daily & Contact", search: "Ask something...", searchBtn: "SEARCH GEMINI" }
-    };
+    // Prompt-toiminto
+    function fill(text) { const q = document.getElementById('query'); q.value = text; q.focus(); }
+    
+    // Haku
+    function go() {
+        const q = document.getElementById('query').value;
+        if (q) window.open('https://gemini.google.com/app?q=' + encodeURIComponent(q), '_blank');
+    }
 
-    function ohjaaGeminiin() {
-        const query = document.getElementById('mindSearch').value;
-        if (!query) return;
-        window.open('https://gemini.google.com/app?q=' + encodeURIComponent(query), '_blank');
-    }
-    function asetaMoodi(m) { 
-        document.body.classList.toggle('classic-mode', m === 'classic'); 
-        document.getElementById('btn-dynamic').classList.toggle('active', m === 'dynamic'); 
-        document.getElementById('btn-classic').classList.toggle('active', m === 'classic'); 
-    }
-    function setLang(lang) {
-        document.getElementById('btn-fi').classList.toggle('active', lang === 'fi');
-        document.getElementById('btn-en').classList.toggle('active', lang === 'en');
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-            el.innerText = langData[lang][el.getAttribute('data-i18n')];
-        });
-        document.getElementById('mindSearch').placeholder = langData[lang].search;
-    }
+    // Selaimen muistio
+    const notes = document.getElementById('notesArea');
+    notes.value = localStorage.getItem('myNotes') || '';
+    notes.addEventListener('input', () => localStorage.setItem('myNotes', notes.value));
 </script>
+
 </body>
 </html>
