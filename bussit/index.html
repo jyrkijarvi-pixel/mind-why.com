@@ -25,16 +25,16 @@
             z-index: 1000;
         }
 
-        .title { font-size: 15px; font-weight: bold; }
+        .title { font-size: 16px; font-weight: bold; }
         .btn-group { display: flex; gap: 8px; }
 
         .btn {
             background: rgba(255, 255, 255, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.4);
             color: white;
-            padding: 8px 12px;
+            padding: 8px 14px;
             border-radius: 6px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: bold;
             text-decoration: none;
             cursor: pointer;
@@ -73,8 +73,8 @@
     <div class="top-bar">
         <div class="title" id="status-text">🚆 JUNALIIKENNE LIVE (Kerava)</div>
         <div class="btn-group">
-            <a href="https://reittiopas.hsl.fi/kartta" target="_blank" class="btn btn-highlight">🚌 HSL Live-kartta ↗</a>
-            <a href="https://reittiopas.hsl.fi/pysakit/HSL:4110201" target="_blank" class="btn">Keravan Pysäkit ↗</a>
+            <a href="https://liikennelive.fi/helsinki" target="_blank" class="btn btn-highlight">🚌 Liikennelive Helsinki ↗</a>
+            <a href="https://reittiopas.hsl.fi/pysakit/HSL:4110201" target="_blank" class="btn">Avaa HSL Kerava ↗</a>
             <a href="https://reittiopas.hsl.fi/" target="_blank" class="btn">HSL Reittiopas ↗</a>
         </div>
     </div>
@@ -89,7 +89,7 @@
         // Alustetaan kartta
         const map = L.map('map').setView([KERAVA_LAT, KERAVA_LON], 11);
 
-        // Ladataan ilmainen OpenStreetMap-karttapohja (HTTPS)
+        // Ladataan ilmainen OpenStreetMap-karttapohja
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap &copy; CARTO',
             maxZoom: 19
