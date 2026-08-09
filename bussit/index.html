@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HSL Live Monitor</title>
+    <title>HSL Live Monitor - Mind-Why</title>
     
     <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -63,14 +63,13 @@
             <div id="timetable" class="timetable">Ladataan aikatauluja...</div>
         </div>
 
-        <div id="status" class="status">Haetaan dataa...</div>
+        <div id="status" class="status">Päivitetään liikennettä...</div>
     </div>
 
     <div id="map"></div>
 
     <script>
         const API_KEY = "bc29d58ca31f4ec5925b577173d17740"; 
-        const PROXY = "https://corsproxy.io/?";
 
         const CITIES = {
             KERAVA: { name: "Kerava", lat: 60.404, lon: 25.101, radius: 8, stopId: "HSL:4110201" },
@@ -117,13 +116,11 @@
             fetchTimetable();
         }
 
-        // Ajoneuvot HSL HFP v2 API:sta CORS-proxyn läpi
+        // HSL HFP v2 API (CORS-vapaa julkinen REST)
         async function fetchLiveVehicles() {
             try {
-                const targetUrl = encodeURIComponent("https://hfp.hsl.fi/v2/journey/live/hsl/");
-                const response = await fetch(PROXY + targetUrl);
-                
-                if (!response.ok) throw new Error("Proxy-virhe");
+                const response = await fetch('https://hfp.hsl.fi/v2/journey/live/hsl/');
+                if (!response.ok) throw new Error("Verkkovirhe");
 
                 const data = await response.json();
                 
@@ -176,11 +173,11 @@
 
                 document.getElementById('status').innerText = `Live | ${currentCity.name}: ${foundCount} ajoneuvoa (${currentCity.radius} km säde)`;
             } catch (err) {
-                document.getElementById('status').innerText = "Yhteysvirhe HSL-rajapintaan.";
+                document.getElementById('status').innerText = "Odotetaan HSL-sijaintidataa...";
             }
         }
 
-        // Digitransit GraphQL Aikatauluhaku (Yksinkertaistettu asemakohtainen haku)
+        // Digitransit GraphQL Aikatauluhaku (URL-parametri-pohjainen GET-pyyntö CORS-ongelmien välttämiseksi)
         async function fetchTimetable() {
             const query = `{
               stop(id: "${currentCity.stopId}") {
@@ -194,14 +191,10 @@
             }`;
 
             try {
-                const targetUrl = encodeURIComponent(`https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=${API_KEY}`);
+                // Lähetetään kysely GET-parametrinä Digitransitille, jolloin selaimen POST/CORS-rajoitukset eivät estä pyyntöä
+                const url = `https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=${API_KEY}&query=${encodeURIComponent(query)}`;
                 
-                const response = await fetch(PROXY + targetUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query })
-                });
-
+                const response = await fetch(url);
                 const result = await response.json();
                 const stoptimes = result.data?.stop?.stoptimesWithoutPatterns || [];
                 const container = document.getElementById('timetable');
@@ -229,7 +222,7 @@
                     `;
                 });
             } catch (err) {
-                document.getElementById('timetable').innerText = "Virhe ladattaessa aikatauluja.";
+                document.getElementById('timetable').innerText = "Aikatauluhaku epäonnistui.";
             }
         }
 
