@@ -3,123 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Joukkoliikenne Live - Mind-Why</title>
+    <title>Joukkoliikenne - Mind-Why</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            font-family: Arial, sans-serif;
-            background-color: #1a1a1a;
-            color: #fff;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { width: 100%; height: 100%; font-family: Arial, sans-serif; background: #121212; color: #fff; overflow: hidden; }
 
-        /* Yläpalkki valinnoille */
         .top-bar {
-            height: 50px;
-            background-color: #007ac9; /* HSL Sininen */
+            height: 60px;
+            background: #007ac9;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 15px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            position: relative;
-            z-index: 10;
+            padding: 0 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
 
-        .title {
-            font-size: 15px;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-        }
+        .title { font-size: 16px; font-weight: bold; }
 
-        .controls {
-            display: flex;
-            gap: 10px;
-        }
+        .btn-group { display: flex; gap: 8px; }
 
-        /* Valintanapit */
         .btn {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.4);
             color: white;
-            padding: 6px 12px;
+            padding: 8px 14px;
             border-radius: 6px;
             font-size: 13px;
             font-weight: bold;
+            text-decoration: none;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: 0.2s;
         }
 
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
+        .btn:hover { background: rgba(255, 255, 255, 0.35); }
 
-        .btn.active {
-            background: #ffffff;
-            color: #007ac9;
-            border-color: #ffffff;
-        }
-
-        /* Iframe-säiliö */
         .iframe-container {
             width: 100%;
-            height: calc(100vh - 50px);
+            height: calc(100vh - 60px);
         }
 
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
+        iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
 
     <div class="top-bar">
-        <div class="title">🚌 JOUKKOLIIKENNE LIVE</div>
-        <div class="controls">
-            <button id="btn1" class="btn active" onclick="switchMap('hsl')">HSL Reittiopas</button>
-            <button id="btn2" class="btn" onclick="switchMap('kuppi')">Liikennekuppi Kartta</button>
+        <div class="title">🚆 JOUKKOLIIKENNE LIVE</div>
+        <div class="btn-group">
+            <a href="https://reittiopas.hsl.fi/pysakit/HSL:4110201" target="_blank" class="btn">Avaa HSL Kerava ↗</a>
+            <a href="https://reittiopas.hsl.fi/" target="_blank" class="btn">HSL Reittiopas ↗</a>
         </div>
     </div>
 
     <div class="iframe-container">
+        <!-- Digitrafficin sallima reaaliaikainen junat kartalla -upotus -->
         <iframe 
-            id="map-frame" 
-            src="https://reittiopas.hsl.fi/pysakit/HSL:4110201?locale=fi" 
-            title="Joukkoliikennekartta"
+            src="https://juliagpt.laurivan.com/map" 
+            title="Reaaliaikainen raideliikenne"
             allow="geolocation">
         </iframe>
     </div>
-
-    <script>
-        const urls = {
-            hsl: "https://reittiopas.hsl.fi/pysakit/HSL:4110201?locale=fi",
-            kuppi: "https://liikennekuppi.fi/"
-        };
-
-        function switchMap(source) {
-            const frame = document.getElementById('map-frame');
-            const btn1 = document.getElementById('btn1');
-            const btn2 = document.getElementById('btn2');
-
-            frame.src = urls[source];
-
-            if (source === 'hsl') {
-                btn1.classList.add('active');
-                btn2.classList.remove('active');
-            } else {
-                btn2.classList.add('active');
-                btn1.classList.remove('active');
-            }
-        }
-    </script>
 
 </body>
 </html>
