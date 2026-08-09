@@ -105,13 +105,21 @@
         // Haetaan junien live-sijainnit Digitrafficin avoimesta rajapinnasta
         async function updateTrains() {
             try {
-                const response = await fetch('https://rata.digitraffic.fi/api/v1/train-locations/latest');
+                // Käytetään HTTPS-osoitetta ja ohitetaan välimuisti
+                const response = await fetch('https://rata.digitraffic.fi/api/v1/train-locations/latest?cacheBust=' + Date.now());
+                
+                if (!response.ok) {
+                    throw new Error('Verkkovirhe: ' + response.status);
+                }
+
                 const locations = await response.json();
 
                 const updatedIds = new Set();
                 let nearbyCount = 0;
 
                 locations.forEach(train => {
+                    if (!train.location || !train.location.coordinates) return;
+
                     const lat = train.location.coordinates[1];
                     const lon = train.location.coordinates[0];
                     const trainNumber = train.trainNumber;
@@ -136,7 +144,7 @@
                         } else {
                             trainMarkers[id] = L.marker([lat, lon], { icon: customIcon })
                                 .addTo(map)
-                                .bindPopup(`<b>Juna nro ${trainNumber}</b><br/>Nopeus: ${train.speed} km/h`);
+                                .bindPopup(`<b>Juna nro ${trainNumber}</b><br/>Nopeus: ${train.speed || 0} km/h`);
                         }
                     }
                 });
@@ -151,7 +159,8 @@
 
                 document.getElementById('status-text').innerText = `🚆 JUNALIIKENNE LIVE (Keravan lähialue: ${nearbyCount} junaa)`;
             } catch (err) {
-                document.getElementById('status-text').innerText = "🚆 JUNALIIKENNE LIVE (Päivitetään...)";
+                console.error("Latausvirhe:", err);
+                document.getElementById('status-text').innerText = "🚆 JUNALIIKENNE LIVE (Yhteysvirhe - yritetään uudelleen...)";
             }
         }
 
