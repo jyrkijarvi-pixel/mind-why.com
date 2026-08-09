@@ -98,12 +98,11 @@
 
         async function updateTrains() {
             try {
-                // Poistettu custom headers (estää CORS Preflight 429/blocked -virheen)
-                // Sovellustunniste välitetään tarvittaessa URL-parametrina
-                const response = await fetch('https://rata.digitraffic.fi/api/v1/train-locations/latest?appName=MindWhyDashboard');
+                // Puhdas GET-pyyntö ilman omia otsakkeita tai virheellisiä parametreja
+                const response = await fetch('https://rata.digitraffic.fi/api/v1/train-locations/latest');
 
                 if (response.status === 429) {
-                    document.getElementById('status-text').innerText = "🚆 JUNALIIKENNE LIVE (Rate limit - odotetaan...)";
+                    document.getElementById('status-text').innerText = "🚆 JUNALIIKENNE LIVE (Odotetaan rate limitin nollaantumista...)";
                     return;
                 }
 
@@ -121,7 +120,7 @@
                     const trainNum = t.trainNumber;
                     const key = `train_${trainNum}`;
 
-                    // Rajataan eteläiseen Suomeen
+                    // Rajataan lähialueelle (Etelä-Suomi)
                     if (lat >= 60.0 && lat <= 61.0 && lon >= 24.0 && lon <= 26.0) {
                         count++;
                         updatedNumberKeys.add(key);
@@ -143,7 +142,7 @@
                     }
                 });
 
-                // Poistetaan vanhentuneet markerit
+                // Siivotaan poistuneet junat
                 Object.keys(trainMarkers).forEach(key => {
                     if (!updatedNumberKeys.has(key)) {
                         map.removeLayer(trainMarkers[key]);
@@ -160,7 +159,7 @@
         }
 
         updateTrains();
-        // 15 sekunnin interval pitää rate limitin kurissa
+        // 15 sekunnin välein tehtävä kutsu pitää rate limitin täysin aisoissa
         setInterval(updateTrains, 15000);
     </script>
 </body>
