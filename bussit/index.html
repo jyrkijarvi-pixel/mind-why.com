@@ -1,1 +1,261 @@
 
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HSL Live Monitor</title>
+    
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; font-family: Arial, sans-serif; background: #f4f4f9; color: #333; }
+        #map { width: 100%; height: 100vh; }
+        
+        /* Vasemman yläkulman ohjauspaneeli */
+        .overlay {
+            position: absolute; top: 15px; left: 15px; z-index: 1000;
+            background: rgba(255, 255, 255, 0.95); padding: 16px; border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #ccc;
+            max-width: 320px; width: 100%;
+        }
+        .overlay h3 { margin: 0 0 10px 0; color: #111; font-size: 18px; }
+        .status { font-size: 11px; color: #666; margin-top: 8px; }
+
+        select {
+            width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc;
+            font-size: 14px; font-weight: bold; background: #fff; cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        /* Aikataululaatikko */
+        .timetable { margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; max-height: 200px; overflow-y: auto; }
+        .timetable-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; align-items: center; }
+        .badge { color: white; padding: 2px 6px; border-radius: 10px; font-weight: bold; font-size: 11px; }
+        .badge-train { background-color: #0078FF; }
+        .badge-bus { background-color: #FF2828; }
+
+        /* Karttaikonit */
+        .vehicle-icon {
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; color: white; font-weight: bold; font-size: 11px;
+            border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+            width: 26px; height: 26px; text-align: center;
+        }
+        .train-icon { background-color: #0078FF; }
+        .bus-icon { background-color: #FF2828; }
+    </style>
+</head>
+<body>
+
+    <div class="overlay">
+        <h3>🚆 HSL LIVE MONITOR</h3>
+        
+        <!-- Kaupungin valinta -->
+        <label for="city-select" style="font-size: 12px; font-weight: bold; color: #555;">VALITSE KESKUS:</label>
+        <select id="city-select" onchange="changeCity()">
+            <option value="KERAVA">Kerava</option>
+            <option value="JARVENPAA">Järvenpää</option>
+            <option value="TIKKURILA">Tikkurila</option>
+            <option value="HELSINKI">Helsinki (Keskusta)</option>
+            <option value="HYVINKAA">Hyvinkää</option>
+        </select>
+
+        <div id="timetable-container">
+            <strong id="station-title" style="font-size: 13px;">Lähtevät vuorot:</strong>
+            <div id="timetable" class="timetable">Ladataan aikatauluja...</div>
+        </div>
+
+        <div id="status" class="status">Ladataan liikennetietoja...</div>
+    </div>
+
+    <div id="map"></div>
+
+    <script>
+        // SYÖTÄ OMA DIGITRANSIT API-AVAIN TÄHÄN:
+        const API_KEY = "bc29d58ca31f4ec5925b577173d17740"; 
+
+        // Kaupunkien koordinaatit ja HSL-pysäkki ID:t
+        const CITIES = {
+            KERAVA: { name: "Kerava", lat: 60.404, lon: 25.101, stopId: "HSL:4110201", radius: 10 },
+            JARVENPAA: { name: "Järvenpää", lat: 60.475, lon: 25.088, stopId: "HSL:4640210", radius: 10 },
+            TIKKURILA: { name: "Tikkurila", lat: 60.292, lon: 25.044, stopId: "HSL:1301201", radius: 8 },
+            HELSINKI: { name: "Helsinki", lat: 60.170, lon: 24.941, stopId: "HSL:1020201", radius: 5 },
+            HYVINKAA: { name: "Hyvinkää", lat: 60.632, lon: 24.865, stopId: "HSL:4910201", radius: 12 }
+        };
+
+        let currentCity = CITIES.KERAVA;
+        let map, centerMarker;
+        let markers = {};
+
+        // Alustetaan kartta
+        function initMap() {
+            map = L.map('map').setView([currentCity.lat, currentCity.lon], 12);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap &copy; CARTO',
+                maxZoom: 19
+            }).addTo(map);
+
+            centerMarker = L.circleMarker([currentCity.lat, currentCity.lon], {
+                radius: 8, fillColor: "#00AA55", color: "#FFFFFF", weight: 2, fillOpacity: 0.9
+            }).addTo(map);
+        }
+
+        // Kaupungin vaihto
+        function changeCity() {
+            const selectedKey = document.getElementById('city-select').value;
+            currentCity = CITIES[selectedKey];
+            
+            map.setView([currentCity.lat, currentCity.lon], 12);
+            centerMarker.setLatLng([currentCity.lat, currentCity.lon]);
+            
+            fetchVehicles();
+            fetchTimetable();
+        }
+
+        function haversine(lat1, lon1, lat2, lon2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        // Haetaan ajoneuvot kartalle
+        async function fetchVehicles() {
+            if (API_KEY === "xxxxxxxxxxxxxxxxxxxxx") {
+                document.getElementById('status').innerText = "Aseta API-avain koodiin!";
+                return;
+            }
+
+            const query = `{
+              vehiclePositions {
+                vehicleId
+                lat
+                lon
+                route { shortName mode }
+              }
+            }`;
+
+            try {
+                const response = await fetch('https://api.digitransit.fi/routing/v2/finland/gtfs/v1', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'digitransit-subscription-key': API_KEY },
+                    body: JSON.stringify({ query })
+                });
+
+                const result = await response.json();
+                const vehicles = result.data ? result.data.vehiclePositions : [];
+                
+                let count = 0;
+                let activeIds = new Set();
+
+                vehicles.forEach(v => {
+                    if (!v.lat || !v.lon) return;
+
+                    const dist = haversine(currentCity.lat, currentCity.lon, v.lat, v.lon);
+                    if (dist > currentCity.radius) return;
+
+                    const id = v.vehicleId || `${v.lat}_${v.lon}`;
+                    activeIds.add(id);
+                    count++;
+
+                    const isTrain = v.route && v.route.mode === "RAIL";
+                    const routeName = v.route ? v.route.shortName : "?";
+                    const cssClass = isTrain ? "train-icon" : "bus-icon";
+
+                    const customIcon = L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div class="vehicle-icon ${cssClass}">${routeName}</div>`,
+                        iconSize: [26, 26], iconAnchor: [13, 13]
+                    });
+
+                    if (markers[id]) {
+                        markers[id].setLatLng([v.lat, v.lon]);
+                    } else {
+                        markers[id] = L.marker([v.lat, v.lon], { icon: customIcon })
+                            .addTo(map)
+                            .bindPopup(`<b>${routeName}</b> (${isTrain ? 'Juna' : 'Bussi'})<br/> Etäisyys: ${dist.toFixed(1)} km keskuksesta`);
+                    }
+                });
+
+                Object.keys(markers).forEach(id => {
+                    if (!activeIds.has(id)) {
+                        map.removeLayer(markers[id]);
+                        delete markers[id];
+                    }
+                });
+
+                document.getElementById('status').innerText = `Päivitetty klo ${new Date().toLocaleTimeString('fi-FI')} | Keskus: ${currentCity.name} (${count} kpl, ${currentCity.radius} km säde)`;
+            } catch (err) {
+                document.getElementById('status').innerText = "Virhe ladattaessa ajoneuvoja.";
+            }
+        }
+
+        // Haetaan aseman aikataulut
+        async function fetchTimetable() {
+            if (API_KEY === "xxxxxxxxxxxxxxxxxxxxx") return;
+
+            const query = `{
+              stop(id: "${currentCity.stopId}") {
+                name
+                stoptimesWithoutPatterns(numberOfDepartures: 5) {
+                  scheduledDeparture
+                  realtimeDeparture
+                  realtimeState
+                  headsign
+                  trip { routeShortName mode }
+                }
+              }
+            }`;
+
+            try {
+                const response = await fetch('https://api.digitransit.fi/routing/v2/finland/gtfs/v1', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'digitransit-subscription-key': API_KEY },
+                    body: JSON.stringify({ query })
+                });
+
+                const result = await response.json();
+                const stoptimes = result.data?.stop?.stoptimesWithoutPatterns || [];
+                const container = document.getElementById('timetable');
+                container.innerHTML = "";
+
+                if (stoptimes.length === 0) {
+                    container.innerHTML = "Ei tulevia lähtöjä.";
+                    return;
+                }
+
+                stoptimes.forEach(s => {
+                    const date = new Date(s.realtimeDeparture * 1000);
+                    const timeStr = date.toLocaleTimeString('fi-FI', { hour: '2-digit', minute: '2-digit' });
+                    const route = s.trip.routeShortName;
+                    const isTrain = s.trip.mode === "RAIL";
+                    const badgeClass = isTrain ? "badge-train" : "badge-bus";
+
+                    container.innerHTML += `
+                        <div class="timetable-row">
+                            <span><b>${timeStr}</b> <span class="badge ${badgeClass}">${route}</span> ${s.headsign}</span>
+                        </div>
+                    `;
+                });
+            } catch (err) {
+                document.getElementById('timetable').innerText = "Aikatauluja ei saatu ladattua.";
+            }
+        }
+
+        // Käynnistys
+        initMap();
+        fetchVehicles();
+        fetchTimetable();
+
+        // Automaattinen päivitys
+        setInterval(fetchVehicles, 5000);
+        setInterval(fetchTimetable, 15000);
+    </script>
+</body>
+</html>
