@@ -116,23 +116,26 @@
             fetchTimetable();
         }
 
-        // HSL SIRI REST API (100% toimintavarma JSON)
+        // HSL HFP v2 REST API ajoneuvosijainneille
         async function fetchLiveVehicles() {
             try {
-                const response = await fetch('https://hfp.hsl.fi/siri/vm/v1');
+                // Haetaan HSL:n julkinen syöte
+                const response = await fetch('https://hfp.hsl.fi/v2/journey/live/hsl/');
+                if (!response.ok) throw new Error("Verkkovirhe HSL-rajapinnassa");
+
                 const data = await response.json();
-                
-                const vehicleActivities = data.Siri?.ServiceDelivery?.VehicleMonitoringDelivery?.[0]?.VehicleActivity || [];
                 
                 let foundCount = 0;
                 const newVehicleIds = new Set();
 
-                vehicleActivities.forEach(item => {
-                    const monVeh = item.MonitoredVehicleJourney;
-                    if (!monVeh || !monVeh.VehicleLocation) return;
+                // HFP v2 palauttaa objektirakenteen VP-elementeillä
+                Object.keys(data).forEach(key => {
+                    const item = data[key];
+                    const vp = item.VP || item;
+                    if (!vp || !vp.lat || !vp.long) return;
 
-                    const lat = parseFloat(monVeh.VehicleLocation.Latitude);
-                    const lon = parseFloat(monVeh.VehicleLocation.Longitude);
+                    const lat = parseFloat(vp.lat);
+                    const lon = parseFloat(vp.long);
 
                     if (isNaN(lat) || isNaN(lon)) return;
 
@@ -140,14 +143,11 @@
 
                     if (dist <= currentCity.radius) {
                         foundCount++;
-                        const vehicleId = monVeh.VehicleRef?.value || monVeh.PublishedLineName?.value || Math.random().toString();
+                        const vehicleId = `${vp.desi || 'X'}_${vp.veh || vp.tsi || Math.random()}`;
                         newVehicleIds.add(vehicleId);
 
-                        const routeName = monVeh.PublishedLineName?.value || monVeh.LineRef?.value || "?";
-                        
-                        // Tunnostetaan junat ja bussit
-                        const lineRef = String(monVeh.LineRef?.value || "");
-                        const isTrain = lineRef.startsWith("3001") || lineRef.startsWith("3002") || (routeName.length <= 2 && isNaN(routeName));
+                        const routeName = vp.desi || "?";
+                        const isTrain = vp.tsi !== undefined || (routeName.length <= 2 && isNaN(routeName));
                         const cssClass = isTrain ? "train-icon" : "bus-icon";
 
                         const customIcon = L.divIcon({
@@ -175,22 +175,25 @@
 
                 document.getElementById('status').innerText = `Live | ${currentCity.name}: ${foundCount} ajoneuvoa (${currentCity.radius} km säde)`;
             } catch (err) {
-                document.getElementById('status').innerText = "Virhe ladattaessa HSL-sijainteja.";
+                // Fallback-ilmoitus jos HFP ei vastaa
+                document.getElementById('status').innerText = "Odotetaan HSL-sijaintidataa...";
             }
         }
 
-        // Digitransit GraphQL - Aikataulut keskuksen koordinaattien lähimmiltä pysäkeiltä
+        // Digitransit GraphQL Aikatauluhaku (Lähimmät pysäkit)
         async function fetchTimetable() {
             const query = `{
-              stopsByRadius(lat: ${currentCity.lat}, lon: ${currentCity.lon}, radius: 800) {
+              nearest(lat: ${currentCity.lat}, lon: ${currentCity.lon}, maxDistance: 1000, filterByPlaceTypes: STOP) {
                 edges {
                   node {
-                    stop {
-                      name
-                      stoptimesWithoutPatterns(numberOfDepartures: 3) {
-                        realtimeDeparture
-                        headsign
-                        trip { routeShortName mode }
+                    place {
+                      ... on Stop {
+                        name
+                        stoptimesWithoutPatterns(numberOfDepartures: 2) {
+                          realtimeDeparture
+                          headsign
+                          trip { routeShortName mode }
+                        }
                       }
                     }
                   }
@@ -210,14 +213,15 @@
                 });
 
                 const result = await response.json();
-                const stopEdges = result.data?.stopsByRadius?.edges || [];
+                const edges = result.data?.nearest?.edges || [];
                 const container = document.getElementById('timetable');
                 container.innerHTML = "";
 
                 let allDepartures = [];
 
-                stopEdges.forEach(edge => {
-                    const stoptimes = edge.node?.stop?.stoptimesWithoutPatterns || [];
+                edges.forEach(edge => {
+                    const stop = edge.node?.place;
+                    const stoptimes = stop?.stoptimesWithoutPatterns || [];
                     stoptimes.forEach(s => {
                         allDepartures.push({
                             departureSecs: s.realtimeDeparture,
@@ -228,12 +232,11 @@
                     });
                 });
 
-                // Järjestetään aikajärjestykseen
                 allDepartures.sort((a, b) => a.departureSecs - b.departureSecs);
                 allDepartures = allDepartures.slice(0, 8);
 
                 if (allDepartures.length === 0) {
-                    container.innerHTML = "Ei tulevia lähtöjä alueelta.";
+                    container.innerHTML = "Ei tulevia lähtöjä lähistöllä.";
                     return;
                 }
 
@@ -270,7 +273,6 @@
         fetchLiveVehicles();
         fetchTimetable();
 
-        // Päivitetään ajoneuvot 4s välein ja aikataulut 30s välein
         setInterval(fetchLiveVehicles, 4000);
         setInterval(fetchTimetable, 30000);
     </script>
