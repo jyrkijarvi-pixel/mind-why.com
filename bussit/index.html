@@ -63,20 +63,21 @@
             <div id="timetable" class="timetable">Ladataan aikatauluja...</div>
         </div>
 
-        <div id="status" class="status">Päivitetään liikennettä...</div>
+        <div id="status" class="status">Haetaan dataa...</div>
     </div>
 
     <div id="map"></div>
 
     <script>
         const API_KEY = "bc29d58ca31f4ec5925b577173d17740"; 
+        const PROXY = "https://corsproxy.io/?";
 
         const CITIES = {
-            KERAVA: { name: "Kerava", lat: 60.404, lon: 25.101, radius: 8 },
-            JARVENPAA: { name: "Järvenpää", lat: 60.475, lon: 25.088, radius: 8 },
-            TIKKURILA: { name: "Tikkurila", lat: 60.292, lon: 25.044, radius: 6 },
-            HELSINKI: { name: "Helsinki", lat: 60.170, lon: 24.941, radius: 5 },
-            HYVINKAA: { name: "Hyvinkää", lat: 60.632, lon: 24.865, radius: 10 }
+            KERAVA: { name: "Kerava", lat: 60.404, lon: 25.101, radius: 8, stopId: "HSL:4110201" },
+            JARVENPAA: { name: "Järvenpää", lat: 60.475, lon: 25.088, radius: 8, stopId: "HSL:4640210" },
+            TIKKURILA: { name: "Tikkurila", lat: 60.292, lon: 25.044, radius: 6, stopId: "HSL:1300201" },
+            HELSINKI: { name: "Helsinki", lat: 60.170, lon: 24.941, radius: 5, stopId: "HSL:1020201" },
+            HYVINKAA: { name: "Hyvinkää", lat: 60.632, lon: 24.865, radius: 10, stopId: "HSL:4910201" }
         };
 
         let savedCityKey = localStorage.getItem('hsl_selected_city') || 'KERAVA';
@@ -116,19 +117,19 @@
             fetchTimetable();
         }
 
-        // HSL HFP v2 REST API ajoneuvosijainneille
+        // Ajoneuvot HSL HFP v2 API:sta CORS-proxyn läpi
         async function fetchLiveVehicles() {
             try {
-                // Haetaan HSL:n julkinen syöte
-                const response = await fetch('https://hfp.hsl.fi/v2/journey/live/hsl/');
-                if (!response.ok) throw new Error("Verkkovirhe HSL-rajapinnassa");
+                const targetUrl = encodeURIComponent("https://hfp.hsl.fi/v2/journey/live/hsl/");
+                const response = await fetch(PROXY + targetUrl);
+                
+                if (!response.ok) throw new Error("Proxy-virhe");
 
                 const data = await response.json();
                 
                 let foundCount = 0;
                 const newVehicleIds = new Set();
 
-                // HFP v2 palauttaa objektirakenteen VP-elementeillä
                 Object.keys(data).forEach(key => {
                     const item = data[key];
                     const vp = item.VP || item;
@@ -175,82 +176,55 @@
 
                 document.getElementById('status').innerText = `Live | ${currentCity.name}: ${foundCount} ajoneuvoa (${currentCity.radius} km säde)`;
             } catch (err) {
-                // Fallback-ilmoitus jos HFP ei vastaa
-                document.getElementById('status').innerText = "Odotetaan HSL-sijaintidataa...";
+                document.getElementById('status').innerText = "Yhteysvirhe HSL-rajapintaan.";
             }
         }
 
-        // Digitransit GraphQL Aikatauluhaku (Lähimmät pysäkit)
+        // Digitransit GraphQL Aikatauluhaku (Yksinkertaistettu asemakohtainen haku)
         async function fetchTimetable() {
             const query = `{
-              nearest(lat: ${currentCity.lat}, lon: ${currentCity.lon}, maxDistance: 1000, filterByPlaceTypes: STOP) {
-                edges {
-                  node {
-                    place {
-                      ... on Stop {
-                        name
-                        stoptimesWithoutPatterns(numberOfDepartures: 2) {
-                          realtimeDeparture
-                          headsign
-                          trip { routeShortName mode }
-                        }
-                      }
-                    }
-                  }
+              stop(id: "${currentCity.stopId}") {
+                name
+                stoptimesWithoutPatterns(numberOfDepartures: 8) {
+                  realtimeDeparture
+                  headsign
+                  trip { routeShortName mode }
                 }
               }
             }`;
 
             try {
-                const url = `https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=${API_KEY}`;
-                const response = await fetch(url, {
+                const targetUrl = encodeURIComponent(`https://api.digitransit.fi/routing/v2/hsl/gtfs/v1?digitransit-subscription-key=${API_KEY}`);
+                
+                const response = await fetch(PROXY + targetUrl, {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'digitransit-subscription-key': API_KEY 
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ query })
                 });
 
                 const result = await response.json();
-                const edges = result.data?.nearest?.edges || [];
+                const stoptimes = result.data?.stop?.stoptimesWithoutPatterns || [];
                 const container = document.getElementById('timetable');
                 container.innerHTML = "";
 
-                let allDepartures = [];
-
-                edges.forEach(edge => {
-                    const stop = edge.node?.place;
-                    const stoptimes = stop?.stoptimesWithoutPatterns || [];
-                    stoptimes.forEach(s => {
-                        allDepartures.push({
-                            departureSecs: s.realtimeDeparture,
-                            route: s.trip?.routeShortName || "?",
-                            headsign: s.headsign || "",
-                            mode: s.trip?.mode
-                        });
-                    });
-                });
-
-                allDepartures.sort((a, b) => a.departureSecs - b.departureSecs);
-                allDepartures = allDepartures.slice(0, 8);
-
-                if (allDepartures.length === 0) {
-                    container.innerHTML = "Ei tulevia lähtöjä lähistöllä.";
+                if (stoptimes.length === 0) {
+                    container.innerHTML = "Ei tulevia lähtöjä tällä hetkellä.";
                     return;
                 }
 
-                allDepartures.forEach(s => {
-                    const hours = Math.floor(s.departureSecs / 3600) % 24;
-                    const minutes = Math.floor((s.departureSecs % 3600) / 60);
+                stoptimes.forEach(s => {
+                    const departureSecs = s.realtimeDeparture;
+                    const hours = Math.floor(departureSecs / 3600) % 24;
+                    const minutes = Math.floor((departureSecs % 3600) / 60);
                     const timeStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
                     
-                    const isTrain = s.mode === "RAIL";
+                    const route = s.trip?.routeShortName || "?";
+                    const isTrain = s.trip?.mode === "RAIL";
                     const badgeClass = isTrain ? "badge-train" : "badge-bus";
 
                     container.innerHTML += `
                         <div class="timetable-row">
-                            <span><b>${timeStr}</b> <span class="badge ${badgeClass}">${s.route}</span> ${s.headsign}</span>
+                            <span><b>${timeStr}</b> <span class="badge ${badgeClass}">${route}</span> ${s.headsign || ''}</span>
                         </div>
                     `;
                 });
@@ -273,7 +247,7 @@
         fetchLiveVehicles();
         fetchTimetable();
 
-        setInterval(fetchLiveVehicles, 4000);
+        setInterval(fetchLiveVehicles, 5000);
         setInterval(fetchTimetable, 30000);
     </script>
 </body>
