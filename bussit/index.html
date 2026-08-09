@@ -98,15 +98,12 @@
 
         async function updateTrains() {
             try {
-                // Digitraffic edellyttää tunnistautumis-headeria
-                const response = await fetch('https://rata.digitraffic.fi/api/v1/train-locations/latest', {
-                    headers: {
-                        'Digitraffic-User-Agent': 'MindWhyDashboard/1.0 (jyrki/ict-expert)'
-                    }
-                });
+                // Poistettu custom headers (estää CORS Preflight 429/blocked -virheen)
+                // Sovellustunniste välitetään tarvittaessa URL-parametrina
+                const response = await fetch('https://rata.digitraffic.fi/api/v1/train-locations/latest?appName=MindWhyDashboard');
 
                 if (response.status === 429) {
-                    document.getElementById('status-text').innerText = "🚆 JUNALIIKENNE LIVE (Rate limit - odotetaan hetki...)";
+                    document.getElementById('status-text').innerText = "🚆 JUNALIIKENNE LIVE (Rate limit - odotetaan...)";
                     return;
                 }
 
@@ -124,7 +121,7 @@
                     const trainNum = t.trainNumber;
                     const key = `train_${trainNum}`;
 
-                    // Rajataan karkeasti eteläisen Suomen / lähiliikenteen alueelle suorituskyvyn vuoksi
+                    // Rajataan eteläiseen Suomeen
                     if (lat >= 60.0 && lat <= 61.0 && lon >= 24.0 && lon <= 26.0) {
                         count++;
                         updatedNumberKeys.add(key);
@@ -146,7 +143,7 @@
                     }
                 });
 
-                // Siivotaan poistuneet junat kartalta
+                // Poistetaan vanhentuneet markerit
                 Object.keys(trainMarkers).forEach(key => {
                     if (!updatedNumberKeys.has(key)) {
                         map.removeLayer(trainMarkers[key]);
@@ -158,12 +155,12 @@
 
             } catch (err) {
                 console.error("Latausvirhe:", err);
-                document.getElementById('status-text').innerText = "🚆 JUNALIIKENNE LIVE (Päivitysvirhe)";
+                document.getElementById('status-text').innerText = "🚆 JUNALIIKENNE LIVE (Yhteysvirhe)";
             }
         }
 
         updateTrains();
-        // Päivitysväli 15 sekuntia (15000 ms) estää 429-virheet
+        // 15 sekunnin interval pitää rate limitin kurissa
         setInterval(updateTrains, 15000);
     </script>
 </body>
