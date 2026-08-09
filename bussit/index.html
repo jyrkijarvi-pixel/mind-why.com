@@ -9,11 +9,13 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+    <!-- Paho MQTT Client for Realtime Vehicle Tracking -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+
     <style>
         body, html { margin: 0; padding: 0; height: 100%; font-family: Arial, sans-serif; background: #f4f4f9; color: #333; }
         #map { width: 100%; height: 100vh; }
         
-        /* Vasemman yläkulman ohjauspaneeli */
         .overlay {
             position: absolute; top: 15px; left: 15px; z-index: 1000;
             background: rgba(255, 255, 255, 0.95); padding: 16px; border-radius: 10px;
@@ -29,14 +31,12 @@
             margin-bottom: 12px;
         }
 
-        /* Aikataululaatikko */
         .timetable { margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; max-height: 200px; overflow-y: auto; }
         .timetable-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; align-items: center; }
         .badge { color: white; padding: 2px 6px; border-radius: 10px; font-weight: bold; font-size: 11px; }
         .badge-train { background-color: #0078FF; }
         .badge-bus { background-color: #FF2828; }
 
-        /* Karttaikonit */
         .vehicle-icon {
             display: flex; align-items: center; justify-content: center;
             border-radius: 50%; color: white; font-weight: bold; font-size: 11px;
@@ -66,7 +66,7 @@
             <div id="timetable" class="timetable">Ladataan aikatauluja...</div>
         </div>
 
-        <div id="status" class="status">Ladataan liikennetietoja...</div>
+        <div id="status" class="status">Yhdistetään liikennerajapintaan...</div>
     </div>
 
     <div id="map"></div>
@@ -75,16 +75,18 @@
         const API_KEY = "bc29d58ca31f4ec5925b577173d17740"; 
 
         const CITIES = {
-            KERAVA: { name: "Kerava", lat: 60.404, lon: 25.101, stopId: "HSL:4110201", radius: 10 },
-            JARVENPAA: { name: "Järvenpää", lat: 60.475, lon: 25.088, stopId: "HSL:4640210", radius: 10 },
-            TIKKURILA: { name: "Tikkurila", lat: 60.292, lon: 25.044, stopId: "HSL:1301201", radius: 8 },
-            HELSINKI: { name: "Helsinki", lat: 60.170, lon: 24.941, stopId: "HSL:1020201", radius: 5 },
-            HYVINKAA: { name: "Hyvinkää", lat: 60.632, lon: 24.865, stopId: "HSL:4910201", radius: 12 }
+            KERAVA: { name: "Kerava", lat: 60.404, lon: 25.101, stopId: "HSL:4110201", radius: 8 },
+            JARVENPAA: { name: "Järvenpää", lat: 60.475, lon: 25.088, stopId: "HSL:4640210", radius: 8 },
+            TIKKURILA: { name: "Tikkurila", lat: 60.292, lon: 25.044, stopId: "HSL:1300201", radius: 6 },
+            HELSINKI: { name: "Helsinki", lat: 60.170, lon: 24.941, stopId: "HSL:1020201", radius: 4 },
+            HYVINKAA: { name: "Hyvinkää", lat: 60.632, lon: 24.865, stopId: "HSL:4910201", radius: 10 }
         };
 
         let currentCity = CITIES.KERAVA;
         let map, centerMarker;
         let markers = {};
+        let mqttClient;
+        let activeVehicleCount = 0;
 
         function initMap() {
             map = L.map('map').setView([currentCity.lat, currentCity.lon], 12);
@@ -105,7 +107,13 @@
             map.setView([currentCity.lat, currentCity.lon], 12);
             centerMarker.setLatLng([currentCity.lat, currentCity.lon]);
             
-            fetchVehicles();
+            // Tyhjennetään vanhat merkit
+            Object.keys(markers).forEach(id => {
+                map.removeLayer(markers[id]);
+            });
+            markers = {};
+            activeVehicleCount = 0;
+
             fetchTimetable();
         }
 
@@ -119,70 +127,73 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
 
-        // Haetaan ajoneuvopaikat HSL:n v2 JSON-rajapinnasta
-        async function fetchVehicles() {
-            try {
-                const response = await fetch('https://realtime.hsl.fi/realtime/vehicle-positions/v2/hsl', {
-                    headers: { 'digitransit-subscription-key': API_KEY }
-                });
+        // HSL MQTT Live-seuranta
+        function initMQTT() {
+            const clientId = "hsl_monitor_" + Math.random().toString(16).substr(2, 8);
+            mqttClient = new Paho.MQTT.Client("mqtt.hsl.fi", 443, "/mqtt", clientId);
 
-                if (!response.ok) throw new Error("Verkkovirhe");
+            mqttClient.onConnectionLost = function (responseObject) {
+                document.getElementById('status').innerText = "Yhteys katkesi. Yhdistetään uudelleen...";
+                setTimeout(initMQTT, 3000);
+            };
 
-                const data = await response.json();
-                const entities = data.entity || [];
+            mqttClient.onMessageArrived = function (message) {
+                try {
+                    const payload = JSON.parse(message.payloadString);
+                    const vp = payload.VP;
+                    if (!vp || !vp.lat || !vp.long) return;
 
-                let count = 0;
-                let activeIds = new Set();
-
-                entities.forEach(item => {
-                    const vehicle = item.vehicle;
-                    if (!vehicle || !vehicle.position) return;
-
-                    const lat = vehicle.position.latitude;
-                    const lon = vehicle.position.longitude;
-                    if (!lat || !lon) return;
-
+                    const lat = vp.lat;
+                    const lon = vp.long;
                     const dist = haversine(currentCity.lat, currentCity.lon, lat, lon);
-                    if (dist > currentCity.radius) return;
 
-                    const id = vehicle.vehicle?.id || `${lat}_${lon}`;
-                    activeIds.add(id);
-                    count++;
+                    const vehicleId = `${vp.desi}_${vp.veh || vp.tsi}`;
 
-                    // Tunnistetaan reitti/tyyppi
-                    const routeName = vehicle.trip?.routeId || "?";
-                    const isTrain = routeName.length <= 2 && isNaN(routeName); // K, P, R, T jne.
-                    const cssClass = isTrain ? "train-icon" : "bus-icon";
+                    if (dist <= currentCity.radius) {
+                        const routeName = vp.desi || "?";
+                        const isTrain = vp.tsi !== undefined || (routeName.length <= 2 && isNaN(routeName));
+                        const cssClass = isTrain ? "train-icon" : "bus-icon";
 
-                    const customIcon = L.divIcon({
-                        className: 'custom-div-icon',
-                        html: `<div class="vehicle-icon ${cssClass}">${routeName}</div>`,
-                        iconSize: [26, 26], iconAnchor: [13, 13]
-                    });
+                        const customIcon = L.divIcon({
+                            className: 'custom-div-icon',
+                            html: `<div class="vehicle-icon ${cssClass}">${routeName}</div>`,
+                            iconSize: [26, 26], iconAnchor: [13, 13]
+                        });
 
-                    if (markers[id]) {
-                        markers[id].setLatLng([lat, lon]);
-                    } else {
-                        markers[id] = L.marker([lat, lon], { icon: customIcon })
-                            .addTo(map)
-                            .bindPopup(`<b>${routeName}</b> (${isTrain ? 'Juna' : 'Bussi'})<br/>Etäisyys: ${dist.toFixed(1)} km keskuksesta`);
+                        if (markers[vehicleId]) {
+                            markers[vehicleId].setLatLng([lat, lon]);
+                        } else {
+                            markers[vehicleId] = L.marker([lat, lon], { icon: customIcon })
+                                .addTo(map)
+                                .bindPopup(`<b>${routeName}</b> (${isTrain ? 'Juna' : 'Bussi'})<br/>Etäisyys: ${dist.toFixed(1)} km keskuksesta`);
+                        }
+                    } else if (markers[vehicleId]) {
+                        map.removeLayer(markers[vehicleId]);
+                        delete markers[vehicleId];
                     }
-                });
 
-                Object.keys(markers).forEach(id => {
-                    if (!activeIds.has(id)) {
-                        map.removeLayer(markers[id]);
-                        delete markers[id];
-                    }
-                });
+                    activeVehicleCount = Object.keys(markers).length;
+                    document.getElementById('status').innerText = `Live | ${currentCity.name}: ${activeVehicleCount} ajoneuvoa (${currentCity.radius} km säde)`;
+                } catch (e) {
+                    // Ignoroidaan korruptoituneet viestit
+                }
+            };
 
-                document.getElementById('status').innerText = `Päivitetty klo ${new Date().toLocaleTimeString('fi-FI')} | ${currentCity.name} (${count} kpl, ${currentCity.radius} km säde)`;
-            } catch (err) {
-                document.getElementById('status').innerText = "Hataan liikennetietoja...";
-            }
+            mqttClient.connect({
+                useSSL: true,
+                onSuccess: function () {
+                    document.getElementById('status').innerText = "MQTT Yhdistetty. Ladataan ajoneuvoja...";
+                    // Tilataan kaikkien HSL-ajoneuvojen koordinaattipäivitykset
+                    mqttClient.subscribe("/hfp/v2/journey/live/hsl/+/+/+/+/+/+/+/+/+/3/#");
+                },
+                onFailure: function (err) {
+                    document.getElementById('status').innerText = "MQTT Yhteysvirhe. Yritetään uudelleen...";
+                    setTimeout(initMQTT, 5000);
+                }
+            });
         }
 
-        // Haetaan aseman aikataulut Digitransit GraphQL APIsta
+        // GraphQL Aikatauluhaku
         async function fetchTimetable() {
             const query = `{
               stop(id: "${currentCity.stopId}") {
@@ -217,8 +228,6 @@
                 }
 
                 stoptimes.forEach(s => {
-                    const date = new Date();
-                    // Lasketaan vuorokauden alkamisesta kuluneet sekunnit kelloajaksi
                     const departureSecs = s.realtimeDeparture;
                     const hours = Math.floor(departureSecs / 3600) % 24;
                     const minutes = Math.floor((departureSecs % 3600) / 60);
@@ -235,16 +244,16 @@
                     `;
                 });
             } catch (err) {
-                document.getElementById('timetable').innerText = "Aikataulut päivittyvät...";
+                document.getElementById('timetable').innerText = "Virhe ladattaessa aikatauluja.";
             }
         }
 
         initMap();
-        fetchVehicles();
+        initMQTT();
         fetchTimetable();
 
-        setInterval(fetchVehicles, 5000);
-        setInterval(fetchTimetable, 15000);
+        // Päivitetään aikataulut 30s välein
+        setInterval(fetchTimetable, 30000);
     </script>
 </body>
 </html>
