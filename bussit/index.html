@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Joukkoliikenne - Mind-Why</title>
     
-    <!-- Leaflet Karttakirjasto -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -51,7 +50,6 @@
             height: calc(100vh - 60px);
         }
 
-        /* Junakuvakkeen tyylit kartalla */
         .train-icon {
             background-color: #0078FF;
             color: white;
@@ -71,7 +69,7 @@
 <body>
 
     <div class="top-bar">
-        <div class="title" id="status-text">🚆 JUNALIIKENNE LIVE (Kerava)</div>
+        <div class="title" id="status-text">🚆 JUNALIIKENNE LIVE (Haetaan dataa...)</div>
         <div class="btn-group">
             <a href="https://liikennelive.fi/helsinki" target="_blank" class="btn btn-highlight">🚌 Liikennelive Helsinki ↗</a>
             <a href="https://reittiopas.hsl.fi/pysakit/HSL:4110201" target="_blank" class="btn">Avaa HSL Kerava ↗</a>
@@ -82,99 +80,91 @@
     <div id="map"></div>
 
     <script>
-        // Keravan koordinaatit
         const KERAVA_LAT = 60.404;
         const KERAVA_LON = 25.101;
 
-        // Alustetaan kartta
         const map = L.map('map').setView([KERAVA_LAT, KERAVA_LON], 11);
 
-        // Ladataan ilmainen OpenStreetMap-karttapohja
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap &copy; CARTO',
             maxZoom: 19
         }).addTo(map);
 
-        // Keravan aseman merkki
         L.circleMarker([KERAVA_LAT, KERAVA_LON], {
             radius: 8, fillColor: "#00AA55", color: "#FFFFFF", weight: 2, fillOpacity: 0.9
         }).addTo(map).bindPopup("<b>Keravan Asema</b>");
 
         let trainMarkers = {};
 
-        // Haetaan junien live-sijainnit Digitrafficin avoimesta rajapinnasta
         async function updateTrains() {
             try {
-                // Käytetään HTTPS-osoitetta ja ohitetaan välimuisti
-                const response = await fetch('https://rata.digitraffic.fi/api/v1/train-locations/latest?cacheBust=' + Date.now());
-                
-                if (!response.ok) {
-                    throw new Error('Verkkovirhe: ' + response.status);
+                // Digitraffic edellyttää tunnistautumis-headeria
+                const response = await fetch('https://rata.digitraffic.fi/api/v1/train-locations/latest', {
+                    headers: {
+                        'Digitraffic-User-Agent': 'MindWhyDashboard/1.0 (jyrki/ict-expert)'
+                    }
+                });
+
+                if (response.status === 429) {
+                    document.getElementById('status-text').innerText = "🚆 JUNALIIKENNE LIVE (Rate limit - odotetaan hetki...)";
+                    return;
                 }
 
-                const locations = await response.json();
+                if (!response.ok) throw new Error(`HTTP-virhe: ${response.status}`);
 
-                const updatedIds = new Set();
-                let nearbyCount = 0;
+                const trains = await response.json();
+                const updatedNumberKeys = new Set();
+                let count = 0;
 
-                locations.forEach(train => {
-                    if (!train.location || !train.location.coordinates) return;
+                trains.forEach(t => {
+                    if (!t.location || !t.location.coordinates) return;
+                    
+                    const lon = t.location.coordinates[0];
+                    const lat = t.location.coordinates[1];
+                    const trainNum = t.trainNumber;
+                    const key = `train_${trainNum}`;
 
-                    const lat = train.location.coordinates[1];
-                    const lon = train.location.coordinates[0];
-                    const trainNumber = train.trainNumber;
-                    const id = `train_${trainNumber}`;
-
-                    // Lasketaan etäisyys Keravasta
-                    const dist = haversine(KERAVA_LAT, KERAVA_LON, lat, lon);
-
-                    // Näytetään vain ~30km säteellä olevat junat kartan selkeyden vuoksi
-                    if (dist <= 30) {
-                        nearbyCount++;
-                        updatedIds.add(id);
+                    // Rajataan karkeasti eteläisen Suomen / lähiliikenteen alueelle suorituskyvyn vuoksi
+                    if (lat >= 60.0 && lat <= 61.0 && lon >= 24.0 && lon <= 26.0) {
+                        count++;
+                        updatedNumberKeys.add(key);
 
                         const customIcon = L.divIcon({
                             className: 'custom-icon',
-                            html: `<div class="train-icon">${trainNumber}</div>`,
-                            iconSize: [28, 28], iconAnchor: [14, 14]
+                            html: `<div class="train-icon">${trainNum}</div>`,
+                            iconSize: [28, 28],
+                            iconAnchor: [14, 14]
                         });
 
-                        if (trainMarkers[id]) {
-                            trainMarkers[id].setLatLng([lat, lon]);
+                        if (trainMarkers[key]) {
+                            trainMarkers[key].setLatLng([lat, lon]);
                         } else {
-                            trainMarkers[id] = L.marker([lat, lon], { icon: customIcon })
+                            trainMarkers[key] = L.marker([lat, lon], { icon: customIcon })
                                 .addTo(map)
-                                .bindPopup(`<b>Juna nro ${trainNumber}</b><br/>Nopeus: ${train.speed || 0} km/h`);
+                                .bindPopup(`<b>Juna ${trainNum}</b><br>Nopeus: ${t.speed || 0} km/h`);
                         }
                     }
                 });
 
-                // Poistetaan alueelta poistuneet junat
-                Object.keys(trainMarkers).forEach(id => {
-                    if (!updatedIds.has(id)) {
-                        map.removeLayer(trainMarkers[id]);
-                        delete trainMarkers[id];
+                // Siivotaan poistuneet junat kartalta
+                Object.keys(trainMarkers).forEach(key => {
+                    if (!updatedNumberKeys.has(key)) {
+                        map.removeLayer(trainMarkers[key]);
+                        delete trainMarkers[key];
                     }
                 });
 
-                document.getElementById('status-text').innerText = `🚆 JUNALIIKENNE LIVE (Keravan lähialue: ${nearbyCount} junaa)`;
+                document.getElementById('status-text').innerText = `🚆 JUNALIIKENNE LIVE (Lähialueella ${count} junaa)`;
+
             } catch (err) {
                 console.error("Latausvirhe:", err);
-                document.getElementById('status-text').innerText = "🚆 JUNALIIKENNE LIVE (Yhteysvirhe - yritetään uudelleen...)";
+                document.getElementById('status-text').innerText = "🚆 JUNALIIKENNE LIVE (Päivitysvirhe)";
             }
         }
 
-        function haversine(lat1, lon1, lat2, lon2) {
-            const R = 6371;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
-            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-        }
-
-        // Käynnistetään päivitys
         updateTrains();
-        setInterval(updateTrains, 5000);
+        // Päivitysväli 15 sekuntia (15000 ms) estää 429-virheet
+        setInterval(updateTrains, 15000);
     </script>
 </body>
 </html>
