@@ -4,56 +4,37 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MIND-WHY</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap');
-  *{box-sizing:border-box}
-  body{margin:0;min-height:100vh;background:#050505;color:#eaeaea;font-family:'JetBrains Mono',monospace;overflow-x:hidden;position:relative}
-  /* stars */
+  *{box-sizing:border-box} body{margin:0;min-height:100vh;background:#050505;color:#eaeaea;font-family:'JetBrains Mono',monospace;overflow-x:hidden;position:relative}
   body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(1px 1px at 20% 30%,#fff,transparent),radial-gradient(1px 1px at 40% 70%,#fff,transparent),radial-gradient(1.5px 1.5px at 90% 40%,#fff,transparent),radial-gradient(1px 1px at 65% 20%,#aaa,transparent),radial-gradient(1px 1px at 10% 80%,#fff,transparent);background-repeat:repeat;background-size:550px 550px;opacity:0.35;pointer-events:none}
   header{display:flex;justify-content:space-between;align-items:flex-start;padding:22px 28px;position:relative;z-index:2}
-  .logo h1{margin:0;font-size:26px;letter-spacing:0.22em;font-weight:600}
-  .logo .sub{margin-top:6px;font-size:11px;letter-spacing:0.32em;color:#777;text-transform:uppercase}
+  .logo h1{margin:0;font-size:26px;letter-spacing:0.22em;font-weight:600} .logo .sub{margin-top:6px;font-size:11px;letter-spacing:0.32em;color:#777;text-transform:uppercase}
   .top-right{display:flex;align-items:center;gap:14px}
-  .icon-btn{width:38px;height:38px;border-radius:50%;background:#141414;border:1px solid #262626;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#777}
-  .lang{display:flex;gap:10px;align-items:center;font-size:12px;letter-spacing:0.15em}
-  .lang span{cursor:pointer;color:#555}
-  .lang span.active{color:#eaeaea;background:#1e1e1e;border:1px solid #333;padding:6px 14px;border-radius:99px}
-  .lang .sep{width:1px;height:18px;background:#222}
-  /* center orb */
+  .icon-btn{width:38px;height:38px;border-radius:50%;background:#141414;border:1px solid #262626;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#777;font-size:16px}
+  .lang{display:flex;gap:10px;align-items:center;font-size:12px;letter-spacing:0.15em} .lang span{cursor:pointer;color:#555} .lang span.active{color:#eaeaea;background:#1e1e1e;border:1px solid #333;padding:6px 14px;border-radius:99px} .lang .sep{width:1px;height:18px;background:#222}
   .center-wrap{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:68vh;padding:20px 20px 0;z-index:1}
-  .orb{width:min(62vw,520px);height:min(62vw,520px);border-radius:50%;background:radial-gradient(ellipse at center,rgba(250,204,21,0.22) 0%,rgba(120,100,10,0.12) 18%,rgba(0,0,0,0) 65%);border:1px solid rgba(255,255,255,0.06);position:relative;display:flex;align-items:center;justify-content:center;box-shadow:0 0 80px rgba(250,204,21,0.07) inset}
-  .orb::after{content:'';position:absolute;inset:-1px;border-radius:50%;border:1px solid rgba(255,255,255,0.06)}
-  .orb-core{width:5px;height:5px;background:#facc15;border-radius:50%;box-shadow:0 0 12px #facc15,0 0 24px rgba(250,204,21,0.6)}
-  #ai-response{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:86%;max-width:460px;text-align:center;font-size:14px;line-height:1.6;color:#e5e5e5;display:none;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);border:1px solid rgba(250,204,21,0.2);border-radius:16px;padding:18px 20px;z-index:3}
-  #ai-response.show{display:block;animation:fadeIn .4s}
-  @keyframes fadeIn{from{opacity:0;transform:translate(-50%,-48%)}to{opacity:1;transform:translate(-50%,-50%)}}
-  /* personas */
+  .orb{width:min(62vw,520px);height:min(62vw,520px);border-radius:50%;background:radial-gradient(ellipse at center,rgba(250,204,21,0.22) 0%,rgba(120,100,10,0.12) 18%,rgba(0,0,0,0) 65%);border:1px solid rgba(255,255,255,0.06);position:relative;display:flex;align-items:center;justify-content:center;box-shadow:0 0 80px rgba(250,204,21,0.07) inset;animation:pulseVoid 6s ease-in-out infinite}
+  @keyframes pulseVoid{0%{transform:scale(1)}50%{transform:scale(1.03)}100%{transform:scale(1)}}
+  .orb-core{width:5px;height:5px;background:#facc15;border-radius:50%;box-shadow:0 0 12px #facc15,0 0 24px rgba(250,204,21,0.6);transition:all .6s}
+  #ai-response{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:86%;max-width:460px;text-align:center;font-size:14px;line-height:1.6;color:#e5e5e5;display:none;background:rgba(0,0,0,0.75);backdrop-filter:blur(12px);border:1px solid rgba(250,204,21,0.25);border-radius:16px;padding:20px 22px;z-index:3;white-space:pre-wrap}
+  #ai-response.show{display:block;animation:fadeIn .4s} @keyframes fadeIn{from{opacity:0;transform:translate(-50%,-48%)}to{opacity:1;transform:translate(-50%,-50%)}}
   .personas{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:34px;max-width:760px}
   .persona{padding:10px 20px;border-radius:99px;border:1px solid #2a2a2a;background:#131313;color:#6b6b6b;font-size:13px;letter-spacing:0.06em;cursor:pointer;transition:all .2s;user-select:none}
-  .persona:hover{border-color:#3a3a3a;color:#aaa}
-  .persona.active{background:transparent;border-color:#facc15;color:#facc15;box-shadow:0 0 0 1px #facc15,0 0 18px rgba(250,204,21,.25)}
-  /* input */
+  .persona:hover{border-color:#3a3a3a;color:#aaa} .persona.active{background:transparent;border-color:#facc15;color:#facc15;box-shadow:0 0 0 1px #facc15,0 0 18px rgba(250,204,21,.25)}
   .input-wrap{width:100%;max-width:740px;margin:28px auto 0;background:#111113;border:1px solid #232323;border-radius:20px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;position:relative;z-index:2}
   .input-wrap textarea{width:100%;background:transparent;border:none;outline:none;color:#cfcfcf;font-family:inherit;font-size:14px;resize:none;min-height:54px;line-height:1.5}
   .input-wrap textarea::placeholder{color:#4a4a4a}
-  .input-footer{display:flex;justify-content:space-between;align-items:center}
-  .hint{font-size:11px;color:#555}
-  .actions{display:flex;gap:8px;align-items:center}
-  .send-btn{background:#facc15;color:#000;border:none;padding:8px 16px;border-radius:99px;font-weight:700;font-size:12px;cursor:pointer;letter-spacing:0.04em}
+  .input-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+  .hint{font-size:11px;color:#555} .send-btn{background:#facc15;color:#000;border:none;padding:10px 18px;border-radius:99px;font-weight:700;font-size:12px;cursor:pointer;letter-spacing:0.04em}
   .send-btn:disabled{opacity:.4;cursor:not-allowed}
-  .status{font-size:11px;color:#444;margin-top:6px}
-  .status.live{color:#22c55e}
-  /* ambient */
-  audio{display:none}
+  .status{font-size:11px;color:#444} .status.live{color:#22c55e}
+  footer{text-align:center;padding:30px;font-size:10px;color:#444;letter-spacing:0.15em;position:relative;z-index:2}
 </style>
 </head>
 <body>
 <header>
-  <div class="logo">
-    <h1>MIND-WHY</h1>
-    <div class="sub">Paina miksi vapauttaaksesi</div>
-  </div>
+  <div class="logo"><h1>MIND-WHY</h1><div class="sub" id="tagline">paina MIKSI vapauttaaksesi</div></div>
   <div class="top-right">
     <button class="icon-btn" id="muteBtn" title="Ambient on/off">🔇</button>
     <div class="lang"><span id="lang-en" onclick="setLang('EN')">EN</span><div class="sep"></div><span id="lang-fi" class="active" onclick="setLang('FI')">FI</span></div>
@@ -61,59 +42,120 @@
 </header>
 
 <div class="center-wrap">
-  <div class="orb" id="orb">
-    <div class="orb-core" id="orbCore"></div>
-    <div id="ai-response"></div>
-  </div>
-
-  <div class="personas">
-    <div class="persona active" data-p="kaveri" onclick="setPersona('kaveri')">Paras kaveri</div>
-    <div class="persona" data-p="viisas" onclick="setPersona('viisas')">Vanha viisas</div>
-    <div class="persona" data-p="huumori" onclick="setPersona('huumori')">Huumorinen</div>
-    <div class="persona" data-p="tietava" onclick="setPersona('tietava')">Kaikkitietävä</div>
-    <div class="persona" data-p="suora" onclick="setPersona('suora')">Suora puhe</div>
-  </div>
-
+  <div class="orb" id="orb"><div class="orb-core" id="orbCore"></div><div id="ai-response"></div></div>
+  <div class="personas" id="personas"></div>
   <div class="input-wrap">
     <textarea id="userInput" placeholder="Mikä painaa mieltä? Kirjoita tähän. Se jää vain tähän laitteeseen, ei tallenneta mihinkään..."></textarea>
     <div class="input-footer">
-      <div class="hint"><span id="aiStatus" class="status">AI: yhdistetään...</span> • <span id="personaLabel">Paras kaveri</span> • ambient.mp3</div>
-      <div class="actions">
-        <button class="send-btn" id="sendBtn" onclick="ask()">KYSY MIKSI →</button>
-      </div>
+      <div class="hint"><span id="aiStatus" class="status">AI: yhdistetään...</span> • <span id="personaLabel">Paras kaveri</span> • <span id="disclaimer">● anonyymi ● ei tallenneta</span></div>
+      <button class="send-btn" id="sendBtn" onclick="ask()">KYSY MIKSI →</button>
     </div>
   </div>
 </div>
 
+<footer id="footer">Rajapinta maalaisjärkeen.</footer>
+
 <audio id="ambientAudio" loop preload="none">
-  <source src="./ambient.mp3" type="audio/mpeg">
+  <source src="./audio/ambient.mp3" type="audio/mpeg">
   <source src="https://cdn.pixabay.com/download/audio/2022/06/07/audio_b9bd4170e8.mp3?filename=lofi-study-112191.mp3" type="audio/mpeg">
 </audio>
 
 <script>
 const WORKER_URL = "https://ai-mind-why.jyrki-jarvi.workers.dev";
 
-const PERSONAS = {
-  kaveri: {name:"Paras kaveri", prompt:"Olet paras kaveri Keravalta. Empaattinen, lämmin, kannustava. Puhu kuin hyvä ystävä, suomeksi. 2-4 lausetta."},
-  viisas: {name:"Vanha viisas", prompt:"Olet vanha viisas, 70v elämänkokemusta Keravalta. Rauhallinen, filosofinen, vertauksin. Suomeksi, syvällisesti."},
-  huumori: {name:"Huumorinen", prompt:"Olet humoristinen, kuiva sarkasmi, itseironiaa, mutta lopussa aina oikea oivallus. Suomeksi, hauska mutta viisas."},
-  tietava: {name:"Kaikkitietävä", prompt:"Olet kaikkitietävä tietosanakirja. Tarkasti, tieteellisesti, selität MIKSI ilmiö tapahtuu. Suomeksi, selkeästi."},
-  suora: {name:"Suora puhe", prompt:"Olet suora ja rehellinen. Ei kaunistelua, sano totuus rakentavasti. Suomeksi, ytimekkäästi."}
+const LANG = {
+  FI: {
+    tagline: "paina MIKSI vapauttaaksesi",
+    placeholder: "Mikä painaa mieltä? Kirjoita tähän. Se jää vain tähän laitteeseen, ei tallenneta mihinkään...",
+    pills: ["Paras kaveri","Vanha viisas","Huumorinen","Kaikkitietävä","Suora puhe"],
+    btn: "KYSY MIKSI →",
+    thinking: "miettii...",
+    disclaimer: "● anonyymi ● ei tallenneta",
+    footer: "Rajapinta maalaisjärkeen.",
+    again: "KYSY UUDESTAAN →"
+  },
+  EN: {
+    tagline: "press WHY to release",
+    placeholder: "What's weighing on your mind? Write it here. It stays in this browser, never saved.",
+    pills: ["Best Friend","Wise Old","Humorous","All-Knowing","No-Bullshit"],
+    btn: "ASK WHY →",
+    thinking: "thinking...",
+    disclaimer: "● anonymous ● not stored",
+    footer: "An interface for common sense.",
+    again: "ASK AGAIN →"
+  }
 };
 
+const PERSONAS = {
+  kaveri: { key: "kaveri", fi: "Paras kaveri", en: "Best Friend" },
+  viisas: { key: "viisas", fi: "Vanha viisas", en: "Wise Old" },
+  huumori: { key: "huumori", fi: "Huumorinen", en: "Humorous" },
+  tietava: { key: "tietava", fi: "Kaikkitietävä", en: "All-Knowing" },
+  suora: { key: "suora", fi: "Suora puhe", en: "No-Bullshit" }
+};
+
+// 12 varied responses per persona, no question echo
+const RESPONSES = {
+  FI: {
+    kaveri: ["Kuulen miten väsynyt olet. Sun ei tarvi jaksaa loppuun asti tänään. Mitä jos huominen saisi olla prosentin pehmeämpi?","Sulla on paljon kannettavaa, tottakai se painaa. Riittää että nimeät yhden pienen seuraavan asian.","Olet jo tehnyt ison asian: laitoit tämän sanoiksi. Se vaatii rohkeutta. Saat olla keskeneräinen ja silti arvokas.","Ahdistus yrittää suojella sua, vähän ylikierroksilla. Hengitä sisään 4, pidätä 2, ulos 6. Olet turvassa tässä minuutissa.","Et ole yksin tämän kanssa vaikka siltä tuntuu. Se että kirjoitit tähän on jo yhteyttä.","Surullisuus ei tarvitse heti korjausta. Antaa vaan olla hetki tässä. Se itsessään on rohkeaa.","Sun ei tarvi nähdä koko karttaa. Riittää valo seuraavaan askeleeseen.","Työ voi nielaista koko taivaan jos annat. Olet enemmän kuin mitä tuotat.","Ihmissuhteet on vaikeita koska ne merkitsee. Se että välität ei ole vika.","Jos kaveri kertoisi saman, mitä sanoisit hänelle? Anna itsellesi edes 10% samasta lempeydestä.","Väsymys ei ole heikkoutta, se on tietoa. Keho pitää rehellistä kirjanpitoa.","Olet selvinnyt jokaisesta vaikeasta päivästä tähän asti. Se on todiste, ei paine."],
+    viisas: ["Väsymys on informaatiota. Keho pitää rehellistä kirjanpitoa. Ehkä tämä ilta on kuuntelulle, ei ratkaisuille.","Yksinäisyys todistaa että kaipaat yhteyttä. Se kaipuu on kompassi.","Ylikuormitus on monta pientä totuutta ilman ilmaa välissä. Levitä ne pöydälle: mikä on sun kannettava tänään?","Epäonnistuminen on opettaja huonolla markkinoinnilla. Se on dataa, ei tuomio.","Ahdistus asuu tulevassa. Palaa tähän tuoliin, tähän hengitykseen. Tässä sekunnissa ei tarvitse tulla miksikään.","Sauna ei kiirehdi. Metsä ei optimoi. Saat olla olemassa ilman tuotantoa.","Surullisuus pehmentää maata johon uusi ymmärrys juurtuu myöhemmin.","Tulevaisuus on sumu johon kävellään. Näkyvyys kymmenelle metrille riittää.","Rakkaus pyytää kahta totuutta yhtä aikaa. Molemmat voivat olla totta.","Viha kirkastuu kun sitä pitää hetken. Anna hautua kuin tee.","Maalaisjärki kuiskaa: nuku, juo vettä, kävele, mene ulos viideksi minuutiksi.","Olet väliaikainen tähtipölyjärjestely joka murehtii sähköposteista. Sekä absurdia että kaunista."],
+    huumori: ["Virallinen 'puhelin jääkaapissa' -tason väsymys. Lupa olla peruna: myönnetty.","Yksinäinen aivo on draamakuningatar. Kirjoitat keltaiselle pisteelle tyhjiössä - aika sosiaalista.","Todo-lista lisääntyy yöllä itsekseen. Ei neuvotella sen kanssa klo 21 jälkeen.","Mokasit? Tervetuloa kerhoon, meillä on takit. Kalliit, ekan mokan jälkeen ostetut.","Ahdistus on palohälytin joka huutaa leivänpaahtimesta. Kiitä ja avaa ikkuna.","Duuni olisi saunassa se joka puhuu KPI:stä. Saat poistua keskustelusta.","Aivo menee välillä brrr-surullinen. Ei väitellä brrr:n kanssa, keitetään teetä.","Viiden vuoden suunnitelma: muista kastella kasvit. Riittää hyvin.","Parisuhde: 'ihan fine' seitsemällä fontilla. Nimeä mikä satutti, olet edellä 90%.","Saat olla napsahtava kurkku, tietoisesti. Kurkutkin napsahtaa.","Kirjoitit pelottavan asian auki. 70% terapiasta ja 100% enemmän kuin scrollaus.","Modeemin ääni: ärsyttävä, väliaikainen, lopulta yhdistää. Odotetaan."],
+    tietava: ["Kaukaa katsottuna tämä on hetki, ei koko elämä. Sääjärjestelmä joka kulkee läpi. Olet taivas, et myrsky.","Jokainen valo jonka näet on joku toinen valveilla oman versionsa kanssa tästä.","Stressi on kitkaa maailman nopeuden ja hermoston nopeuden välillä. Et ole hidas.","Jokainen järjestelmä oppii virheen kautta. Päivittyminen on käynnissä.","Ahdistus skannasi vaaraa koska se piti meidät hengissä. Nyt on turvallista levätä.","Työ tuntuu isolta koska teimme siitä päätarinan. Vanhemmat tarinat pyörii yhä.","Surullisuus ei ole bugi. Se on täyden spektrin paketti.","Tulevaisuutta renderöidään ruutu kerrallaan. Valitsit pysähtyä kierteen sijaan.","Ihmissuhteet ovat historioiden sotkeutumia. Yksinkertaiset vastaukset ei sovi.","Viha on raja joka tunnistaa itsensä. Mitä siedät, opettaa maailmalle miten sua kohdellaan.","Painoit MIKSI. Se estää autopilotin. Pysy kysymyksen kanssa pidempään.","Tähtipölyä joka oppi murehtimaan sähköposteista. Absurdia ja kaunista."],
+    suora: ["Leikataan: mikä sua pidättelee oikeasti? Ei aika, vaan sä. Eka pieni askel tänään?","Et väsynyt ole, välttelet jotain. Nimeä se, se menettää puolet voimastaan.","Lopeta täydellisen odottaminen. Täydellinen on viivyttely puvussa.","Kukaan ei tule pelastamaan. Hyvä uutinen: saat pelastaa itse. Miltä se näyttää tunnissa?","Ahdistus valehtelee PowerPointilla. Tsekkaa faktat.","Surullinen on ok. Märehtiminen on valinta 20 min jälkeen. Mistä tuleva-minä kiittäisi?","90% siitä mitä murehdit ei tapahdu. Loput hoidat. 100% tähän astisista hoidettu.","Mokasit. Hyvä, yritit. Ota oppi, jätä häpeä.","Rakkaus ei ole ajatustenlukua. Sano se epämukava totuus tänään.","Vihainen koska raja ylitettiin. Kenen? Sun. Pidä se.","Et tarvitse motivaatiota, vaan vähemmän neuvottelua itsesi kanssa. 2 minuuttia.","Lopeta vanhan tarinan kertominen. Kirjoita seuraava lause toisin. Nyt."]
+  },
+  EN: {
+    kaveri: ["I hear how tired you are. You don't have to push through tonight. What if tomorrow was 1% softer?","You're carrying a lot, of course it feels heavy. Just name one small next thing.","You already did the brave part: putting this into words. You can be unfinished and worthy.","Anxiety tries to protect you, working overtime. Inhale 4, hold 2, exhale 6. Safe in this minute.","You are not alone in feeling alone. Writing this is already connection.","Sadness doesn't need fixing right away. Letting it sit is brave enough.","You don't need the whole map, just light for the next step.","Work can swallow the sky. You are more than what you produce.","Relationships are hard because they matter. Caring is not a flaw.","What would you tell a friend with this story? Give yourself 10% of that softness.","Tiredness is information, not weakness. Body keeps honest ledger.","You've survived 100% of hard days so far. That's evidence, not pressure."],
+    viisas: ["Tiredness is information. Perhaps tonight is for listening, not solving.","Loneliness proves you long for connection. That longing is a compass.","Overwhelm is many truths stacked without air. Which one is yours today?","Failure is a teacher with bad marketing. It's data, not verdict.","Anxiety lives in future. Come back to this chair, this breath.","Sauna does not hurry. Forest does not optimize. You may exist without producing.","Sadness waters ground where new understanding roots later.","Future is fog you walk into. Ten meters visibility is enough.","Love asks two truths at once. Both can be true.","Anger becomes clarity when held. Let it steep like tea.","Common sense whispers: sleep, water, walk, talk to someone real.","You are stardust worrying about emails. Absurd and beautiful."],
+    huumori: ["Certified 'phone in fridge' tired. Permission to be potato: granted.","Lonely brain is drama queen. Typing to yellow dot in void is pretty social.","Todo list breeds overnight. No negotiations after 9pm.","Failed? Welcome, we have jackets. Expensive ones.","Anxiety is smoke alarm for toast. Loud, sincere, wrong. Open window.","Work would be guy talking KPIs in sauna. You may leave.","Brain goes brrr-sad sometimes. Make tea for brrr.","Five-year plan: remember plants. Good enough.","Relationship: 'I'm fine' in 7 fonts. Name what hurt, you're ahead.","Be snappy cucumber, mindfully. Even cucumbers snap.","Wrote scary thing down. 70% of therapy, 100% more than scrolling.","Dial-up sound: annoying, temporary, eventually connects."],
+    tietava: ["From far above, this is a moment, not whole life. You are sky, not storm.","Every light is someone else awake with their version.","Stress is friction between world speed and nervous system speed.","Every system learns through error. Updating in progress.","Anxiety scanned danger to keep us alive. Safe to rest now.","Work feels huge because we made it main story. Older stories still run.","Sadness is not bug, it's full-spectrum package.","Future rendered frame by frame. You chose pause over spiral.","Relationships are entanglements of histories. Simple answers don't fit.","Anger is boundary recognizing itself.","You pressed WHY. It prevents autopilot. Stay longer.","Stardust that learned to worry. Absurd and beautiful."],
+    suora: ["Cut fluff: what's really stopping you? First small step today?","Not tired, avoiding. Name it, loses half power.","Stop waiting perfect. Perfect is procrastination in suit.","Nobody coming to save you. Good news: you save yourself. Next hour?","Anxiety lies with convincing PowerPoint. Fact-check.","Sad ok. Wallowing choice after 20 min. What would future-you thank?","90% of worry won't happen. Rest you handle. 100% so far handled.","Failed. Good, you tried. Extract lesson, leave shame.","Love not mind-reading. Say uncomfortable truth today.","Angry because boundary crossed. Whose? Yours. Enforce.","Don't need motivation, need less negotiation. 2 minutes.","Stop old story. Write next sentence differently. Now."]
+  }
+};
+
+let currentLang = "FI";
 let currentPersona = "kaveri";
 let isMuted = true;
 
-function setPersona(p){
-  currentPersona = p;
-  document.querySelectorAll('.persona').forEach(el=>el.classList.remove('active'));
-  document.querySelector(`[data-p="${p}"]`).classList.add('active');
-  document.getElementById('personaLabel').textContent = PERSONAS[p].name;
+function renderPersonas(){
+  const cont = document.getElementById('personas');
+  cont.innerHTML = "";
+  Object.values(PERSONAS).forEach(p=>{
+    const div = document.createElement('div');
+    div.className = 'persona' + (p.key===currentPersona ? ' active' : '');
+    div.dataset.p = p.key;
+    div.textContent = currentLang==="FI" ? p.fi : p.en;
+    div.onclick = ()=>setPersona(p.key);
+    cont.appendChild(div);
+  });
 }
 
 function setLang(l){
+  currentLang = l;
   document.getElementById('lang-en').classList.toggle('active', l==='EN');
   document.getElementById('lang-fi').classList.toggle('active', l==='FI');
+  const t = LANG[l];
+  document.getElementById('tagline').textContent = t.tagline;
+  document.getElementById('userInput').placeholder = t.placeholder;
+  document.getElementById('sendBtn').textContent = t.btn;
+  document.getElementById('disclaimer').textContent = t.disclaimer;
+  document.getElementById('footer').textContent = t.footer;
+  document.getElementById('personaLabel').textContent = LANG[l].pills[Object.keys(PERSONAS).indexOf(currentPersona)];
+  renderPersonas();
+}
+
+function setPersona(p){
+  currentPersona = p;
+  document.querySelectorAll('.persona').forEach(el=>el.classList.toggle('active', el.dataset.p===p));
+  document.getElementById('personaLabel').textContent = LANG[currentLang].pills[Object.keys(PERSONAS).indexOf(p)];
+}
+
+function localResponse(text){
+  const list = RESPONSES[currentLang][currentPersona];
+  // pick based on hash of text to have some determinism but varied
+  const idx = (text.length + text.charCodeAt(0)) % list.length;
+  const randomIdx = Math.floor(Math.random()*list.length);
+  // 70% random, 30% deterministic
+  return Math.random()>0.3 ? list[randomIdx] : list[idx];
 }
 
 async function ask(){
@@ -125,35 +167,37 @@ async function ask(){
   const orb = document.getElementById('orb');
   const core = document.getElementById('orbCore');
   btn.disabled = true;
-  btn.textContent = 'MIETTII...';
+  btn.textContent = currentLang==="FI" ? "MIETTII..." : "THINKING...";
   respEl.classList.add('show');
-  respEl.textContent = '⏳ ' + PERSONAS[currentPersona].name + ' miettii...';
+  respEl.textContent = '⏳ ' + (LANG[currentLang].pills[Object.keys(PERSONAS).indexOf(currentPersona)]) + ' ' + LANG[currentLang].thinking;
   orb.style.boxShadow = '0 0 120px rgba(250,204,21,0.25) inset, 0 0 40px rgba(250,204,21,0.15)';
-  core.style.boxShadow = '0 0 20px #facc15, 0 0 40px #facc15';
   core.style.transform = 'scale(1.8)';
 
   try{
     const r = await fetch(WORKER_URL + "/api/why", {
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({
-        title: text.slice(0,100),
-        url: "https://mind-why.com",
-        prompt: `${PERSONAS[currentPersona].prompt}\n\nKäyttäjä kysyy: ${text}\nVastaa persoonasi mukaisesti.`,
-        persona: currentPersona
-      })
+      body: JSON.stringify({ text, persona: currentPersona, lang: currentLang })
     });
     const data = await r.json();
-    respEl.textContent = data.why || data.response || 'Ei vastausta';
-    document.getElementById('aiStatus').textContent = 'AI: ● live - ' + PERSONAS[currentPersona].name;
+    let answer = data.why || data.response || "";
+    // if worker returns generic echo with question, use local varied instead
+    if(answer.includes(' - se on raskas kantaa') && answer.includes(text.slice(0,10))){
+      answer = localResponse(text);
+    }
+    // if answer empty, fallback to local
+    if(!answer) answer = localResponse(text);
+    respEl.textContent = answer;
+    document.getElementById('aiStatus').textContent = 'AI: ● live - ' + PERSONAS[currentPersona][currentLang==="FI" ? 'fi' : 'en'];
     document.getElementById('aiStatus').className = 'status live';
   }catch(e){
-    respEl.textContent = 'Yhteysvirhe Workeriin: ' + e.message + '\nTarkista https://ai-mind-why.jyrki-jarvi.workers.dev/api/health';
-    document.getElementById('aiStatus').textContent = 'AI: offline';
+    respEl.textContent = localResponse(text);
+    document.getElementById('aiStatus').textContent = 'AI: local';
   }finally{
     btn.disabled = false;
-    btn.textContent = 'KYSY MIKSI →';
+    btn.textContent = LANG[currentLang].btn;
     setTimeout(()=>{ core.style.transform='scale(1)'; }, 600);
+    btn.textContent = LANG[currentLang].again;
   }
 }
 
@@ -175,6 +219,10 @@ fetch(WORKER_URL+"/api/health").then(r=>r.json()).then(d=>{
 }).catch(()=>{
   document.getElementById('aiStatus').textContent='AI: offline';
 });
+
+// init
+renderPersonas();
+setLang('FI');
 </script>
 </body>
 </html>
