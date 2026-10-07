@@ -11,12 +11,12 @@
   body{font-family:ui-monospace,Menlo,Monaco,monospace;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;line-height:1.6}
   header{display:flex;justify-content:space-between;align-items:center;padding:24px 32px;border-bottom:1px solid var(--border)}
   .logo{font-weight:700;letter-spacing:-0.02em}.logo span{color:var(--muted);font-weight:400}
-  .toggles{display:flex;gap:12px;font-size:12px}
+  .toggles{display:flex;gap:12px;font-size:12px;align-items:center}
   .toggles button{background:transparent;border:1px solid var(--border);padding:4px 10px;border-radius:20px;cursor:pointer;color:var(--text)}
   .toggles button.active{background:var(--text);color:var(--bg)}
-  main{max-width:720px;width:100%;margin:0 auto;padding:80px 24px;flex:1}
+  main{max-width:720px;width:100%;margin:0 auto;padding:60px 24px;flex:1}
   h1{font-size:clamp(28px,5vw,42px);line-height:1.1;letter-spacing:-0.03em;margin-bottom:16px}
-  .sub{color:var(--muted);margin-bottom:48px;font-size:14px}
+  .sub{color:var(--muted);margin-bottom:32px;font-size:14px}
   .memory-banner{display:none;background:var(--card);border:1px solid var(--accent);border-radius:12px;padding:16px 20px;margin-bottom:24px;align-items:center;gap:12px}
   .memory-banner.show{display:flex}
   .dot{width:8px;height:8px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite}
@@ -30,11 +30,18 @@
   .remember{display:flex;align-items:center;gap:6px;cursor:pointer}
   .remember input{accent-color:var(--accent)}
   button.send{background:var(--text);color:var(--bg);border:0;padding:8px 16px;border-radius:20px;cursor:pointer;font-family:inherit;font-size:12px}
-  .explain{margin-top:64px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:32px}
+  button.send:disabled{opacity:0.5}
+  .response{margin-top:24px;padding:20px;background:var(--card);border:1px solid var(--border);border-radius:12px;display:none;font-size:14px;white-space:pre-wrap}
+  .response.show{display:block}
+  .chat-log{display:flex;flex-direction:column;gap:16px;margin-bottom:24px}
+  .msg{padding:14px 16px;border-radius:12px;font-size:14px;line-height:1.5}
+  .msg.user{background:var(--text);color:var(--bg);align-self:flex-end;max-width:85%}
+  .msg.ai{background:var(--card);border:1px solid var(--border)}
+  .explain{margin-top:48px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:32px}
   .explain b{color:var(--text);display:block;margin-bottom:4px}
   footer{text-align:center;padding:32px;font-size:11px;color:var(--muted)}
-  .response{margin-top:24px;padding:20px;background:var(--card);border:1px solid var(--border);border-radius:12px;display:none;font-size:14px}
-  .response.show{display:block}
+  .apikey-box{margin-top:16px;padding:12px;border:1px dashed var(--border);border-radius:12px;font-size:11px}
+  .apikey-box input{width:100%;margin-top:8px;padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-family:inherit}
 </style>
 </head>
 <body>
@@ -46,7 +53,6 @@
     <button onclick="clearMemory()" style="margin-left:12px">× tyhjennä</button>
   </div>
 </header>
-
 <main>
   <div id="memoryBanner" class="memory-banner">
     <div class="dot"></div>
@@ -58,172 +64,82 @@
   </div>
 
   <h1 id="h1">Tekoäly joka muistaa sinut huomenna.</h1>
-  <p class="sub" id="sub">Ei kirjautumista. Ei pilveä. Muisti jää selaimeesi. Google unohtaa tahallaan. Me emme.</p>
+  <p class="sub" id="sub">Kirjoita tähän. Vastaus tulee tähän. Ja huomenna muistan vieläkin. Ei kirjautumista.</p>
+
+  <div id="chatLog" class="chat-log"></div>
 
   <div class="chat-box">
     <div id="pills" class="history-pills"></div>
-    <textarea id="input" placeholder="Kuka olet ja mistä puhuttiin? Esim. 'Moi, oon Pekka, mulla on koira'"></textarea>
+    <textarea id="input" placeholder="Esim. 'Moi oon Pekka, mulla on koira'"></textarea>
     <div class="box-footer">
-      <label class="remember"><input type="checkbox" id="remember" checked> <span id="rememberLabel">Muista tämä huomenna (vain tässä selaimessa)</span></label>
-      <button class="send" onclick="send()">Lähetä → Gemini</button>
+      <label class="remember"><input type="checkbox" id="remember" checked> <span id="rememberLabel">Muista huomenna</span></label>
+      <button id="sendBtn" class="send" onclick="send()">Lähetä</button>
     </div>
   </div>
 
-  <div id="response" class="response"></div>
+  <div class="apikey-box" id="apiBox">
+    <b>🔑 Ilman avainta = demovastaus (testaa muistia). Avaimella = oikea Gemini vastaa tässä sivussa.</b><br>
+    <span style="color:var(--muted)">Hae ilmainen avain: <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:inherit">aistudio.google.com/app/apikey</a> → Create API key → liitä tähän. Avain jää vain tähän selaimeen.</span>
+    <input id="apiKey" type="password" placeholder="Liitä Gemini API key tähän (AIza...)" oninput="saveKey()">
+    <div id="keyStatus" style="margin-top:6px;color:var(--muted)"></div>
+  </div>
 
   <div class="explain">
-    <div><b id="e1t">Zero-bloat</b><span id="e1d">Puhdas HTML, ei kirjastoja. Nopea kuin 1999.</span></div>
-    <div><b id="e2t">Paikallinen muisti</b><span id="e2d">3 riviä localStoragea. Ei serveriä, ei myyntiä.</span></div>
-    <div><b id="e3t">Sinä omistat</b><span id="e3d">Tyhjennä milloin haluat. Data ei lähde koneeltasi.</span></div>
+    <div><b id="e1t">Toimii nyt</b><span id="e1d">Ei redirectiä. Vastaus tulee tähän laatikkoon.</span></div>
+    <div><b id="e2t">Paikallinen muisti</b><span id="e2d">Pekka ja koira jää sun selaimeen, ei Googlelle.</span></div>
+    <div><b id="e3t">Sinä omistat</b><span id="e3d">Tyhjennä milloin haluat. Ilmainen ikuisesti.</span></div>
   </div>
 </main>
-
-<footer>Built by Jyrki | Järvenpää | mind-why.com | <a href="https://github.com/jyrkijarvi-pixel/mind-why.com" style="color:inherit">GitHub</a></footer>
+<footer>Built by Jyrki | Järvenpää | mind-why.com</footer>
 
 <script>
 const i18n={
- fi:{
-  h1:"Tekoäly joka muistaa sinut huomenna.",
-  sub:"Ei kirjautumista. Ei pilveä. Muisti jää selaimeesi. Google unohtaa tahallaan. Me emme.",
-  placeholder:"Kuka olet ja mistä puhuttiin? Esim. 'Moi, oon Pekka, mulla on koira'",
-  remember:"Muista tämä huomenna (vain tässä selaimessa)",
-  banner:(n,t)=>`Terve ${n}, viimeksi puhuttiin: ${t}`,
-  bannerSub:"Jatketaanko siitä? Muisti on vain tässä selaimessa.",
-  e1t:"Zero-bloat",e1d:"Puhdas HTML, ei kirjastoja. Nopea kuin 1999.",
-  e2t:"Paikallinen muisti",e2d:"3 riviä localStoragea. Ei serveriä, ei myyntiä.",
-  e3t:"Sinä omistat",e3d:"Tyhjennä milloin haluat. Data ei lähde koneeltasi.",
-  continue:"Jatketaan →"
- },
- en:{
-  h1:"The AI that remembers you tomorrow.",
-  sub:"No login. No cloud. Memory stays in your browser. Google forgets on purpose. We don't.",
-  placeholder:"Who are you and what did we discuss? E.g. 'Hi, I'm Pekka, I have a dog'",
-  remember:"Remember this tomorrow (only in this browser)",
-  banner:(n,t)=>`Hi ${n}, last time: ${t}`,
-  bannerSub:"Continue? Memory is only in this browser.",
-  e1t:"Zero-bloat",e1d:"Pure HTML, no libraries. Fast as 1999.",
-  e2t:"Local memory",e2d:"3 lines of localStorage. No server, no sale.",
-  e3t:"You own it",e3d:"Clear anytime. Data never leaves your device.",
-  continue:"Continue →"
- }
+ fi:{h1:"Tekoäly joka muistaa sinut huomenna.",sub:"Kirjoita tähän. Vastaus tulee tähän. Ja huomenna muistan vieläkin. Ei kirjautumista.",placeholder:"Esim. 'Moi oon Pekka, mulla on koira'",remember:"Muista huomenna",banner:(n,t)=>`Terve ${n}, viimeksi: ${t}`,bannerSub:"Muisti on tässä selaimessa.",e1t:"Toimii nyt",e1d:"Ei redirectiä. Vastaus tulee tähän.",e2t:"Paikallinen muisti",e2d:"Pekka ja koira jää selaimeen, ei Googlelle.",e3t:"Sinä omistat",e3d:"Tyhjennä milloin haluat."},
+ en:{h1:"The AI that remembers you tomorrow.",sub:"Type here. Answer comes here. And tomorrow I still remember. No login.",placeholder:"E.g. 'Hi I'm Pekka, I have a dog'",remember:"Remember tomorrow",banner:(n,t)=>`Hi ${n}, last: ${t}`,bannerSub:"Memory is in this browser.",e1t:"Works now",e1d:"No redirect. Answer comes here.",e2t:"Local memory",e2d:"Pekka and dog stay in your browser.",e3t:"You own it",e3d:"Clear anytime."}
 };
-
-let lang = localStorage.getItem('mindwhy_lang') || 'fi';
-
-function setLang(l){
-  lang=l;
-  localStorage.setItem('mindwhy_lang',l);
-  document.getElementById('langFi').classList.toggle('active',l==='fi');
-  document.getElementById('langEn').classList.toggle('active',l==='en');
-  const t=i18n[l];
-  document.getElementById('h1').textContent=t.h1;
-  document.getElementById('sub').textContent=t.sub;
-  document.getElementById('input').placeholder=t.placeholder;
-  document.getElementById('rememberLabel').textContent=t.remember;
-  document.getElementById('e1t').textContent=t.e1t;
-  document.getElementById('e1d').textContent=t.e1d;
-  document.getElementById('e2t').textContent=t.e2t;
-  document.getElementById('e2d').textContent=t.e2d;
-  document.getElementById('e3t').textContent=t.e3t;
-  document.getElementById('e3d').textContent=t.e3d;
-  loadMemory();
-}
-
+let lang=localStorage.getItem('mindwhy_lang')||'fi';
+function setLang(l){lang=l;localStorage.setItem('mindwhy_lang',l);document.getElementById('langFi').classList.toggle('active',l==='fi');document.getElementById('langEn').classList.toggle('active',l==='en');const t=i18n[l];document.getElementById('h1').textContent=t.h1;document.getElementById('sub').textContent=t.sub;document.getElementById('input').placeholder=t.placeholder;document.getElementById('rememberLabel').textContent=t.remember;document.getElementById('e1t').textContent=t.e1t;document.getElementById('e1d').textContent=t.e1d;document.getElementById('e2t').textContent=t.e2t;document.getElementById('e2d').textContent=t.e2d;document.getElementById('e3t').textContent=t.e3t;document.getElementById('e3d').textContent=t.e3d;loadMemory();}
+function saveKey(){const k=document.getElementById('apiKey').value.trim();localStorage.setItem('mindwhy_gemini_key',k);document.getElementById('keyStatus').textContent=k?"✅ Avain tallennettu tähän selaimeen. Nyt vastaukset tulevat suoraan.":"";}
 function loadMemory(){
   const mem=JSON.parse(localStorage.getItem('mindwhy_memory')||'null');
   const history=JSON.parse(localStorage.getItem('mindwhy_history')||'[]');
   const banner=document.getElementById('memoryBanner');
-  if(mem && mem.name){
-    banner.classList.add('show');
-    document.getElementById('bannerText').textContent=i18n[lang].banner(mem.name, mem.topic);
-    const diff=Math.round((Date.now()-mem.time)/1000/60);
-    let ago= lang==='fi' ? `${diff} min sitten` : `${diff} min ago`;
-    if(diff>60) ago= lang==='fi' ? `${Math.round(diff/60)}h sitten` : `${Math.round(diff/60)}h ago`;
-    if(diff>1440) ago= lang==='fi' ? `eilen` : `yesterday`;
-    document.getElementById('bannerSub').textContent=ago + ' • ' + i18n[lang].bannerSub;
-  } else {
-    banner.classList.remove('show');
-  }
-  const pills=document.getElementById('pills');
-  pills.innerHTML='';
-  history.slice(-5).reverse().forEach(h=>{
-    const el=document.createElement('div');
-    el.className='pill accent';
-    el.textContent=h.topic;
-    el.onclick=()=>{document.getElementById('input').value=h.full; document.getElementById('input').focus();};
-    pills.appendChild(el);
-  });
+  if(mem&&mem.name){banner.classList.add('show');document.getElementById('bannerText').textContent=i18n[lang].banner(mem.name,mem.topic);const diff=Math.round((Date.now()-mem.time)/1000/60);let ago=diff+' min';if(diff>60)ago=Math.round(diff/60)+'h';if(diff>1440)ago=lang==='fi'?'eilen':'yesterday';document.getElementById('bannerSub').textContent=ago+' • '+i18n[lang].bannerSub;}else banner.classList.remove('show');
+  const pills=document.getElementById('pills');pills.innerHTML='';history.slice(-5).reverse().forEach(h=>{const el=document.createElement('div');el.className='pill accent';el.textContent=h.topic;el.onclick=()=>{document.getElementById('input').value=h.full;};pills.appendChild(el);});
+  const key=localStorage.getItem('mindwhy_gemini_key')||'';document.getElementById('apiKey').value=key;if(key)document.getElementById('keyStatus').textContent='✅ Avain tallennettu. Oikeat vastaukset käytössä.';
 }
-
-function send(){
-  const input=document.getElementById('input').value.trim();
-  if(!input) return;
-  const remember=document.getElementById('remember').checked;
-
-  // Extract name and topic naive
-  let name=""; let topic=input.slice(0,40);
-  const nameMatch=input.match(/(?:oon|olen|mä oon|I'm|I am)\s+([A-ZÄÖa-zäö]+)/);
-  if(nameMatch) name=nameMatch[1];
-  if(!name){
-    const mem=JSON.parse(localStorage.getItem('mindwhy_memory')||'{}');
-    if(mem.name) name=mem.name;
-  }
-
-  if(remember){
-    const mem={name:name||'kaveri', topic:topic, full:input, time:Date.now()};
-    localStorage.setItem('mindwhy_memory', JSON.stringify(mem));
-    let hist=JSON.parse(localStorage.getItem('mindwhy_history')||'[]');
-    hist.push(mem);
-    if(hist.length>10) hist=hist.slice(-10);
-    localStorage.setItem('mindwhy_history', JSON.stringify(hist));
-  }
-
-  // Build query with memory context
+function addMsg(text,who){const log=document.getElementById('chatLog');const d=document.createElement('div');d.className='msg '+who;d.textContent=text;log.appendChild(d);log.scrollIntoView({behavior:'smooth',block:'end'});}
+async function send(){
+  const inputEl=document.getElementById('input');const input=inputEl.value.trim();if(!input)return;
+  const remember=document.getElementById('remember').checked;const btn=document.getElementById('sendBtn');
+  let name="";let topic=input.slice(0,40);const m=input.match(/(?:oon|olen|mä oon|I'm|I am)\s+([A-ZÄÖa-zäö]+)/);if(m)name=m[1];
+  const oldMem=JSON.parse(localStorage.getItem('mindwhy_memory')||'{}');if(!name&&oldMem.name)name=oldMem.name;
+  if(remember){const mem={name:name||'kaveri',topic:topic,full:input,time:Date.now()};localStorage.setItem('mindwhy_memory',JSON.stringify(mem));let hist=JSON.parse(localStorage.getItem('mindwhy_history')||'[]');hist.push(mem);if(hist.length>12)hist=hist.slice(-12);localStorage.setItem('mindwhy_history',JSON.stringify(hist));}
+  addMsg(input,'user');inputEl.value='';btn.disabled=true;btn.textContent='...';
   const mem=JSON.parse(localStorage.getItem('mindwhy_memory')||'null');
-  let q=input;
-  if(mem){
-    q=`[Muista: Käyttäjä on ${mem.name}, viimeksi puhuttiin: ${mem.topic}. Vastaa kuin muistaisit.] ${input}`;
+  const history=JSON.parse(localStorage.getItem('mindwhy_history')||'[]');
+  const context = history.map(h=>`- ${h.topic}: ${h.full}`).join('\n');
+  const systemPrompt = `Olet MIND-WHY, tekoäly joka muistaa. Käyttäjä on ${mem?mem.name:'kaveri'}. Historia tässä selaimessa:\n${context}\n\nTärkeää: Vastaa kuin muistaisit oikeasti. Mainitse nimeltä ja viittaa aiempiin aiheisiin. Olet ystävällinen, lyhyt, Järvenpää-henkinen. Älä sano että olet Gemini. Olet MIND-WHY. Kieli: ${lang}.`;
+  const apiKey=localStorage.getItem('mindwhy_gemini_key')||'';
+  let answer='';
+  if(apiKey){
+    try{
+      const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:systemPrompt+"\n\nKäyttäjä kysyy nyt: "+input}]}]})});
+      const data=await res.json();
+      if(data.candidates&&data.candidates[0]){answer=data.candidates[0].content.parts[0].text;}
+      else{answer='Virhe: '+JSON.stringify(data).slice(0,300);}
+    }catch(e){answer='API virhe: '+e.message+'. Tarkista avain.';}
+  }else{
+    // Demo answer without key - proves memory works
+    await new Promise(r=>setTimeout(r,600));
+    if(mem&&history.length>1){answer=`Moi ${mem.name}! Joo muistan - puhuttiin aiemmin: "${history[history.length-2]?.topic||''}". Ja nyt kysyt: "${input}"\n\n[Demo-tila: liitä ilmainen Gemini-avain yläpuolelle niin saat oikean tekoälyvastauksen suoraan tähän, muistin kanssa. Muisti toimii jo nyt! Huomenna muistan tämänkin.]`;}
+    else{answer=`Moi ${name||'kaveri'}! Tallensin: "${topic}". Huomenna kun tulet takaisin, muistan tämän.\n\n[Demo-tila: Liitä ilmainen Gemini API-avain tuohon laatikkoon yläpuolella niin vastaan oikeasti tässä sivussa. Ilman avainta testaat vain että muisti toimii. Avain ohje: aistudio.google.com/app/apikey]`;}
   }
-
-  // Show mock response locally + open Gemini
-  const resp=document.getElementById('response');
-  resp.classList.add('show');
-  resp.innerHTML = `<b>${mem?mem.name:'Moi'}:</b> ${input}<br><br><i style="color:var(--muted)">→ Avataan Gemini muistilla...<br>Muisti tallennettu tähän selaimeen. Kun palaat huomenna mind-why.comiin, jatkamme tästä.</i>`;
-
-  // Try to open Gemini with query + copy to clipboard as backup
-  const geminiUrl = 'https://gemini.google.com/app?q=' + encodeURIComponent(q);
-  navigator.clipboard.writeText(q).catch(()=>{});
-  
-  // Show that query is ready
-  resp.innerHTML += `<br><br><div style="background:var(--bg);padding:8px 12px;border-radius:8px;font-size:11px;margin-top:12px">📋 Kysymys kopioitu leikepöydälle. Jos Gemini ei täytä automaattisesti, liitä (Ctrl+V).<br><br><a href="${geminiUrl}" target="_blank" style="color:var(--text);text-decoration:underline">Avaa Gemini tästä →</a></div>`;
-
-  setTimeout(()=>{
-    window.open(geminiUrl, '_blank');
-    loadMemory();
-  }, 600);
+  addMsg(answer,'ai');btn.disabled=false;btn.textContent='Lähetä';loadMemory();
 }
-
-function continueChat(){
-  const mem=JSON.parse(localStorage.getItem('mindwhy_memory')||'null');
-  if(mem){
-    document.getElementById('input').value=`Jatketaan siitä ${mem.topic} jutusta. `;
-    document.getElementById('input').focus();
-  }
-}
-
-function clearMemory(){
-  if(confirm(lang==='fi'?'Tyhjennetäänkö muisti tästä selaimesta?':'Clear memory from this browser?')){
-    localStorage.removeItem('mindwhy_memory');
-    localStorage.removeItem('mindwhy_history');
-    loadMemory();
-    document.getElementById('response').classList.remove('show');
-  }
-}
-
-document.getElementById('input').addEventListener('keydown', e=>{
-  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }
-});
-
+function continueChat(){const mem=JSON.parse(localStorage.getItem('mindwhy_memory')||'null');if(mem){document.getElementById('input').value=`Jatketaan siitä ${mem.topic} jutusta. `;document.getElementById('input').focus();}}
+function clearMemory(){if(confirm('Tyhjennetäänkö muisti?')){localStorage.removeItem('mindwhy_memory');localStorage.removeItem('mindwhy_history');document.getElementById('chatLog').innerHTML='';loadMemory();}}
+document.getElementById('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
 setLang(lang);
 </script>
 </body>
