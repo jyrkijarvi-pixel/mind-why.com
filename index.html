@@ -190,9 +190,15 @@ function send(){
   resp.classList.add('show');
   resp.innerHTML = `<b>${mem?mem.name:'Moi'}:</b> ${input}<br><br><i style="color:var(--muted)">→ Avataan Gemini muistilla...<br>Muisti tallennettu tähän selaimeen. Kun palaat huomenna mind-why.comiin, jatkamme tästä.</i>`;
 
-  // Open Gemini with context
+  // Try to open Gemini with query + copy to clipboard as backup
+  const geminiUrl = 'https://gemini.google.com/app?q=' + encodeURIComponent(q);
+  navigator.clipboard.writeText(q).catch(()=>{});
+  
+  // Show that query is ready
+  resp.innerHTML += `<br><br><div style="background:var(--bg);padding:8px 12px;border-radius:8px;font-size:11px;margin-top:12px">📋 Kysymys kopioitu leikepöydälle. Jos Gemini ei täytä automaattisesti, liitä (Ctrl+V).<br><br><a href="${geminiUrl}" target="_blank" style="color:var(--text);text-decoration:underline">Avaa Gemini tästä →</a></div>`;
+
   setTimeout(()=>{
-    window.open('https://gemini.google.com/?q='+encodeURIComponent(q), '_blank');
+    window.open(geminiUrl, '_blank');
     loadMemory();
   }, 600);
 }
