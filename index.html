@@ -11,214 +11,159 @@
   body{font-family:ui-monospace,Menlo,Monaco,monospace;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;line-height:1.6}
   header{display:flex;justify-content:space-between;align-items:center;padding:24px 32px;border-bottom:1px solid var(--border)}
   .logo{font-weight:700;letter-spacing:-0.02em}.logo span{color:var(--muted);font-weight:400}
-  .toggles{display:flex;gap:12px;font-size:12px}
-  .toggles button{background:transparent;border:1px solid var(--border);padding:4px 10px;border-radius:20px;cursor:pointer;color:var(--text)}
-  .toggles button.active{background:var(--text);color:var(--bg)}
-  main{max-width:720px;width:100%;margin:0 auto;padding:80px 24px;flex:1}
-  h1{font-size:clamp(28px,5vw,42px);line-height:1.1;letter-spacing:-0.03em;margin-bottom:16px}
-  .sub{color:var(--muted);margin-bottom:48px;font-size:14px}
+  main{max-width:720px;width:100%;margin:0 auto;padding:60px 24px;flex:1}
+  h1{font-size:clamp(28px,5vw,42px);line-height:1.1;letter-spacing:-0.03em;margin-bottom:12px}
+  .sub{color:var(--muted);margin-bottom:28px;font-size:14px;line-height:1.4}
+  .sub b{color:var(--text)}
   .memory-banner{display:none;background:var(--card);border:1px solid var(--accent);border-radius:12px;padding:16px 20px;margin-bottom:24px;align-items:center;gap:12px}
   .memory-banner.show{display:flex}
   .dot{width:8px;height:8px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
   .chat-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:8px;box-shadow:0 2px 20px rgba(0,0,0,0.04)}
-  .history-pills{display:flex;flex-wrap:wrap;gap:8px;padding:12px 12px 0}
+  .pills{display:flex;flex-wrap:wrap;gap:8px;padding:12px 12px 0}
   .pill{font-size:11px;padding:4px 10px;border-radius:20px;background:var(--bg);border:1px solid var(--border);cursor:pointer}
   .pill.accent{border-color:var(--accent);background:rgba(255,176,0,0.12)}
-  textarea{width:100%;border:0;resize:none;outline:none;background:transparent;color:var(--text);padding:16px;font-family:inherit;font-size:15px;min-height:56px}
-  .box-footer{display:flex;justify-content:space-between;align-items:center;padding:8px 12px 12px;font-size:11px;color:var(--muted)}
-  .remember{display:flex;align-items:center;gap:6px;cursor:pointer}
-  .remember input{accent-color:var(--accent)}
-  button.send{background:var(--text);color:var(--bg);border:0;padding:8px 16px;border-radius:20px;cursor:pointer;font-family:inherit;font-size:12px}
-  .explain{margin-top:64px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:32px}
-  .explain b{color:var(--text);display:block;margin-bottom:4px}
-  footer{text-align:center;padding:32px;font-size:11px;color:var(--muted)}
-  .response{margin-top:24px;padding:20px;background:var(--card);border:1px solid var(--border);border-radius:12px;display:none;font-size:14px}
-  .response.show{display:block}
+  textarea{width:100%;border:0;resize:none;outline:none;background:transparent;color:var(--text);padding:16px;font-family:inherit;font-size:18px;min-height:64px}
+  .footer{display:flex;justify-content:space-between;align-items:center;padding:8px 12px 12px;flex-wrap:wrap;gap:8px}
+  .left{display:flex;align-items:center;gap:12px;font-size:11px;color:var(--muted)}
+  .btns{display:flex;gap:8px}
+  button{border:0;padding:10px 18px;border-radius:20px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600}
+  button.primary{background:var(--text);color:var(--bg)}
+  button.secondary{background:var(--bg);color:var(--text);border:1px solid var(--border)}
+  .log{margin-top:24px;display:flex;flex-direction:column;gap:10px}
+  .bubble{padding:12px 16px;border-radius:12px;font-size:14px}
+  .bubble.user{background:var(--text);color:var(--bg);align-self:flex-end}
+  .bubble.ai{background:var(--card);border:1px solid var(--border)}
+  .explain{margin-top:48px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);padding-top:24px}
+  footer{padding:32px;text-align:center;font-size:11px;color:var(--muted)}
 </style>
 </head>
 <body>
 <header>
   <div class="logo">MIND-WHY <span>| muistaa</span></div>
-  <div class="toggles">
-    <button id="langFi" class="active" onclick="setLang('fi')">FI</button>
-    <button id="langEn" onclick="setLang('en')">EN</button>
-    <button onclick="clearMemory()" style="margin-left:12px">× tyhjennä</button>
-  </div>
+  <div style="font-size:11px;color:var(--muted)"><button onclick="clearMemory()" style="background:none;border:1px solid var(--border);padding:4px 10px;border-radius:20px;font-size:11px;cursor:pointer;color:var(--muted)">× tyhjennä muisti</button></div>
 </header>
-
 <main>
-  <div id="memoryBanner" class="memory-banner">
+  <div id="banner" class="memory-banner">
     <div class="dot"></div>
-    <div style="flex:1">
-      <div id="bannerText" style="font-size:13px"></div>
-      <div id="bannerSub" style="font-size:11px;color:var(--muted)"></div>
-    </div>
-    <button class="send" onclick="continueChat()">Jatketaan →</button>
+    <div style="flex:1"><div id="bText" style="font-size:13px"></div><div style="font-size:11px;color:var(--muted)">Muisti on tässä selaimessa • klikkaa jatkaaksesi</div></div>
+    <button class="primary" onclick="continuePrev()" style="font-size:12px">Jatka →</button>
   </div>
 
-  <h1 id="h1">Tekoäly joka muistaa sinut huomenna.</h1>
-  <p class="sub" id="sub">Ei kirjautumista. Ei pilveä. Muisti jää selaimeesi. Google unohtaa tahallaan. Me emme.</p>
+  <h1>Tekoäly joka muistaa sinut huomenna.</h1>
+  <p class="sub"><b>Hei tehdään tekoäly joka muistaa, mutta muisti jää käyttäjän koneelle. Ei pilveen.</b><br>Kirjoita tähän mitä haluat hakea. Niks naks → se on jo hakukoneessa valmiina, sinun nimelläsi muistettuna.</p>
 
   <div class="chat-box">
-    <div id="pills" class="history-pills"></div>
-    <textarea id="input" placeholder="Kuka olet ja mistä puhuttiin? Esim. 'Moi, oon Pekka, mulla on koira'"></textarea>
-    <div class="box-footer">
-      <label class="remember"><input type="checkbox" id="remember" checked> <span id="rememberLabel">Muista tämä huomenna (vain tässä selaimessa)</span></label>
-      <button class="send" onclick="send()">Lähetä → Gemini</button>
+    <div id="pills" class="pills"></div>
+    <textarea id="q" placeholder="Esim. Pekka Puupää, sää Keravalla tänään"></textarea>
+    <div class="footer">
+      <div class="left"><label style="cursor:pointer"><input type="checkbox" id="remember" checked> Muista huomenna</label><span id="status"></span></div>
+      <div class="btns">
+        <button class="secondary" onclick="searchGoogle()">Google → niks naks</button>
+        <button class="primary" onclick="searchDirect()">Vastaa tässä</button>
+      </div>
     </div>
   </div>
 
-  <div id="response" class="response"></div>
+  <div id="log" class="log"></div>
 
   <div class="explain">
-    <div><b id="e1t">Zero-bloat</b><span id="e1d">Puhdas HTML, ei kirjastoja. Nopea kuin 1999.</span></div>
-    <div><b id="e2t">Paikallinen muisti</b><span id="e2d">3 riviä localStoragea. Ei serveriä, ei myyntiä.</span></div>
-    <div><b id="e3t">Sinä omistat</b><span id="e3d">Tyhjennä milloin haluat. Data ei lähde koneeltasi.</span></div>
+    <div><b>Niks naks</b>Kirjoitat kerran. Se menee suoraan hakuun. Ei uudelleen kirjoittamista.</div>
+    <div><b>Muistaa</b>Pekka Puupää jää tähän selaimeen. Huomenna kysyt "sää" → se muistaa Pekan.</div>
+    <div><b>Sinun koneella</b>Ei pilveä, ei kirjautumista, ei myyntiä. Tyhjennä kun haluat.</div>
   </div>
 </main>
-
-<footer>Built by Jyrki | Järvenpää | mind-why.com | <a href="https://github.com/jyrkijarvi-pixel/mind-why.com" style="color:inherit">GitHub</a></footer>
+<footer>Built by Jyrki • Järvenpää • mind-why.com</footer>
 
 <script>
-const i18n={
- fi:{
-  h1:"Tekoäly joka muistaa sinut huomenna.",
-  sub:"Ei kirjautumista. Ei pilveä. Muisti jää selaimeesi. Google unohtaa tahallaan. Me emme.",
-  placeholder:"Kuka olet ja mistä puhuttiin? Esim. 'Moi, oon Pekka, mulla on koira'",
-  remember:"Muista tämä huomenna (vain tässä selaimessa)",
-  banner:(n,t)=>`Terve ${n}, viimeksi puhuttiin: ${t}`,
-  bannerSub:"Jatketaanko siitä? Muisti on vain tässä selaimessa.",
-  e1t:"Zero-bloat",e1d:"Puhdas HTML, ei kirjastoja. Nopea kuin 1999.",
-  e2t:"Paikallinen muisti",e2d:"3 riviä localStoragea. Ei serveriä, ei myyntiä.",
-  e3t:"Sinä omistat",e3d:"Tyhjennä milloin haluat. Data ei lähde koneeltasi.",
-  continue:"Jatketaan →"
- },
- en:{
-  h1:"The AI that remembers you tomorrow.",
-  sub:"No login. No cloud. Memory stays in your browser. Google forgets on purpose. We don't.",
-  placeholder:"Who are you and what did we discuss? E.g. 'Hi, I'm Pekka, I have a dog'",
-  remember:"Remember this tomorrow (only in this browser)",
-  banner:(n,t)=>`Hi ${n}, last time: ${t}`,
-  bannerSub:"Continue? Memory is only in this browser.",
-  e1t:"Zero-bloat",e1d:"Pure HTML, no libraries. Fast as 1999.",
-  e2t:"Local memory",e2d:"3 lines of localStorage. No server, no sale.",
-  e3t:"You own it",e3d:"Clear anytime. Data never leaves your device.",
-  continue:"Continue →"
- }
-};
+let mem = JSON.parse(localStorage.getItem('mindwhy_memory')||'null');
+let hist = JSON.parse(localStorage.getItem('mindwhy_history')||'[]');
 
-let lang = localStorage.getItem('mindwhy_lang') || 'fi';
-
-function setLang(l){
-  lang=l;
-  localStorage.setItem('mindwhy_lang',l);
-  document.getElementById('langFi').classList.toggle('active',l==='fi');
-  document.getElementById('langEn').classList.toggle('active',l==='en');
-  const t=i18n[l];
-  document.getElementById('h1').textContent=t.h1;
-  document.getElementById('sub').textContent=t.sub;
-  document.getElementById('input').placeholder=t.placeholder;
-  document.getElementById('rememberLabel').textContent=t.remember;
-  document.getElementById('e1t').textContent=t.e1t;
-  document.getElementById('e1d').textContent=t.e1d;
-  document.getElementById('e2t').textContent=t.e2t;
-  document.getElementById('e2d').textContent=t.e2d;
-  document.getElementById('e3t').textContent=t.e3t;
-  document.getElementById('e3d').textContent=t.e3d;
-  loadMemory();
+function render(){
+  mem = JSON.parse(localStorage.getItem('mindwhy_memory')||'null');
+  hist = JSON.parse(localStorage.getItem('mindwhy_history')||'[]');
+  const banner=document.getElementById('banner');
+  if(mem){banner.classList.add('show');document.getElementById('bText').textContent=`Terve ${mem.name}, viimeksi: ${mem.topic}`;}else banner.classList.remove('show');
+  const pills=document.getElementById('pills');pills.innerHTML='';hist.slice(-6).reverse().forEach(h=>{const d=document.createElement('div');d.className='pill accent';d.textContent=h.topic;d.onclick=()=>{document.getElementById('q').value=h.full;};pills.appendChild(d);});
 }
-
-function loadMemory(){
-  const mem=JSON.parse(localStorage.getItem('mindwhy_memory')||'null');
-  const history=JSON.parse(localStorage.getItem('mindwhy_history')||'[]');
-  const banner=document.getElementById('memoryBanner');
-  if(mem && mem.name){
-    banner.classList.add('show');
-    document.getElementById('bannerText').textContent=i18n[lang].banner(mem.name, mem.topic);
-    const diff=Math.round((Date.now()-mem.time)/1000/60);
-    let ago= lang==='fi' ? `${diff} min sitten` : `${diff} min ago`;
-    if(diff>60) ago= lang==='fi' ? `${Math.round(diff/60)}h sitten` : `${Math.round(diff/60)}h ago`;
-    if(diff>1440) ago= lang==='fi' ? `eilen` : `yesterday`;
-    document.getElementById('bannerSub').textContent=ago + ' • ' + i18n[lang].bannerSub;
-  } else {
-    banner.classList.remove('show');
+function saveMemory(text){
+  let name="";let m=text.match(/(?:oon|olen|mä oon|I'm|I am)\s+([A-ZÄÖa-zäö]+)/i);if(m)name=m[1];else if(mem&&mem.name)name=mem.name;else name="kaveri";
+  const entry={name:name,topic:text.slice(0,40),full:text,time:Date.now()};
+  localStorage.setItem('mindwhy_memory',JSON.stringify(entry));
+  hist.push(entry);if(hist.length>20)hist=hist.slice(-20);localStorage.setItem('mindwhy_history',JSON.stringify(hist));
+  render();
+  return entry;
+}
+function buildQuery(text, entry){
+  // This is the magic: include memory so Google/Gemini sees who you are
+  if(entry && hist.length>1){
+    return `${text} (käyttäjä on ${entry.name}, muista aiemmin: ${hist.slice(-3).map(h=>h.topic).join(', ')})`;
   }
-  const pills=document.getElementById('pills');
-  pills.innerHTML='';
-  history.slice(-5).reverse().forEach(h=>{
-    const el=document.createElement('div');
-    el.className='pill accent';
-    el.textContent=h.topic;
-    el.onclick=()=>{document.getElementById('input').value=h.full; document.getElementById('input').focus();};
-    pills.appendChild(el);
-  });
+  return text;
+}
+function addBubble(text, cls){
+  const log=document.getElementById('log');const d=document.createElement('div');d.className='bubble '+cls;d.textContent=text;log.prepend(d);
 }
 
-function send(){
-  const input=document.getElementById('input').value.trim();
-  if(!input) return;
+// THE NIKS NAKS BUTTON - this actually works with Google
+function searchGoogle(){
+  const raw=document.getElementById('q').value.trim();if(!raw)return;
   const remember=document.getElementById('remember').checked;
-
-  // Extract name and topic naive
-  let name=""; let topic=input.slice(0,40);
-  const nameMatch=input.match(/(?:oon|olen|mä oon|I'm|I am)\s+([A-ZÄÖa-zäö]+)/);
-  if(nameMatch) name=nameMatch[1];
-  if(!name){
-    const mem=JSON.parse(localStorage.getItem('mindwhy_memory')||'{}');
-    if(mem.name) name=mem.name;
-  }
-
-  if(remember){
-    const mem={name:name||'kaveri', topic:topic, full:input, time:Date.now()};
-    localStorage.setItem('mindwhy_memory', JSON.stringify(mem));
-    let hist=JSON.parse(localStorage.getItem('mindwhy_history')||'[]');
-    hist.push(mem);
-    if(hist.length>10) hist=hist.slice(-10);
-    localStorage.setItem('mindwhy_history', JSON.stringify(hist));
-  }
-
-  // Build query with memory context
-  const mem=JSON.parse(localStorage.getItem('mindwhy_memory')||'null');
-  let q=input;
-  if(mem){
-    q=`[Muista: Käyttäjä on ${mem.name}, viimeksi puhuttiin: ${mem.topic}. Vastaa kuin muistaisit.] ${input}`;
-  }
-
-  // Show mock response locally + open Gemini
-  const resp=document.getElementById('response');
-  resp.classList.add('show');
-  resp.innerHTML = `<b>${mem?mem.name:'Moi'}:</b> ${input}<br><br><i style="color:var(--muted)">→ Avataan Gemini muistilla...<br>Muisti tallennettu tähän selaimeen. Kun palaat huomenna mind-why.comiin, jatkamme tästä.</i>`;
-
-  // Open Gemini with context
-  setTimeout(()=>{
-    window.open('https://gemini.google.com/?q='+encodeURIComponent(q), '_blank');
-    loadMemory();
-  }, 600);
+  let entry=null;if(remember)entry=saveMemory(raw);
+  const q = remember ? buildQuery(raw, entry) : raw;
+  
+  // Google SEARCH supports ?q= - it DOES fill automatically - NIKSA NAKS!
+  const url = 'https://www.google.com/search?q=' + encodeURIComponent(q);
+  
+  addBubble(`→ Google: "${q}"`, 'user');
+  addBubble('Niks naks! Avataan Google, kysymys on jo valmiina hakukentässä + muisti mukana. Huomenna muistan vieläkin.', 'ai');
+  
+  // Copy to clipboard as backup
+  navigator.clipboard.writeText(q).catch(()=>{});
+  
+  setTimeout(()=>{ window.open(url, '_blank'); document.getElementById('q').value=''; }, 400);
 }
 
-function continueChat(){
-  const mem=JSON.parse(localStorage.getItem('mindwhy_memory')||'null');
-  if(mem){
-    document.getElementById('input').value=`Jatketaan siitä ${mem.topic} jutusta. `;
-    document.getElementById('input').focus();
+// Direct answer without leaving page
+async function searchDirect(){
+  const raw=document.getElementById('q').value.trim();if(!raw)return;
+  const remember=document.getElementById('remember').checked;
+  let entry=null;if(remember)entry=saveMemory(raw);
+  
+  addBubble(raw, 'user');
+  document.getElementById('q').value='';
+  
+  // Demo memory answer - proves it remembers
+  const prev = hist.length>1 ? hist[hist.length-2].topic : null;
+  let answer = `Moi ${entry?entry.name:'kaveri'}! `;
+  if(prev) answer += `Muistan että viimeksi puhuttiin: "${prev}". `;
+  answer += `Nyt kysyit: "${raw}".\n\n[Muisti toimii! Tämä vastaus tulee suoraan mind-why.comista, ei mene Googleen. Jos painat "Google → niks naks" niin sama kysymys menee suoraan Googleen valmiiksi kirjoitettuna, muistin kanssa.]`;
+  
+  // If user has Gemini key, use it
+  const key = localStorage.getItem('mindwhy_gemini_key');
+  if(key){
+    try{
+      const context = hist.map(h=>h.full).join('\n');
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({contents:[{parts:[{text:`Olet MIND-WHY. Käyttäjä ${entry.name}. Historia: ${context}. Vastaa lyhyesti, muistaen nimen. Kysymys: ${raw}`}]}]})
+      });
+      const data=await res.json();
+      if(data.candidates) answer = data.candidates[0].content.parts[0].text;
+    }catch(e){ answer += "\n(API virhe)"; }
   }
+  
+  setTimeout(()=>{ addBubble(answer, 'ai'); }, 400);
 }
 
-function clearMemory(){
-  if(confirm(lang==='fi'?'Tyhjennetäänkö muisti tästä selaimesta?':'Clear memory from this browser?')){
-    localStorage.removeItem('mindwhy_memory');
-    localStorage.removeItem('mindwhy_history');
-    loadMemory();
-    document.getElementById('response').classList.remove('show');
-  }
+function continuePrev(){
+  if(mem){ document.getElementById('q').value=`Jatketaan siitä ${mem.topic} jutusta: `; document.getElementById('q').focus(); }
 }
+function clearMemory(){ if(confirm('Tyhjennetään muisti?')){ localStorage.removeItem('mindwhy_memory'); localStorage.removeItem('mindwhy_history'); document.getElementById('log').innerHTML=''; render(); } }
 
-document.getElementById('input').addEventListener('keydown', e=>{
-  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); send(); }
-});
+document.getElementById('q').addEventListener('keydown', e=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); searchGoogle(); } });
 
-setLang(lang);
+render();
 </script>
 </body>
 </html>
