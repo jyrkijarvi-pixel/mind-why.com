@@ -34,8 +34,6 @@
   .explain{margin-top:64px;display:grid;grid-template-columns:repeat(3,1fr);gap:24px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:32px}
   .explain b{color:var(--text);display:block;margin-bottom:4px}
   footer{text-align:center;padding:32px;font-size:11px;color:var(--muted)}
-  .response{margin-top:24px;padding:20px;background:var(--card);border:1px solid var(--border);border-radius:12px;display:none;font-size:14px}
-  .response.show{display:block}
 </style>
 </head>
 <body>
@@ -62,157 +60,35 @@
     <div id="pills" class="history-pills"></div>
     <textarea id="input" placeholder="Kuka olet ja mistä puhuttiin? Esim. 'Moi, oon Pekka, mulla on koira'"></textarea>
     <div class="box-footer">
-      <label class="remember"><input type="checkbox" id="remember" checked> <span id="rememberLabel">Muista tämä huomenna (vain tässä selaimessa)</span></label>
+      <label class="remember"><input type="checkbox" id="remember" checked> <span id="rememberLabel">Muista tämä huomenna</span></label>
       <div style="display:flex;gap:8px">
         <button class="send secondary" onclick="niksNaks()">NIKS NAKS → Google</button>
         <button class="send" onclick="send()">→ Gemini</button>
       </div>
     </div>
   </div>
-  <div id="response" class="response"></div>
   <div class="explain">
-    <div><b id="e1t">Zero-bloat</b><span id="e1d">Puhdas HTML, ei kirjastoja. Nopea kuin 1999.</span></div>
-    <div><b id="e2t">Paikallinen muisti</b><span id="e2d">3 riviä localStoragea. Ei serveriä, ei myyntiä.</span></div>
-    <div><b id="e3t">Sinä omistat</b><span id="e3d">Tyhjennä milloin haluat. Data ei lähde koneeltasi.</span></div>
+    <div><b id="e1t">Zero-bloat</b><span id="e1d">Puhdas HTML, ei kirjastoja.</span></div>
+    <div><b id="e2t">Paikallinen muisti</b><span id="e2d">3 riviä localStoragea. Ei serveriä.</span></div>
+    <div><b id="e3t">Sinä omistat</b><span id="e3d">Tyhjennä milloin haluat.</span></div>
   </div>
 </main>
-<footer>Built by Jyrki | Järvenpää | mind-why.com | <a href="https://github.com/jyrkijarvi-pixel/mind-why.com" style="color:inherit">GitHub</a></footer>
+<footer>Built by Jyrki | Järvenpää | mind-why.com</footer>
 <script>
 const i18n={
- fi:{
-  h1:"Tekoäly joka muistaa sinut huomenna.",
-  sub:"Ei kirjautumista. Ei pilveä. Muisti jää selaimeesi. Google unohtaa tahallaan. Me emme.",
-  placeholder:"Kuka olet ja mistä puhuttiin? Esim. 'Moi, oon Pekka, mulla on koira'",
-  remember:"Muista tämä huomenna (vain tässä selaimessa)",
-  banner:(n,t)=>`Terve ${n}, viimeksi puhuttiin: ${t}`,
-  bannerSub:"Jatketaanko siitä? Muisti on vain tässä selaimessa.",
-  e1t:"Zero-bloat",e1d:"Puhdas HTML, ei kirjastoja. Nopea kuin 1999.",
-  e2t:"Paikallinen muisti",e2d:"3 riviä localStoragea. Ei serveriä, ei myyntiä.",
-  e3t:"Sinä omistat",e3d:"Tyhjennä milloin haluat. Data ei lähde koneeltasi.",
-  continue:"Jatketaan →"
- },
- en:{
-  h1:"The AI that remembers you tomorrow.",
-  sub:"No login. No cloud. Memory stays in your browser. Google forgets on purpose. We don't.",
-  placeholder:"Who are you and what did we discuss? E.g. 'Hi, I'm Pekka, I have a dog'",
-  remember:"Remember this tomorrow (only in this browser)",
-  banner:(n,t)=>`Hi ${n}, last time: ${t}`,
-  bannerSub:"Continue? Memory is only in this browser.",
-  e1t:"Zero-bloat",e1d:"Pure HTML, no libraries. Fast as 1999.",
-  e2t:"Local memory",e2d:"3 lines of localStorage. No server, no sale.",
-  e3t:"You own it",e3d:"Clear anytime. Data never leaves your device.",
-  continue:"Continue →"
- }
+ fi:{h1:"Tekoäly joka muistaa sinut huomenna.",sub:"Ei kirjautumista. Ei pilveä. Muisti jää selaimeesi. Google unohtaa tahallaan. Me emme.",placeholder:"Kuka olet ja mistä puhuttiin? Esim. 'Moi, oon Pekka, mulla on koira'",remember:"Muista tämä huomenna",banner:(n,t)=>`Terve ${n}, viimeksi: ${t}`,bannerSub:"Muisti vain tässä selaimessa.",e1t:"Zero-bloat",e1d:"Puhdas HTML, ei kirjastoja.",e2t:"Paikallinen muisti",e2d:"3 riviä localStoragea. Ei serveriä.",e3t:"Sinä omistat",e3d:"Tyhjennä milloin haluat.",continue:"Jatketaan →"},
+ en:{h1:"The AI that remembers you tomorrow.",sub:"No login. No cloud. Memory stays in your browser.",placeholder:"Who are you? E.g. 'Hi, I'm Pekka, I have a dog'",remember:"Remember tomorrow",banner:(n,t)=>`Hi ${n}, last time: ${t}`,bannerSub:"Memory only in this browser.",e1t:"Zero-bloat",e1d:"Pure HTML.",e2t:"Local memory",e2d:"3 lines localStorage.",e3t:"You own it",e3d:"Clear anytime.",continue:"Continue →"}
 };
-let savedLang = localStorage.getItem('mindwhy_lang');
-let lang = savedLang || (navigator.language && navigator.language.toLowerCase().startsWith('en') ? 'en' : 'fi');
-
-function setLang(l){
-  lang=l;
-  localStorage.setItem('mindwhy_lang',l);
-  document.getElementById('langFi').classList.toggle('active',l==='fi');
-  document.getElementById('langEn').classList.toggle('active',l==='en');
-  const t=i18n[l];
-  document.getElementById('h1').textContent=t.h1;
-  document.getElementById('sub').textContent=t.sub;
-  document.getElementById('input').placeholder=t.placeholder;
-  document.getElementById('rememberLabel').textContent=t.remember;
-  document.getElementById('e1t').textContent=t.e1t;
-  document.getElementById('e1d').textContent=t.e1d;
-  document.getElementById('e2t').textContent=t.e2t;
-  document.getElementById('e2d').textContent=t.e2d;
-  document.getElementById('e3t').textContent=t.e3t;
-  document.getElementById('e3d').textContent=t.e3d;
-  loadMemory();
-}
-function loadMemory(){
-  const mem=JSON.parse(localStorage.getItem('mindwhy_memory')||'null');
-  const history=JSON.parse(localStorage.getItem('mindwhy_history')||'[]');
-  const banner=document.getElementById('memoryBanner');
-  if(mem && mem.name){
-    banner.classList.add('show');
-    document.getElementById('bannerText').textContent=i18n[lang].banner(mem.name, mem.topic);
-    const diff=Math.round((Date.now()-mem.time)/1000/60);
-    let ago= lang==='fi' ? `${diff} min sitten` : `${diff} min ago`;
-    if(diff>60) ago= lang==='fi' ? `${Math.round(diff/60)}h sitten` : `${Math.round(diff/60)}h ago`;
-    if(diff>1440) ago= lang==='fi' ? `eilen` : `yesterday`;
-    document.getElementById('bannerSub').textContent=ago + ' • ' + i18n[lang].bannerSub;
-  } else {
-    banner.classList.remove('show');
-  }
-  const pills=document.getElementById('pills');
-  pills.innerHTML='';
-  history.slice(-5).reverse().forEach(h=>{
-    const el=document.createElement('div');
-    el.className='pill accent';
-    el.textContent=h.topic;
-    el.onclick=()=>{document.getElementById('input').value=h.full; document.getElementById('input').focus();};
-    pills.appendChild(el);
-  });
-}
-function getMemData(input){
-  let name=""; let topic=input.slice(0,40);
-  const nameMatch=input.match(/(?:oon|olen|mä oon|I'm|I am)\s+([A-ZÄÖa-zäö]+)/);
-  if(nameMatch) name=nameMatch[1];
-  if(!name){
-    const mem=JSON.parse(localStorage.getItem('mindwhy_memory')||'{}');
-    if(mem.name) name=mem.name;
-  }
-  return {name, topic};
-}
-function saveMem(input){
-  const remember=document.getElementById('remember').checked;
-  if(!remember) return null;
-  const {name, topic}=getMemData(input);
-  const mem={name:name||'kaveri', topic:topic, full:input, time:Date.now()};
-  localStorage.setItem('mindwhy_memory', JSON.stringify(mem));
-  let hist=JSON.parse(localStorage.getItem('mindwhy_history')||'[]');
-  hist.push(mem);
-  if(hist.length>10) hist=hist.slice(-10);
-  localStorage.setItem('mindwhy_history', JSON.stringify(hist));
-  loadMemory();
-  return mem;
-}
-function niksNaks(){
-  const input=document.getElementById('input').value.trim();
-  if(!input) return;
-  saveMem(input);
-  const url='https://www.google.com/search?q='+encodeURIComponent(input);
-  window.location.href=url;
-}
-function send(){
-  const input=document.getElementById('input').value.trim();
-  if(!input) return;
-  const mem=saveMem(input);
-  let q=input;
-  if(mem){
-    q=`[Muista: Käyttäjä on ${mem.name}, viimeksi puhuttiin: ${mem.topic}. Vastaa kuin muistaisit.] ${input}`;
-  }
-  const resp=document.getElementById('response');
-  resp.classList.add('show');
-  resp.innerHTML = `<b>${mem?mem.name:'Moi'}:</b> ${input}<br><br><i style="color:var(--muted)">→ Avataan Gemini muistilla...</i>`;
-  setTimeout(()=>{
-    window.open('https://gemini.google.com/app?q='+encodeURIComponent(q), '_blank');
-  }, 400);
-}
-function continueChat(){
-  const mem=JSON.parse(localStorage.getItem('mindwhy_memory')||'null');
-  if(mem){
-    document.getElementById('input').value=`Jatketaan siitä ${mem.topic} jutusta. `;
-    document.getElementById('input').focus();
-  }
-}
-function clearMemory(){
-  if(confirm(lang==='fi'?'Tyhjennetäänkö muisti tästä selaimesta?':'Clear memory from this browser?')){
-    localStorage.removeItem('mindwhy_memory');
-    localStorage.removeItem('mindwhy_history');
-    loadMemory();
-    document.getElementById('response').classList.remove('show');
-  }
-}
-document.getElementById('input').addEventListener('keydown', e=>{
-  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); niksNaks(); }
-});
+let savedLang=localStorage.getItem('mindwhy_lang');
+let lang=savedLang||(navigator.language&&navigator.language.toLowerCase().startsWith('en')?'en':'fi');
+function setLang(l){lang=l;localStorage.setItem('mindwhy_lang',l);document.getElementById('langFi').classList.toggle('active',l==='fi');document.getElementById('langEn').classList.toggle('active',l==='en');const t=i18n[l];document.getElementById('h1').textContent=t.h1;document.getElementById('sub').textContent=t.sub;document.getElementById('input').placeholder=t.placeholder;document.getElementById('rememberLabel').textContent=t.remember;document.getElementById('e1t').textContent=t.e1t;document.getElementById('e1d').textContent=t.e1d;document.getElementById('e2t').textContent=t.e2t;document.getElementById('e2d').textContent=t.e2d;document.getElementById('e3t').textContent=t.e3t;document.getElementById('e3d').textContent=t.e3d;loadMemory();}
+function loadMemory(){const mem=JSON.parse(localStorage.getItem('mindwhy_memory')||'null');const history=JSON.parse(localStorage.getItem('mindwhy_history')||'[]');const banner=document.getElementById('memoryBanner');if(mem&&mem.name){banner.classList.add('show');document.getElementById('bannerText').textContent=i18n[lang].banner(mem.name,mem.topic);const diff=Math.round((Date.now()-mem.time)/1000/60);let ago=lang==='fi'?`${diff} min sitten`:`${diff} min ago`;if(diff>60)ago=lang==='fi'?`${Math.round(diff/60)}h sitten`:`${Math.round(diff/60)}h ago`;if(diff>1440)ago=lang==='fi'?'eilen':'yesterday';document.getElementById('bannerSub').textContent=ago+' • '+i18n[lang].bannerSub;}else{banner.classList.remove('show');}const pills=document.getElementById('pills');pills.innerHTML='';history.slice(-5).reverse().forEach(h=>{const el=document.createElement('div');el.className='pill accent';el.textContent=h.topic;el.onclick=()=>{document.getElementById('input').value=h.full;document.getElementById('input').focus();};pills.appendChild(el);});}
+function saveMem(input){const topic=input.slice(0,40);let name=input.match(/(?:oon|olen|mä oon|I'm|I am)\s+([A-ZÄÖa-zäö]+)/)?.[1]||JSON.parse(localStorage.getItem('mindwhy_memory')||'{}').name||'kaveri';const mem={name,topic,full:input,time:Date.now()};if(document.getElementById('remember').checked){localStorage.setItem('mindwhy_memory',JSON.stringify(mem));let hist=JSON.parse(localStorage.getItem('mindwhy_history')||'[]');hist.push(mem);if(hist.length>10)hist=hist.slice(-10);localStorage.setItem('mindwhy_history',JSON.stringify(hist));loadMemory();}return mem;}
+function niksNaks(){const input=document.getElementById('input').value.trim();if(!input)return;saveMem(input);window.location.href='https://www.google.com/search?q='+encodeURIComponent(input);}
+function send(){const input=document.getElementById('input').value.trim();if(!input)return;const mem=saveMem(input);const q=`[Muista: ${mem.name}, viimeksi: ${mem.topic}] ${input}`;window.open('https://gemini.google.com/app?q='+encodeURIComponent(q),'_blank');}
+function continueChat(){const mem=JSON.parse(localStorage.getItem('mindwhy_memory')||'null');if(mem){document.getElementById('input').value=`Jatketaan siitä ${mem.topic} jutusta. `;document.getElementById('input').focus();}}
+function clearMemory(){if(confirm('Tyhjennetään?')){localStorage.removeItem('mindwhy_memory');localStorage.removeItem('mindwhy_history');loadMemory();}}
+document.getElementById('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();niksNaks();}});
 setLang(lang);
 </script>
 </body>
