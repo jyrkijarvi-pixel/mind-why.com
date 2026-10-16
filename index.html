@@ -46,70 +46,35 @@ Illalla väsyttää usein, aamut on mun aikaa`,uv="Voit liittää vaikka pitkän
   <script>(function(){function m(a){var h=a.getAttribute("href");if(!h)return;try{var u=new URL(h,document.baseURI);if((u.protocol==="http:"||u.protocol==="https:")&&u.host!==location.host){a.target="_blank";a.rel="noopener noreferrer";}}catch(e){}}function s(){document.querySelectorAll("a[href]").forEach(m);}if(document.readyState!=="loading"){s();}else{document.addEventListener("DOMContentLoaded",s);}document.addEventListener("click",function(e){var a=e.target&&e.target.closest&&e.target.closest("a[href]");if(a){m(a);}},true);})();</script>
   <script type="application/json" data-clippy-inline-media-manifest="1">{"version":1,"slots":[]}</script>
   <script>
-// AIMES v21.3 - tappaa vanhan Aivot-napin vaikka väkisin
+// AIMES v21.4 - oikea sää-API + tappaa tupla-napin
 (function(){
-  const MY_ID = 'aimes-v21-root';
-  const MY_BTN = 'aimes-brain-btn';
-
+  const MY_ID='aimes-v21-root', MY_BTN='aimes-brain-btn';
   function killOld(){
     document.querySelectorAll('button').forEach(btn=>{
       if(btn.id===MY_BTN) return;
       if(btn.textContent && btn.textContent.includes('Aivot:')){
-        // poista koko kelluva kontti
-        let c = btn.closest('div[style*="fixed"]') || btn.closest('div[style*="2147483"]') || btn.parentElement;
-        if(c && c.id!==MY_ID){
-          // älä poista jos se on meidän oma
-          if(c.querySelector('#'+MY_BTN)) return;
-          c.remove();
-        } else if(btn.id!==MY_BTN){
-          btn.remove();
-        }
+        let c=btn.closest('div[style*="fixed"]')||btn.parentElement;
+        if(c && c.id!==MY_ID &&!c.querySelector('#'+MY_BTN)) c.remove(); else if(btn.id!==MY_BTN) btn.remove();
       }
     });
-    // myös kaikki muut divit joissa z-index 2147483
     document.querySelectorAll('div').forEach(div=>{
       if(div.id===MY_ID) return;
-      let s = div.getAttribute('style')||'';
-      if(s.includes('2147483') && div.innerHTML.includes('Aivot:')){
-        if(!div.querySelector('#'+MY_BTN)) div.remove();
-      }
+      let s=div.getAttribute('style')||'';
+      if(s.includes('2147483') && div.innerHTML.includes('Aivot:') &&!div.querySelector('#'+MY_BTN)) div.remove();
     });
   }
-
-  // tapa heti ja sitten 5 kertaa + tarkkaile
-  killOld();
-  setTimeout(killOld, 200);
-  setTimeout(killOld, 800);
-  setTimeout(killOld, 2000);
-  setTimeout(killOld, 4000);
-  // jos V20 luo sen myöhemmin uudestaan, observer tappaa
-  try{
-    const obs = new MutationObserver(()=>killOld());
-    obs.observe(document.body, {childList:true, subtree:true});
-    setTimeout(()=>obs.disconnect(), 15000); // 15s riittää
-  }catch(e){}
-
-  if(window.__AIMES_LLM && window.__AIMES_LLM._patchedV21_3) return;
-  window.__AIMES_LLM = window.__AIMES_LLM || {ready:false, generate:null, mode:"off"};
-  window.__AIMES_LLM._patchedV21_3 = true;
+  killOld(); setTimeout(killOld,200); setTimeout(killOld,800); setTimeout(killOld,2000);
+  try{ const obs=new MutationObserver(()=>killOld()); obs.observe(document.body,{childList:true,subtree:true}); setTimeout(()=>obs.disconnect(),15000);}catch(e){}
+  if(window.__AIMES_LLM && window.__AIMES_LLM._patchedV21_4) return;
+  window.__AIMES_LLM=window.__AIMES_LLM||{ready:false,generate:null,mode:"off"};
+  window.__AIMES_LLM._patchedV21_4=true;
   let S={ready:false,loading:false,engine:null,mode:localStorage.getItem("aimes_mode")||"off",apiKey:localStorage.getItem("aimes_or_key")||""};
-
-  // poista vanha root jos jäi
-  let oldRoot = document.getElementById(MY_ID);
-  if(oldRoot) oldRoot.remove();
-
-  const d=document.createElement("div");
-  d.id=MY_ID;
-  d.style.cssText="position:fixed;bottom:14px;right:14px;z-index:2147483647;font-family:system-ui;display:flex;flex-direction:column;gap:8px;align-items:flex-end";
-  const b=document.createElement("button");
-  b.id=MY_BTN;
-  b.style.cssText="padding:10px 14px;border-radius:999px;border:2px solid #111;background:#ffe94d;box-shadow:3px 3px 0 #111;font-weight:700;font-size:14px;cursor:pointer;color:#111";
-  b.textContent="🧠 Aivot: OFF";
-  const panel=document.createElement("div");
-  panel.id="aimes-panel";
-  panel.style.cssText="display:none;background:#fff;border:2px solid #111;border-radius:12px;padding:12px;box-shadow:3px 3px 0 #111;min-width:280px;max-width:340px";
+  let old=document.getElementById(MY_ID); if(old) old.remove();
+  const d=document.createElement("div"); d.id=MY_ID; d.style.cssText="position:fixed;bottom:14px;right:14px;z-index:2147483647;font-family:system-ui;display:flex;flex-direction:column;gap:8px;align-items:flex-end";
+  const b=document.createElement("button"); b.id=MY_BTN; b.style.cssText="padding:10px 14px;border-radius:999px;border:2px solid #111;background:#ffe94d;box-shadow:3px 3px 0 #111;font-weight:700;font-size:14px;cursor:pointer;color:#111"; b.textContent="🧠 Aivot: OFF";
+  const panel=document.createElement("div"); panel.style.cssText="display:none;background:#fff;border:2px solid #111;border-radius:12px;padding:12px;box-shadow:3px 3px 0 #111;min-width:280px;max-width:360px";
   panel.innerHTML=`
-    <div style="font-weight:800;margin-bottom:8px">AIMES v21.3 - Pilvi + hae netistä</div>
+    <div style="font-weight:800;margin-bottom:8px">AIMES v21.4 - sää korjattu</div>
     <select id="aimes-mode" style="width:100%;padding:8px;border-radius:8px;border:2px solid #111;margin-bottom:10px;font-weight:600">
       <option value="off">OFF - ps0</option>
       <option value="browser">Selain - 360M</option>
@@ -119,13 +84,9 @@ Illalla väsyttää usein, aamut on mun aikaa`,uv="Voit liittää vaikka pitkän
       <input id="aimes-key" type="password" placeholder="sk-or-v1-..." style="width:100%;padding:8px;border-radius:8px;border:2px solid #111;margin-bottom:6px" />
       <button id="aimes-save" style="padding:6px 12px;border-radius:8px;border:2px solid #111;background:#ffe94d;font-weight:700;cursor:pointer">Tallenna</button>
       <span id="aimes-status" style="font-size:11px;margin-left:8px"></span>
-      <div id="aimes-cloud-status" style="font-size:11px;margin-top:6px"></div>
-      <div style="font-size:10px;color:#777;margin-top:6px">Vain "hae netistä..." hakee netistä</div>
+      <div id="aimes-cloud-status" style="font-size:11px;margin-top:6px;white-space:pre-wrap"></div>
     </div>`;
-
-  d.appendChild(panel); d.appendChild(b);
-  document.body.appendChild(d);
-
+  d.appendChild(panel); d.appendChild(b); document.body.appendChild(d);
   function setLabel(t){ b.textContent=t; }
   function setMode(m){
     S.mode=m; localStorage.setItem("aimes_mode",m); window.__AIMES_LLM.mode=m;
@@ -135,8 +96,37 @@ Illalla väsyttää usein, aamut on mun aikaa`,uv="Voit liittää vaikka pitkän
     else if(m==="cloud"){ window.__AIMES_LLM.ready=!!S.apiKey; window.__AIMES_LLM.generate=generateCloud; setLabel(S.apiKey?"🧠 Aivot: Pilvi":"🧠 Aivot: Pilvi (ei avainta)"); cloudDiv.style.display="block"; }
   }
   function needsOnline(q){ let s=q.toLowerCase(); return s.includes("hae netistä")||s.includes("hae netista")||s.includes("etsi netistä")||s.includes("etsi netista")||s.includes("googleta"); }
-  async function onlineSearch(query){
-    let clean=query.replace(/hae netistä|hae netista|etsi netistä|etsi netista|googleta/gi,"").trim().slice(0,120);
+  function extractPlace(q){
+    let s=q.toLowerCase().replace(/hae netistä|hae netista|etsi netistä|etsi netista|googleta|mikä on|sää|saä|tänään|huomenna|nyt|\?/gi," ").trim();
+    // keravalla -> kerava, järvenpäässä -> järvenpää
+    s=s.replace(/keravalla/gi,"kerava").replace(/järvenpäässä/gi,"järvenpää").replace(/järvenpaassa/gi,"järvenpää").replace(/somerolla/gi,"somero").replace(/keravalla/gi,"kerava");
+    let parts=s.split(/\s+/).filter(w=>w.length>2);
+    return parts[parts.length-1]||parts[0]||"kerava";
+  }
+  async function getWeather(place){
+    try{
+      document.getElementById("aimes-cloud-status").textContent="🌤️ Haetaan säätä: "+place+"...";
+      let geoRes=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(place)}&count=1&language=fi&format=json`).then(r=>r.json());
+      let loc=geoRes.results && geoRes.results[0];
+      if(!loc){ // fallback kerava
+        geoRes=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=Kerava&count=1&language=fi&format=json`).then(r=>r.json());
+        loc=geoRes.results[0];
+      }
+      let lat=loc.latitude, lon=loc.longitude, name=loc.name;
+      let wRes=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,apparent_temperature,wind_speed_10m,weather_code,relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Europe/Helsinki&forecast_days=2`).then(r=>r.json());
+      let cur=wRes.current, daily=wRes.daily;
+      const codeMap={0:"selkeää",1:"pääosin selkeää",2:"puolipilvistä",3:"pilvistä",45:"sumua",51:"kevyttä tihkua",61:"kevyttä sadetta",63:"sadetta",65:"rankkaa sadetta",71:"kevyttä lunta",73:"lunta",75:"rankkaa lunta",80:"sadekuuroja",95:"ukkonen"};
+      let desc=codeMap[cur.weather_code]||"vaihtelevaa";
+      let out=`SÄÄ ${name.toUpperCase()} ${new Date().toLocaleDateString('fi-FI')} klo ${new Date().toLocaleTimeString('fi-FI',{hour:'2-digit',minute:'2-digit'})}:
+Nyt: ${cur.temperature_2m}°C (tuntuu ${cur.apparent_temperature}°C), ${desc}, tuuli ${cur.wind_speed_10m} m/s, kosteus ${cur.relative_humidity_2m}%
+Tänään: ylin ${daily.temperature_2m_max[0]}°C / alin ${daily.temperature_2m_min[0]}°C
+Huomenna: ylin ${daily.temperature_2m_max[1]}°C / alin ${daily.temperature_2m_min[1]}°C`;
+      document.getElementById("aimes-cloud-status").textContent=out;
+      return out;
+    }catch(e){ document.getElementById("aimes-cloud-status").textContent="Sää-haku epäonnistui"; return null; }
+  }
+  async function onlineSearchGeneral(q){
+    let clean=q.replace(/hae netistä|hae netista|etsi netistä|etsi netista|googleta/gi,"").trim().slice(0,120);
     try{
       document.getElementById("aimes-cloud-status").textContent="🔍 Haetaan: "+clean+"...";
       let parts=[];
@@ -159,8 +149,17 @@ Illalla väsyttää usein, aamut on mun aikaa`,uv="Voit liittää vaikka pitkän
     let key=localStorage.getItem("aimes_or_key")||S.apiKey;
     if(!key) return null;
     let searchExtra="";
-    if(needsOnline(q)){ let res=await onlineSearch(q); if(res) searchExtra=`\n\n[Tuoreet hakutulokset ${new Date().toLocaleDateString('fi-FI')} haulle "${q.slice(0,80)}":\n${res}\n] Käytä näitä.`; }
-    let sys=`Olet AIMES v21.3, ystävällinen suomalainen. Vastaat suomeksi 2-4 lausetta.${searchExtra}\n\nMuistissa: ${(facts||"").slice(0,800)}`;
+    if(needsOnline(q)){
+      if(q.toLowerCase().includes("sää")||q.toLowerCase().includes("saa ")){
+        let place=extractPlace(q);
+        let weather=await getWeather(place);
+        if(weather) searchExtra=`\n\n[Oikea säätiedotus haettu Open-Meteo API:sta:\n${weather}\n]\nVastaa TÄMÄN perusteella tarkoilla asteilla, älä keksi runoja.`;
+      } else {
+        let res=await onlineSearchGeneral(q);
+        if(res) searchExtra=`\n\n[Tuoreet hakutulokset ${new Date().toLocaleDateString('fi-FI')}:\n${res}\n]`;
+      }
+    }
+    let sys=`Olet AIMES v21.4, ystävällinen suomalainen. Vastaat suomeksi 2-4 lausetta. Jos sait säätiedotuksen, kerro asteet tarkasti ja AIMES-tyyliin lyhyesti.${searchExtra}\n\nMuistissa: ${(facts||"").slice(0,800)}`;
     try{
       let res=await fetch("https://openrouter.ai/api/v1/chat/completions",{method:"POST",headers:{"Authorization":"Bearer "+key,"Content-Type":"application/json","HTTP-Referer":"https://mind-why.com","X-Title":"AIMES v21"},body:JSON.stringify({model:"thinkingmachines/inkling:free",messages:[{role:"system",content:sys},{role:"user",content:String(q).slice(0,600)}],max_tokens:350,temperature:0.85})});
       if(!res.ok) return null;
@@ -174,8 +173,7 @@ Illalla väsyttää usein, aamut on mun aikaa`,uv="Voit liittää vaikka pitkän
     if(k){ localStorage.setItem("aimes_or_key",k); S.apiKey=k; document.getElementById("aimes-status").textContent="Tallennettu ✓"; window.__AIMES_LLM.ready=true; window.__AIMES_LLM.generate=generateCloud; setLabel("🧠 Aivot: Pilvi"); }
   });
   if(S.apiKey) panel.querySelector("#aimes-key").value=S.apiKey;
-  panel.querySelector("#aimes-mode").value=S.mode; setMode(S.mode);
-  killOld();
+  panel.querySelector("#aimes-mode").value=S.mode; setMode(S.mode); killOld();
 })();
 </script>
 </body>
