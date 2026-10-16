@@ -96,9 +96,17 @@ Illalla väsyttää usein, aamut on mun aikaa`,uv="Voit liittää vaikka pitkän
     }catch(e){ return null; }
   }
   async function generateCloud(q,facts){
-    let key=localStorage.getItem("aimes_or_key")||S.apiKey;
-    if(!key){ document.getElementById("aimes-cloud-status").textContent="Ei avainta"; return null; }
-    let extra=""; if(needsOnline(q) && q.toLowerCase().includes("sää")){ let pl=extractPlace(q); let wh=await getWeather(pl); if(wh) extra=`\n\n[Sää API: ${wh}] Vastaa tarkoilla asteilla.`; }
+  // --- TÄHÄN SE OIKOTIE ---
+  if(q.toLowerCase().includes("sää")){
+    let place = extractPlace(q);
+    let weather = await getWeather(place);
+    if(weather) return weather + "\n\n☕ AIMES: kerros päälle ja kahvit termariin. Toimii vaikka OpenRouter on 429.";
+  }
+  // --- OIKOTIE LOPPUU ---
+
+  let key=localStorage.getItem("aimes_or_key")||S.apiKey;
+  if(!key){ document.getElementById("aimes-cloud-status").textContent="Ei avainta"; return null; }
+  let extra=""; if(needsOnline(q) && q.toLowerCase().includes("sää")){
     let sys=`Olet AIMES v21.7 suomeksi 2-4 lausetta.${extra}\nMuistissa: ${(facts||"").slice(0,600)}`;
     const MODELS=["openai/gpt-oss-20b:free","openai/gpt-oss-120b:free","google/gemma-4-31b-it:free","openrouter/free"];
     for(let model of MODELS){
