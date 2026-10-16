@@ -46,28 +46,23 @@ Illalla väsyttää usein, aamut on mun aikaa`,uv="Voit liittää vaikka pitkän
   <script>(function(){function m(a){var h=a.getAttribute("href");if(!h)return;try{var u=new URL(h,document.baseURI);if((u.protocol==="http:"||u.protocol==="https:")&&u.host!==location.host){a.target="_blank";a.rel="noopener noreferrer";}}catch(e){}}function s(){document.querySelectorAll("a[href]").forEach(m);}if(document.readyState!=="loading"){s();}else{document.addEventListener("DOMContentLoaded",s);}document.addEventListener("click",function(e){var a=e.target&&e.target.closest&&e.target.closest("a[href]");if(a){m(a);}},true);})();</script>
   <script type="application/json" data-clippy-inline-media-manifest="1">{"version":1,"slots":[]}</script>
   <script>
-// AIMES v21 - Pilvi fix: poistaa vanhan Aivot-napin
+// AIMES v21.2 - VAIN "hae netistä" aktivoi nettihaun
 (function(){
-  // 1. POISTA vanha v20 nappi heti
   try {
     document.querySelectorAll('div').forEach(div=>{
       if(div.id==='aimes-v21-root') return;
-      if(div.style && div.style.cssText && div.style.cssText.includes('2147483') && div.innerHTML.includes('Aivot:')){
-        div.remove();
-      }
+      if(div.style && div.style.cssText.includes('2147483') && div.innerHTML.includes('Aivot:')) div.remove();
     });
     document.querySelectorAll('button').forEach(btn=>{
       if(btn.id==='aimes-brain-btn') return;
       if(btn.textContent && btn.textContent.includes('Aivot:')){
-        let p = btn.closest('div');
-        if(p && p.style.cssText.includes('fixed')) p.remove(); else btn.remove();
+        let p=btn.closest('div'); if(p && p.style.cssText.includes('fixed')) p.remove(); else btn.remove();
       }
     });
   } catch(e){}
-
-  if(window.__AIMES_LLM && window.__AIMES_LLM._patchedV21_fix2) return;
+  if(window.__AIMES_LLM && window.__AIMES_LLM._patchedV21_simple) return;
   window.__AIMES_LLM = window.__AIMES_LLM || {ready:false, generate:null, mode:"off"};
-  window.__AIMES_LLM._patchedV21_fix2 = true;
+  window.__AIMES_LLM._patchedV21_simple = true;
   let S={ready:false,loading:false,engine:null,mode:localStorage.getItem("aimes_mode")||"off",apiKey:localStorage.getItem("aimes_or_key")||""};
 
   const d=document.createElement("div");
@@ -78,31 +73,59 @@ Illalla väsyttää usein, aamut on mun aikaa`,uv="Voit liittää vaikka pitkän
   b.style.cssText="padding:10px 14px;border-radius:999px;border:2px solid #111;background:#ffe94d;box-shadow:3px 3px 0 #111;font-weight:700;font-size:14px;cursor:pointer";
   b.textContent="🧠 Aivot: OFF";
   const panel=document.createElement("div");
-  panel.style.cssText="display:none;background:#fff;border:2px solid #111;border-radius:12px;padding:12px;box-shadow:3px 3px 0 #111;min-width:280px;max-width:320px";
+  panel.style.cssText="display:none;background:#fff;border:2px solid #111;border-radius:12px;padding:12px;box-shadow:3px 3px 0 #111;min-width:280px;max-width:340px";
   panel.innerHTML=`
-    <div style="font-weight:800;margin-bottom:8px">AIMES v21 - Aivot</div>
+    <div style="font-weight:800;margin-bottom:8px">AIMES v21.2</div>
     <select id="aimes-mode" style="width:100%;padding:8px;border-radius:8px;border:2px solid #111;margin-bottom:10px;font-weight:600">
-      <option value="off">OFF - ps0 nopea</option>
+      <option value="off">OFF - ps0</option>
       <option value="browser">Selain - 360M</option>
-      <option value="cloud">Pilvi - inkling:free (API ok ✓)</option>
+      <option value="cloud">Pilvi - inkling:free</option>
     </select>
     <div id="aimes-cloud" style="display:none;border-top:1px solid #ddd;padding-top:10px">
       <input id="aimes-key" type="password" placeholder="sk-or-v1-..." style="width:100%;padding:8px;border-radius:8px;border:2px solid #111;margin-bottom:6px" />
       <button id="aimes-save" style="padding:6px 12px;border-radius:8px;border:2px solid #111;background:#ffe94d;font-weight:700;cursor:pointer">Tallenna</button>
       <span id="aimes-status" style="font-size:11px;margin-left:8px"></span>
-      <div id="aimes-cloud-status" style="font-size:11px;margin-top:6px;color:#0a0"></div>
+      <div id="aimes-cloud-status" style="font-size:11px;margin-top:6px;color:#333"></div>
+      <div style="font-size:10px;color:#777;margin-top:6px">Kirjoita alkuun "hae netistä" kun haluat tuoreen haun</div>
     </div>`;
 
-  d.appendChild(panel); d.appendChild(b);
-  document.body.appendChild(d);
-
+  d.appendChild(panel); d.appendChild(b); document.body.appendChild(d);
   function setLabel(t){ b.textContent=t; }
   function setMode(m){
     S.mode=m; localStorage.setItem("aimes_mode",m); window.__AIMES_LLM.mode=m;
     const cloudDiv=document.getElementById("aimes-cloud");
     if(m==="off"){ window.__AIMES_LLM.ready=false; window.__AIMES_LLM.generate=null; setLabel("🧠 Aivot: OFF"); cloudDiv.style.display="none"; }
-    else if(m==="browser"){ window.__AIMES_LLM.ready=S.ready; setLabel(S.ready?"🧠 Aivot: Selain (valmis)":"🧠 Aivot: Selain"); cloudDiv.style.display="none"; if(!S.ready) loadBrowser(); }
-    else if(m==="cloud"){ window.__AIMES_LLM.ready=!!S.apiKey; window.__AIMES_LLM.generate=generateCloud; setLabel(S.apiKey?"🧠 Aivot: Pilvi (inkling:free)":"🧠 Aivot: Pilvi (ei avainta)"); cloudDiv.style.display="block"; document.getElementById("aimes-cloud-status").textContent=S.apiKey?"Avain ok, Pilvi valmis ✓":""; }
+    else if(m==="browser"){ window.__AIMES_LLM.ready=S.ready; setLabel(S.ready?"🧠 Aivot: Selain":"🧠 Aivot: Selain"); cloudDiv.style.display="none"; if(!S.ready) loadBrowser(); }
+    else if(m==="cloud"){ window.__AIMES_LLM.ready=!!S.apiKey; window.__AIMES_LLM.generate=generateCloud; setLabel(S.apiKey?"🧠 Aivot: Pilvi":"🧠 Aivot: Pilvi (ei avainta)"); cloudDiv.style.display="block"; }
+  }
+  function needsOnline(q){
+    let s=q.toLowerCase();
+    return s.includes("hae netistä")||s.includes("hae netista")||s.includes("etsi netistä")||s.includes("etsi netista")||s.includes("hae verkosta")||s.includes("googleta");
+  }
+  async function onlineSearch(query){
+    let clean=query.replace(/hae netistä|hae netista|etsi netistä|etsi netista|hae verkosta|googleta/gi,"").trim().slice(0,120);
+    try{
+      document.getElementById("aimes-cloud-status").textContent="🔍 Haetaan: "+clean+"...";
+      let parts=[];
+      try{
+        let r=await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(clean)}&format=json&no_html=1&skip_disambig=1`);
+        let ddg=await r.json();
+        if(ddg.AbstractText) parts.push(ddg.AbstractText);
+        if(ddg.Results && ddg.Results[0]) parts.push(ddg.Results[0].Text);
+      }catch(e){}
+      if(parts.length===0){
+        try{
+          let prox=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://lite.duckduckgo.com/lite/?q='+encodeURIComponent(clean))}`).then(r=>r.json());
+          if(prox && prox.contents){
+            let matches=[...prox.contents.matchAll(/<td[^>]*class="result-snippet[^>]*>(.*?)<\/td>/gs)];
+            for(let m of matches.slice(0,3)){ let txt=m[1].replace(/<[^>]+>/g,'').trim(); if(txt.length>20) parts.push(txt); }
+          }
+        }catch(e){}
+      }
+      let out=parts.filter(Boolean).join("\n---\n").slice(0,1800);
+      document.getElementById("aimes-cloud-status").textContent=out?`Löytyi ${parts.length} tulosta ✓`:"Ei tuloksia";
+      return out||null;
+    }catch(e){ return null; }
   }
   async function loadBrowser(){
     if(S.loading||S.ready) return; S.loading=true; setLabel("⏳ Selain 0%");
@@ -113,9 +136,14 @@ Illalla väsyttää usein, aamut on mun aikaa`,uv="Voit liittää vaikka pitkän
   async function generateCloud(q,facts){
     let key=localStorage.getItem("aimes_or_key")||S.apiKey;
     if(!key) return null;
-    let sys=`Olet AIMES v21, ystävällinen suomalainen Kerava-henkinen kaveri. Vastaat suomeksi 2-4 lausetta. Muistissa: ${(facts||"").slice(0,800)}`;
+    let searchExtra="";
+    if(needsOnline(q)){
+      let res=await onlineSearch(q);
+      if(res) searchExtra=`\n\n[Tuoreet hakutulokset netistä ${new Date().toLocaleDateString('fi-FI')} haulle "${q.slice(0,80)}":\n${res}\n] Käytä näitä jos vastaavat kysymykseen.`;
+    }
+    let sys=`Olet AIMES v21.2, ystävällinen suomalainen. Vastaat suomeksi 2-4 lausetta.${searchExtra}\n\nMuistissa: ${(facts||"").slice(0,800)}`;
     try{
-      let res=await fetch("https://openrouter.ai/api/v1/chat/completions",{method:"POST",headers:{"Authorization":"Bearer "+key,"Content-Type":"application/json","HTTP-Referer":"https://mind-why.com","X-Title":"AIMES v21"},body:JSON.stringify({model:"thinkingmachines/inkling:free",messages:[{role:"system",content:sys},{role:"user",content:String(q).slice(0,600)}],max_tokens:300,temperature:0.85})});
+      let res=await fetch("https://openrouter.ai/api/v1/chat/completions",{method:"POST",headers:{"Authorization":"Bearer "+key,"Content-Type":"application/json","HTTP-Referer":"https://mind-why.com","X-Title":"AIMES v21"},body:JSON.stringify({model:"thinkingmachines/inkling:free",messages:[{role:"system",content:sys},{role:"user",content:String(q).slice(0,600)}],max_tokens:350,temperature:0.85})});
       if(!res.ok) return null;
       let data=await res.json(); return data?.choices?.[0]?.message?.content||null;
     }catch(e){ return null; }
@@ -124,12 +152,10 @@ Illalla väsyttää usein, aamut on mun aikaa`,uv="Voit liittää vaikka pitkän
   panel.querySelector("#aimes-mode").addEventListener("change",(e)=>setMode(e.target.value));
   panel.querySelector("#aimes-save").addEventListener("click",()=>{
     let k=document.getElementById("aimes-key").value.trim();
-    if(k){ localStorage.setItem("aimes_or_key",k); S.apiKey=k; document.getElementById("aimes-status").textContent="Tallennettu ✓"; window.__AIMES_LLM.ready=true; window.__AIMES_LLM.generate=generateCloud; setLabel("🧠 Aivot: Pilvi (inkling:free)"); }
+    if(k){ localStorage.setItem("aimes_or_key",k); S.apiKey=k; document.getElementById("aimes-status").textContent="Tallennettu ✓"; window.__AIMES_LLM.ready=true; window.__AIMES_LLM.generate=generateCloud; setLabel("🧠 Aivot: Pilvi"); }
   });
   if(S.apiKey) panel.querySelector("#aimes-key").value=S.apiKey;
   panel.querySelector("#aimes-mode").value=S.mode; setMode(S.mode);
-  // varmistus: poista vanhat vielä kerran 1s päästä
-  setTimeout(()=>{ document.querySelectorAll('button').forEach(btn=>{ if(btn.id!=='aimes-brain-btn' && btn.textContent.includes('Aivot:')){ let p=btn.closest('div'); if(p && p.id!=='aimes-v21-root') p.remove(); } }); },1000);
 })();
 </script>
 </body>
