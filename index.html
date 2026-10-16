@@ -46,16 +46,14 @@ Illalla väsyttää usein, aamut on mun aikaa`,uv="Voit liittää vaikka pitkän
   <script>(function(){function m(a){var h=a.getAttribute("href");if(!h)return;try{var u=new URL(h,document.baseURI);if((u.protocol==="http:"||u.protocol==="https:")&&u.host!==location.host){a.target="_blank";a.rel="noopener noreferrer";}}catch(e){}}function s(){document.querySelectorAll("a[href]").forEach(m);}if(document.readyState!=="loading"){s();}else{document.addEventListener("DOMContentLoaded",s);}document.addEventListener("click",function(e){var a=e.target&&e.target.closest&&e.target.closest("a[href]");if(a){m(a);}},true);})();</script>
   <script type="application/json" data-clippy-inline-media-manifest="1">{"version":1,"slots":[]}</script>
   <script>
-// AIMES v21.5 - korjaa tupla-aivot + sää oikeasti
+// AIMES v21.6 - inkling:free -> gemma-2-9b-it:free (toimiva free)
 (function(){
   const MY_ID='aimes-v21-root', MY_BTN='aimes-brain-btn';
-  // tapa VAIN vanhoja kelluvia kopioita, ÄLÄ tapa Reactin omaa nappia #root sisällä
   function killOld(){
     document.querySelectorAll('body > div[style*="fixed"]').forEach(div=>{
       if(div.id===MY_ID) return;
       if(div.id==='root') return;
       if(div.innerHTML && div.innerHTML.includes('Aivot:') &&!div.querySelector('#'+MY_BTN) &&!div.closest('#root')){
-        // jos tämä div on se vanha patchin jämä ulkopuolella, poista
         if(div.querySelector('button') && div.textContent.includes('Aivot:')){
           let isInsideRoot = div.closest('#root');
           if(!isInsideRoot) div.remove();
@@ -64,21 +62,20 @@ Illalla väsyttää usein, aamut on mun aikaa`,uv="Voit liittää vaikka pitkän
     });
   }
   killOld(); setTimeout(killOld,500); setTimeout(killOld,2000);
-
-  if(window.__AIMES_LLM && window.__AIMES_LLM._patchedV21_5) return;
+  if(window.__AIMES_LLM && window.__AIMES_LLM._patchedV21_6) return;
   window.__AIMES_LLM=window.__AIMES_LLM||{ready:false,generate:null,mode:"off"};
-  window.__AIMES_LLM._patchedV21_5=true;
+  window.__AIMES_LLM._patchedV21_6=true;
   let S={ready:false,loading:false,engine:null,mode:localStorage.getItem("aimes_mode")||"off",apiKey:localStorage.getItem("aimes_or_key")||""};
   let old=document.getElementById(MY_ID); if(old) old.remove();
   const d=document.createElement("div"); d.id=MY_ID; d.style.cssText="position:fixed;bottom:14px;left:14px;z-index:2147483647;font-family:system-ui;display:flex;flex-direction:column;gap:8px;align-items:flex-start";
   const b=document.createElement("button"); b.id=MY_BTN; b.style.cssText="padding:10px 14px;border-radius:999px;border:2px solid #111;background:#ffe94d;box-shadow:3px 3px 0 #111;font-weight:700;font-size:13px;cursor:pointer;color:#111"; b.textContent="🧠 Pilvi: "+(S.mode==="cloud"?"PÄÄLLÄ":"OFF");
   const panel=document.createElement("div"); panel.style.cssText="display:none;background:#fff;border:2px solid #111;border-radius:12px;padding:12px;box-shadow:3px 3px 0 #111;min-width:300px;max-width:380px";
   panel.innerHTML=`
-    <div style="font-weight:800;margin-bottom:8px">AIMES v21.5 - Pilvi + sää</div>
-    <div style="font-size:11px;margin-bottom:8px;line-height:1.4">1) Laita tämä: Pilvi PÄÄLLÄ<br>2) Klikkaa myös ISO musta Aivot-nappi oikealla PÄÄLLE<br>3) Sitten: hae netistä sää keravalla</div>
+    <div style="font-weight:800;margin-bottom:8px">AIMES v21.6 - korjattu</div>
+    <div style="font-size:11px;margin-bottom:8px;line-height:1.4">1) Pilvi PÄÄLLÄ<br>2) Klikkaa myös ISO musta Aivot-nappi oikealla PÄÄLLE<br>3) hae netistä sää keravalla</div>
     <select id="aimes-mode" style="width:100%;padding:8px;border-radius:8px;border:2px solid #111;margin-bottom:10px;font-weight:600">
       <option value="off">Pilvi OFF</option>
-      <option value="cloud">Pilvi - inkling:free (PÄÄLLÄ)</option>
+      <option value="cloud">Pilvi - gemma-2-9b:free</option>
     </select>
     <div id="aimes-cloud" style="display:none;border-top:1px solid #ddd;padding-top:10px">
       <input id="aimes-key" type="password" placeholder="sk-or-v1-..." style="width:100%;padding:8px;border-radius:8px;border:2px solid #111;margin-bottom:6px" />
@@ -93,12 +90,10 @@ Illalla väsyttää usein, aamut on mun aikaa`,uv="Voit liittää vaikka pitkän
     const cloudDiv=document.getElementById("aimes-cloud");
     if(m==="off"){ window.__AIMES_LLM.ready=false; cloudDiv.style.display="none"; }
     else if(m==="cloud"){ window.__AIMES_LLM.ready=!!S.apiKey; window.__AIMES_LLM.generate=generateCloud; cloudDiv.style.display="block";
-      // yritä klikata se iso musta nappi päälle automaattisesti
       setTimeout(()=>{ try{
-        let bigBtn = document.querySelector('button.brutal'); // se iso
         let all = Array.from(document.querySelectorAll('button')).filter(x=>x.textContent.includes('Aivot:'));
         let real = all.find(x=>x.id!==MY_BTN);
-        if(real && real.textContent.includes('OFF')){ console.log('Klikkaan isoa Aivot-nappia päälle'); real.click(); }
+        if(real && real.textContent.includes('OFF')) real.click();
       }catch(e){} },800);
     }
     setLabel();
@@ -137,13 +132,13 @@ Huomenna: ylin ${daily.temperature_2m_max[1]}°C / alin ${daily.temperature_2m_m
       let parts=[];
       try{ let r=await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(clean)}&format=json&no_html=1&skip_disambig=1`); let ddg=await r.json(); if(ddg.AbstractText) parts.push(ddg.AbstractText); }catch(e){}
       let out=parts.join("\n").slice(0,1800);
-      document.getElementById("aimes-cloud-status").textContent=out?`Löytyi ✓`:"Ei tuloksia";
-      return out||`Haku: ${clean} (ei tarkkaa snippet, mutta vastaa kysymykseen)`;
+      document.getElementById("aimes-cloud-status").textContent=out?`Löytyi ✓`:"Ei tarkkaa snippet";
+      return out||`Haku: ${clean}`;
     }catch(e){ return null; }
   }
   async function generateCloud(q,facts){
     let key=localStorage.getItem("aimes_or_key")||S.apiKey;
-    if(!key){ document.getElementById("aimes-cloud-status").textContent="Ei API-avainta! Liitä sk-or-..."; return null; }
+    if(!key){ document.getElementById("aimes-cloud-status").textContent="Ei API-avainta!"; return null; }
     let searchExtra="";
     if(needsOnline(q)){
       if(q.toLowerCase().includes("sää")||q.toLowerCase().includes("saa ")){
@@ -155,16 +150,14 @@ Huomenna: ylin ${daily.temperature_2m_max[1]}°C / alin ${daily.temperature_2m_m
         if(res) searchExtra=`\n\n[Tuoreet hakutulokset:\n${res}\n]`;
       }
     }
-    let sys=`Olet AIMES v21.5. Vastaat suomeksi 2-4 lausetta. Jos sait säätiedotuksen, kerro asteet tarkasti.${searchExtra}\n\nMuistissa: ${(facts||"").slice(0,800)}`;
+    let sys=`Olet AIMES v21.6. Vastaat suomeksi 2-4 lausetta. Jos sait säätiedotuksen, kerro asteet tarkasti.${searchExtra}\n\nMuistissa: ${(facts||"").slice(0,800)}`;
     try{
-      let res=await fetch("https://openrouter.ai/api/v1/chat/completions",{method:"POST",headers:{"Authorization":"Bearer "+key,"Content-Type":"application/json","HTTP-Referer":"https://mind-why.com","X-Title":"AIMES v21"},body:JSON.stringify({model:"thinkingmachines/inkling:free",messages:[{role:"system",content:sys},{role:"user",content:String(q).slice(0,600)}],max_tokens:350,temperature:0.85})});
-      if(!res.ok){ let t=await res.text(); document.getElementById("aimes-cloud-status").textContent="OpenRouter virhe: "+res.status+" "+t.slice(0,200); return null; }
+      let res=await fetch("https://openrouter.ai/api/v1/chat/completions",{method:"POST",headers:{"Authorization":"Bearer "+key,"Content-Type":"application/json","HTTP-Referer":"https://mind-why.com","X-Title":"AIMES v21"},body:JSON.stringify({model:"google/gemma-2-9b-it:free",messages:[{role:"system",content:sys},{role:"user",content:String(q).slice(0,600)}],max_tokens:400,temperature:0.8})});
+      if(!res.ok){ let t=await res.text(); document.getElementById("aimes-cloud-status").textContent="OpenRouter virhe: "+res.status+" "+t.slice(0,300); return null; }
       let data=await res.json(); return data?.choices?.[0]?.message?.content||null;
     }catch(e){ document.getElementById("aimes-cloud-status").textContent="Fetch virhe: "+e; return null; }
   }
-  // pakota että Pilvi on aina generateCloud kun mode=cloud (ettei Reactin 360M ylikirjoita)
   setInterval(()=>{ if(S.mode==="cloud" && S.apiKey){ if(window.__AIMES_LLM.generate!==generateCloud){ window.__AIMES_LLM.generate=generateCloud; window.__AIMES_LLM.ready=true; } } },1000);
-
   b.addEventListener("click",()=>{ panel.style.display=panel.style.display==="none"?"block":"none"; });
   panel.querySelector("#aimes-mode").addEventListener("change",(e)=>setMode(e.target.value));
   panel.querySelector("#aimes-save").addEventListener("click",()=>{
