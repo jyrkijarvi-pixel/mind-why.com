@@ -153,6 +153,181 @@
       top: 0;
       left: 0;
       z-index: 1;
+      touch-action: none;
+    }
+
+    /* ===================================================
+       MOBILE RESPONSIVENESS & TOUCH CONTROLS (<= 768px)
+       Android & iOS Chrome/Safari Small Screens
+       =================================================== */
+    @media (max-width: 768px) {
+      /* Prevent iOS browser auto-zooming on focus */
+      input[type="text"], input[type="search"], textarea, select {
+        font-size: 16px !important;
+      }
+
+      /* Mobile HUD container spacing */
+      .hud-wrapper-mobile {
+        padding-top: 54px !important;
+        padding-bottom: 74px !important;
+        padding-left: 6px !important;
+        padding-right: 6px !important;
+        pointer-events: none !important;
+      }
+
+      /* Left sidebar panel on mobile */
+      #sidebar-panel {
+        position: fixed !important;
+        top: 56px !important;
+        bottom: 74px !important;
+        left: 6px !important;
+        right: 6px !important;
+        width: auto !important;
+        max-width: 480px !important;
+        max-height: calc(100dvh - 134px) !important;
+        z-index: 45 !important;
+        margin: 0 auto;
+        border-radius: 1.25rem !important;
+        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.85), 0 0 24px rgba(6, 182, 212, 0.25) !important;
+        touch-action: auto !important;
+      }
+
+      /* Right active location HUD panel on mobile (Flexible bottom sheet / card) */
+      #active-location-panel {
+        position: fixed !important;
+        bottom: 74px !important;
+        left: 6px !important;
+        right: 6px !important;
+        width: auto !important;
+        max-width: 480px !important;
+        max-height: min(76vh, calc(100dvh - 134px)) !important;
+        z-index: 40 !important;
+        margin: 0 auto;
+        border-radius: 1.25rem !important;
+        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.9), 0 0 28px rgba(56, 189, 248, 0.3) !important;
+        touch-action: auto !important;
+      }
+
+      /* Smooth, momentum vertical scrolling inside panels with touch containment */
+      #pins-list-container,
+      .mobile-scrollable,
+      #active-location-panel .overflow-y-auto {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior: contain !important;
+        touch-action: pan-y !important;
+      }
+
+      /* Horizontal scrolling chip lists */
+      #category-tabs-container,
+      #camera-subcats-container,
+      #region-chips-container {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        overscroll-behavior: contain !important;
+        touch-action: pan-x !important;
+        scrollbar-width: none;
+      }
+      #category-tabs-container::-webkit-scrollbar,
+      #camera-subcats-container::-webkit-scrollbar,
+      #region-chips-container::-webkit-scrollbar {
+        display: none;
+      }
+
+      /* Compact top header on mobile */
+      header {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+        padding-top: 6px !important;
+        padding-bottom: 6px !important;
+        height: 52px !important;
+      }
+
+      /* Touch targets for buttons in header */
+      #toggle-sfx-btn, #toggle-texture-btn, #toggle-tilt-btn, #toggle-autorotate-btn {
+        padding: 6px 9px !important;
+        min-height: 38px !important;
+        min-width: 38px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+
+      #toggle-sidebar-btn {
+        min-height: 40px !important;
+        min-width: 40px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+
+      /* Bottom dock on mobile */
+      footer {
+        height: 68px !important;
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+      }
+
+      #dock-prev-btn, #dock-next-btn {
+        min-width: 40px !important;
+        min-height: 40px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+
+      #dock-play-btn {
+        width: 42px !important;
+        height: 42px !important;
+      }
+
+      /* Street View & Google Maps buttons minimum touch size */
+      #google-streetview-btn,
+      #google-maps-btn {
+        min-height: 50px !important;
+        padding: 10px 10px !important;
+      }
+
+      /* Action buttons at bottom of active card */
+      #share-loc-btn, #zoom-in-loc-btn {
+        min-height: 44px !important;
+      }
+
+      /* Persona tabs touch target */
+      .persona-tab {
+        min-height: 38px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+
+      /* Search action buttons touch size */
+      #execute-search-btn {
+        min-height: 36px !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+      }
+      #clear-search-btn {
+        min-width: 36px !important;
+        min-height: 36px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+    }
+
+    @media (max-width: 480px) {
+      /* Extra fine-tuning for compact smartphone viewports */
+      #loc-title {
+        font-size: 1.05rem !important;
+      }
+      #google-streetview-btn .truncate,
+      #google-maps-btn .truncate {
+        font-size: 11px !important;
+      }
+      #dock-eq-canvas {
+        width: 60px !important;
+      }
     }
   </style>
 </head>
@@ -240,16 +415,22 @@
         <span class="hidden sm:inline" id="tilt-label">Kallista (3D)</span>
       </button>
 
+      <!-- Auto-Rotate Toggle (Play / Pause) -->
+      <button id="toggle-autorotate-btn" class="glass-btn px-3 py-1.5 rounded-lg text-xs font-mono text-slate-300 hover:text-white flex items-center gap-2" title="Pysäytä maapallon pyörintä (Pause)">
+        <i class="fa-solid fa-pause text-cyan-400" id="autorotate-icon"></i>
+        <span class="hidden sm:inline" id="autorotate-label">Pysäytä</span>
+      </button>
+
       <!-- Primary Teleport CTA in Header -->
-      <button id="header-teleport-btn" class="px-3.5 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-medium text-xs rounded-lg shadow-glow-cyan flex items-center gap-2 transition-transform active:scale-95">
+      <button id="header-teleport-btn" class="px-3.5 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-medium text-xs rounded-lg shadow-glow-cyan flex items-center gap-2 transition-transform active:scale-95" title="Satunnainen teleportti maailmalle">
         <i class="fa-solid fa-dice text-sm"></i>
-        <span>Vie minut jonnekin</span>
+        <span class="hidden sm:inline">Vie minut jonnekin</span>
       </button>
     </div>
   </header>
 
   <!-- MAIN HUD WRAPPER (Pointer events pass through to Globe except for panels) -->
-  <div class="absolute inset-0 z-20 pointer-events-none pt-16 pb-20 px-3 lg:px-6 flex justify-between">
+  <div class="absolute inset-0 z-20 pointer-events-none pt-16 pb-20 px-3 lg:px-6 flex justify-between hud-wrapper-mobile">
 
     <!-- LEFT SIDEBAR: STATIONS & FILTERING -->
     <aside id="sidebar-panel" class="w-80 lg:w-96 max-h-full flex flex-col rounded-2xl glass-panel pointer-events-auto shadow-2xl transition-all duration-300 transform -translate-x-[110%] lg:translate-x-0">
@@ -261,7 +442,7 @@
             <i class="fa-solid fa-compass text-cyan-400"></i>
             <h2 class="font-display font-semibold text-sm tracking-wide text-white">Kohteet & Lähetykset</h2>
           </div>
-          <button id="close-sidebar-btn" class="lg:hidden text-slate-400 hover:text-white p-1">
+          <button id="close-sidebar-btn" class="lg:hidden text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800/50 min-w-[36px] min-h-[36px] flex items-center justify-center transition-colors" title="Sulje valikko (tutki maapalloa)">
             <i class="fa-solid fa-xmark text-sm"></i>
           </button>
         </div>
@@ -379,14 +560,21 @@
 
     <!-- RIGHT ACTIVE LOCATION HUD CARD -->
     <div id="active-location-panel" class="w-full sm:w-96 lg:w-[420px] max-h-full flex flex-col rounded-2xl glass-panel pointer-events-auto shadow-2xl transition-all duration-300 overflow-hidden hidden">
+      <!-- Mobile handle indicator -->
+      <div class="w-10 h-1 bg-slate-600/60 rounded-full mx-auto mt-2 lg:hidden"></div>
       
       <!-- Header of Active Card -->
       <div class="p-4 border-b border-cyan-500/15 relative">
-        <button id="close-location-panel-btn" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800/50" title="Sulje paneeli">
-          <i class="fa-solid fa-xmark text-sm"></i>
-        </button>
+        <div class="absolute top-3 right-3 flex items-center gap-1.5">
+          <button id="minimize-location-panel-btn" class="text-slate-400 hover:text-cyan-300 p-2 rounded-lg hover:bg-slate-800/50 min-w-[36px] min-h-[36px] flex items-center justify-center transition-colors" title="Pienennä paneeli (tutki maapalloa)">
+            <i class="fa-solid fa-minus text-xs"></i>
+          </button>
+          <button id="close-location-panel-btn" class="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800/50 min-w-[36px] min-h-[36px] flex items-center justify-center transition-colors" title="Sulje paneeli">
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
 
-        <div class="flex items-start gap-3 pr-8">
+        <div class="flex items-start gap-3 pr-20">
           <div id="loc-category-badge" class="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shrink-0 text-base">
             <i class="fa-solid fa-video"></i>
           </div>
@@ -421,7 +609,7 @@
       </div>
 
       <!-- Scrollable Content of Active Card -->
-      <div class="flex-1 overflow-y-auto p-4 space-y-4">
+      <div class="flex-1 overflow-y-auto p-4 space-y-4 mobile-scrollable">
         
         <!-- MEDIA CONTAINER (Video Embed or Radio Deck) -->
         <div id="loc-media-container" class="rounded-xl overflow-hidden border border-slate-700/60 bg-black/60 relative">
@@ -561,6 +749,31 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- MOBILE FLOATING ACTION BUTTONS (Touch & 3D Globe Accessibility) -->
+  <div class="fixed bottom-20 left-3 z-30 flex items-center gap-2 pointer-events-auto lg:hidden">
+    <!-- Floating Hamburger / Menu Opener -->
+    <button 
+      id="floating-menu-btn" 
+      class="px-3.5 py-2 rounded-xl glass-btn text-cyan-300 shadow-glow-cyan flex items-center gap-2 font-mono text-xs font-semibold backdrop-blur-md border border-cyan-500/40 active:scale-95 transition-all"
+      title="Avaa kohteet ja radiokanavat"
+    >
+      <i class="fa-solid fa-bars text-sm"></i>
+      <span>Kohteet & Radiot</span>
+    </button>
+  </div>
+
+  <div class="fixed bottom-20 right-3 z-30 flex items-center gap-2 pointer-events-auto lg:hidden">
+    <!-- Re-open Active Location Card when minimized/closed -->
+    <button 
+      id="floating-card-btn" 
+      class="hidden px-3.5 py-2 rounded-xl glass-btn text-emerald-300 shadow-glow-emerald flex items-center gap-2 font-mono text-xs font-semibold backdrop-blur-md border border-emerald-500/40 active:scale-95 transition-all"
+      title="Näytä valitun kohteen tiedot"
+    >
+      <i class="fa-solid fa-location-dot text-sm"></i>
+      <span id="floating-card-title" class="max-w-[130px] truncate">Kohdetiedot</span>
+    </button>
   </div>
 
   <!-- BOTTOM GLOBAL MEDIA & CONTROLS DOCK -->
@@ -1785,6 +1998,7 @@
     let searchQuery = '';
     let activePersona = 'geographer'; // 'geographer' | 'guide' | 'rabbit'
     let currentTextureMode = 'day'; // 'day' | 'surface'
+    let isAutoRotating = true; // Earth auto-rotation on/off
 
     // ==========================================
     // 3. 3D EARTH GLOBE - 100% BRIGHT DAY VIEW (Globe.gl + Three.js)
@@ -1822,12 +2036,14 @@
 
           setupGlobeLayers();
 
-          // Deep Zoom & Horizon Tilt in Globe.gl
+          // Deep Zoom, Auto-Rotation & Horizon Tilt in Globe.gl
           if (typeof worldGlobe.controls === 'function') {
             const controls = worldGlobe.controls();
             if (controls) {
               controls.enableRotate = true;
               controls.enableZoom = true;
+              controls.autoRotate = isAutoRotating;
+              controls.autoRotateSpeed = 0.6;
               controls.minDistance = 101.2; // Deep satellite zoom ~1.012 of Earth radius (altitude ~0.005)
               controls.maxDistance = 600;
               // Allow full tilt: from straight top-down to oblique horizon perspective
@@ -2193,7 +2409,7 @@
 
         if (camAnimation) {
           camAnimation.update();
-        } else if (!isPointerDown) {
+        } else if (!isPointerDown && isAutoRotating) {
           earthMesh.rotation.y += 0.0006;
         }
 
@@ -2296,6 +2512,7 @@
         scene: () => scene,
         width: () => worldGlobe,
         height: () => worldGlobe,
+        controls: () => ({ autoRotate: isAutoRotating, enableRotate: true, enableZoom: true }),
         onGlobeClick: () => worldGlobe
       };
     }
@@ -2448,6 +2665,46 @@
         currentTextureMode = 'day';
         worldGlobe.globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg');
         if (label) label.textContent = 'Blue Marble';
+      }
+    }
+
+    // Toggle Earth Auto-Rotation (Play / Pause)
+    function toggleEarthAutoRotation() {
+      sound.playChime();
+      isAutoRotating = !isAutoRotating;
+
+      // 1. Globe.gl OrbitControls auto-rotation
+      if (worldGlobe && typeof worldGlobe.controls === 'function') {
+        const controls = worldGlobe.controls();
+        if (controls) {
+          controls.autoRotate = isAutoRotating;
+          controls.autoRotateSpeed = 0.6;
+        }
+      }
+
+      // 2. Update UI button text and icon
+      updateAutoRotateButtonUI();
+
+      if (isAutoRotating) {
+        showStatus('Automaattinen maapallon pyörintä käynnistetty ▶', 'fa-play');
+      } else {
+        showStatus('Automaattinen pyörintä pysäytetty ⏸', 'fa-pause');
+      }
+    }
+
+    function updateAutoRotateButtonUI() {
+      const label = document.getElementById('autorotate-label');
+      const icon = document.getElementById('autorotate-icon');
+      const btn = document.getElementById('toggle-autorotate-btn');
+
+      if (isAutoRotating) {
+        if (label) label.textContent = 'Pysäytä';
+        if (icon) icon.className = 'fa-solid fa-pause text-cyan-400';
+        if (btn) btn.setAttribute('title', 'Pysäytä maapallon pyörintä (Pause)');
+      } else {
+        if (label) label.textContent = 'Pyöritä';
+        if (icon) icon.className = 'fa-solid fa-play text-emerald-400';
+        if (btn) btn.setAttribute('title', 'Käynnistä maapallon pyörintä (Play)');
       }
     }
 
@@ -2825,6 +3082,15 @@
       // 2. Open Right HUD Card
       const panel = document.getElementById('active-location-panel');
       if (panel) panel.classList.remove('hidden');
+
+      if (window.innerWidth <= 768) {
+        const sidebar = document.getElementById('sidebar-panel');
+        if (sidebar) sidebar.classList.add('-translate-x-[110%]');
+      }
+
+      const floatingCardTitle = document.getElementById('floating-card-title');
+      if (floatingCardTitle) floatingCardTitle.textContent = location.name;
+      if (typeof updateMobileFloatingControls === 'function') updateMobileFloatingControls();
 
       // 3. Update active card header
       const titleEl = document.getElementById('loc-title');
@@ -4140,7 +4406,14 @@
 
     window.handlePinListClick = (id) => {
       const pin = allPins.find(p => p.id === id);
-      if (pin) selectLocation(pin, true);
+      if (pin) {
+        selectLocation(pin, true);
+        if (window.innerWidth <= 768) {
+          const sidebar = document.getElementById('sidebar-panel');
+          if (sidebar) sidebar.classList.add('-translate-x-[110%]');
+          if (typeof updateMobileFloatingControls === 'function') updateMobileFloatingControls();
+        }
+      }
     };
 
     function updatePinCountBadge() {
@@ -4235,19 +4508,78 @@
       }
     });
 
-    // Sidebar Toggles
+    // Auto-Rotate Toggle (Play / Pause)
+    document.getElementById('toggle-autorotate-btn')?.addEventListener('click', toggleEarthAutoRotation);
+
+    // Sidebar & Panel Mobile Orchestration
     const sidebar = document.getElementById('sidebar-panel');
+    const locationPanel = document.getElementById('active-location-panel');
+    const floatingMenuBtn = document.getElementById('floating-menu-btn');
+    const floatingCardBtn = document.getElementById('floating-card-btn');
+
+    function updateMobileFloatingControls() {
+      if (window.innerWidth > 1024) {
+        if (floatingMenuBtn) floatingMenuBtn.classList.add('hidden');
+        if (floatingCardBtn) floatingCardBtn.classList.add('hidden');
+        return;
+      }
+
+      const isSidebarOpen = sidebar && !sidebar.classList.contains('-translate-x-[110%]');
+      const isCardOpen = locationPanel && !locationPanel.classList.contains('hidden');
+
+      if (floatingMenuBtn) {
+        floatingMenuBtn.classList.toggle('hidden', isSidebarOpen);
+      }
+
+      if (floatingCardBtn) {
+        floatingCardBtn.classList.toggle('hidden', isCardOpen || !activeLocation);
+      }
+    }
+
     document.getElementById('toggle-sidebar-btn')?.addEventListener('click', () => {
-      sidebar.classList.toggle('-translate-x-[110%]');
-    });
-    document.getElementById('close-sidebar-btn')?.addEventListener('click', () => {
-      sidebar.classList.add('-translate-x-[110%]');
+      sound.playChime();
+      const willOpen = sidebar ? sidebar.classList.contains('-translate-x-[110%]') : false;
+      sidebar?.classList.toggle('-translate-x-[110%]');
+      if (willOpen && window.innerWidth <= 768 && locationPanel) {
+        locationPanel.classList.add('hidden');
+      }
+      updateMobileFloatingControls();
     });
 
-    // Close Location HUD Panel
+    floatingMenuBtn?.addEventListener('click', () => {
+      sound.playChime();
+      sidebar?.classList.remove('-translate-x-[110%]');
+      if (window.innerWidth <= 768 && locationPanel) {
+        locationPanel.classList.add('hidden');
+      }
+      updateMobileFloatingControls();
+    });
+
+    document.getElementById('close-sidebar-btn')?.addEventListener('click', () => {
+      sidebar?.classList.add('-translate-x-[110%]');
+      updateMobileFloatingControls();
+    });
+
+    // Close / Minimize Location HUD Panel
     document.getElementById('close-location-panel-btn')?.addEventListener('click', () => {
       clearSnapshotTimers();
-      document.getElementById('active-location-panel')?.classList.add('hidden');
+      locationPanel?.classList.add('hidden');
+      updateMobileFloatingControls();
+    });
+
+    document.getElementById('minimize-location-panel-btn')?.addEventListener('click', () => {
+      clearSnapshotTimers();
+      locationPanel?.classList.add('hidden');
+      updateMobileFloatingControls();
+    });
+
+    floatingCardBtn?.addEventListener('click', () => {
+      sound.playChime();
+      if (window.innerWidth <= 768 && sidebar) {
+        sidebar.classList.add('-translate-x-[110%]');
+      }
+      locationPanel?.classList.remove('hidden');
+      updateMobileFloatingControls();
     });
 
     // Search and Filters with Dual-Purpose Smart Search Trigger
@@ -4455,6 +4787,8 @@
       selectLocation(activeLocation, false);
       fetchDynamicRadioStations();
       fetchFintrafficRoadCameras();
+      updateMobileFloatingControls();
+      window.addEventListener('resize', updateMobileFloatingControls);
     });
   </script>
 </body>
