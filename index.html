@@ -2624,7 +2624,9 @@
 
       // Drag to Rotate & Tilt / Pitch
       let isPointerDown = false;
+      let startPointer = { x: 0, y: 0 };
       let prevPointer = { x: 0, y: 0 };
+      let pointerDownTime = 0;
       let dragDistance = 0;
       let isTilting = false;
       let cameraTilt = 0; // 0 (nadir/top-down) to ~1.15 rad (~65 deg oblique horizon perspective)
@@ -2648,12 +2650,20 @@
         activeAnimations.push(anim);
       };
 
+      window.resetEarthPointerState = () => {
+        isPointerDown = false;
+        isTilting = false;
+        dragDistance = 0;
+      };
+
       container.addEventListener('contextmenu', (e) => e.preventDefault());
 
       container.addEventListener('pointerdown', (e) => {
         isPointerDown = true;
         isTilting = (e.button === 2 || e.shiftKey || e.ctrlKey);
+        startPointer = { x: e.clientX, y: e.clientY };
         prevPointer = { x: e.clientX, y: e.clientY };
+        pointerDownTime = Date.now();
         dragDistance = 0;
       });
 
@@ -2676,36 +2686,81 @@
       });
 
       window.addEventListener('pointerup', (e) => {
-        if (isPointerDown && dragDistance < 8) {
-          const rect = container.getBoundingClientRect();
-          mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-          mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-
-          raycaster.setFromCamera(mouse, camera);
-          const intersects = raycaster.intersectObjects(pinMeshes);
-          if (intersects.length > 0) {
-            const pin = intersects[0].object.userData.pinData;
-            if (pin) selectLocation(pin);
-          } else {
-            // Raycast directly against the 3D Earth sphere surface
-            const earthIntersects = raycaster.intersectObject(earthMesh);
-            if (earthIntersects.length > 0) {
-              const hit = earthIntersects[0];
-              const localPoint = earthMesh.worldToLocal(hit.point.clone());
-              const r = localPoint.length();
-              if (r > 0) {
-                const phi = Math.acos(Math.max(-1, Math.min(1, localPoint.y / r)));
-                const lat = 90 - (phi * 180 / Math.PI);
-                let lng = (Math.atan2(localPoint.z, -localPoint.x) * 180 / Math.PI) - 180;
-                while (lng < -180) lng += 360;
-                while (lng > 180) lng -= 360;
-                handleCustomGlobeClick(lat, lng);
-              }
-            }
-          }
-        }
+        if (!isPointerDown) return;
         isPointerDown = false;
         isTilting = false;
+
+        const moveDist = Math.hypot(e.clientX - startPointer.x, e.clientY - startPointer.y);
+        const elapsed = Date.now() - pointerDownTime;
+
+        // Clean tap/click detection: distance < 14px or fast tap (< 350ms) with distance < 22px
+        const isClick = moveDist < 14 || (elapsed < 350 && moveDist < 22);
+        if (!isClick) return;
+
+        const rect = container.getBoundingClientRect();
+        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+
+        // 1. Direct 3D mesh raycasting
+        const pinIntersects = raycaster.intersectObjects(pinMeshes);
+        if (pinIntersects.length > 0) {
+          const pin = pinIntersects[0].object.userData.pinData;
+          if (pin) {
+            selectLocation(pin);
+            return;
+          }
+        }
+
+        // 2. High-precision 2D Screen-space proximity check for pins
+        // Solves tiny hit-targets on mobile or zoomed-out orbital view!
+        // Checks visible pins facing the camera within 26px screen distance
+        let closestPin = null;
+        let minScreenDist = 26;
+        const tempVec = new THREE.Vector3();
+
+        for (let i = 0; i < pinMeshes.length; i++) {
+          const pMesh = pinMeshes[i];
+          pMesh.getWorldPosition(tempVec);
+
+          // Check if pin is on the visible front hemisphere (facing camera)
+          const camDot = tempVec.dot(camera.position);
+          if (camDot <= 0) continue; // Behind Earth, invisible
+
+          tempVec.project(camera);
+          if (tempVec.z > 1) continue;
+
+          const pinScreenX = (tempVec.x * 0.5 + 0.5) * rect.width + rect.left;
+          const pinScreenY = (-(tempVec.y * 0.5) + 0.5) * rect.height + rect.top;
+
+          const sDist = Math.hypot(e.clientX - pinScreenX, e.clientY - pinScreenY);
+          if (sDist < minScreenDist) {
+            minScreenDist = sDist;
+            closestPin = pMesh.userData.pinData;
+          }
+        }
+
+        if (closestPin) {
+          selectLocation(closestPin);
+          return;
+        }
+
+        // 3. Raycast directly against the 3D Earth sphere surface to explore coordinates
+        const earthIntersects = raycaster.intersectObject(earthMesh);
+        if (earthIntersects.length > 0) {
+          const hit = earthIntersects[0];
+          const localPoint = earthMesh.worldToLocal(hit.point.clone());
+          const r = localPoint.length();
+          if (r > 0) {
+            const phi = Math.acos(Math.max(-1, Math.min(1, localPoint.y / r)));
+            const lat = 90 - (phi * 180 / Math.PI);
+            let lng = (Math.atan2(localPoint.z, -localPoint.x) * 180 / Math.PI) - 180;
+            while (lng < -180) lng += 360;
+            while (lng > 180) lng -= 360;
+            handleCustomGlobeClick(lat, lng);
+          }
+        }
       });
 
       container.addEventListener('wheel', (e) => {
@@ -2871,7 +2926,7 @@
         scene: () => scene,
         width: () => worldGlobe,
         height: () => worldGlobe,
-        controls: () => ({ autoRotate: isAutoRotating, enableRotate: true, enableZoom: true }),
+        controls: () => ({ autoRotate: isAutoRotating, enableRotate: true, enableZoom: true, update: () => {} }),
         onGlobeClick: () => worldGlobe
       };
     }
@@ -2950,6 +3005,11 @@
                 </div>
               `;
 
+              wrapper.addEventListener('pointerdown', (e) => e.stopPropagation());
+              wrapper.addEventListener('pointerup', (e) => {
+                e.stopPropagation();
+                selectLocation(d);
+              });
               wrapper.onclick = (e) => {
                 e.stopPropagation();
                 selectLocation(d);
@@ -3032,22 +3092,30 @@
       sound.playChime();
       isAutoRotating = !isAutoRotating;
 
-      // 1. Globe.gl OrbitControls auto-rotation
+      // 1. Globe.gl OrbitControls auto-rotation & immediate state update
       if (worldGlobe && typeof worldGlobe.controls === 'function') {
         const controls = worldGlobe.controls();
         if (controls) {
           controls.autoRotate = isAutoRotating;
           controls.autoRotateSpeed = 0.6;
+          if (typeof controls.update === 'function') {
+            controls.update();
+          }
         }
       }
 
-      // 2. Update UI button text and icon
+      // 2. Clear any lingering drag/pointer state in Three.js renderer
+      if (typeof window.resetEarthPointerState === 'function') {
+        window.resetEarthPointerState();
+      }
+
+      // 3. Update UI button text and icon with internationalization
       updateAutoRotateButtonUI();
 
       if (isAutoRotating) {
-        showStatus('Automaattinen maapallon pyörintä käynnistetty ▶', 'fa-play');
+        showStatus(currentLang === 'fi' ? 'Automaattinen maapallon pyörintä käynnistetty ▶' : 'Earth auto-rotation started ▶', 'fa-play');
       } else {
-        showStatus('Automaattinen pyörintä pysäytetty ⏸', 'fa-pause');
+        showStatus(currentLang === 'fi' ? 'Automaattinen pyörintä pysäytetty ⏸' : 'Auto-rotation paused ⏸', 'fa-pause');
       }
     }
 
@@ -3057,13 +3125,13 @@
       const btn = document.getElementById('toggle-autorotate-btn');
 
       if (isAutoRotating) {
-        if (label) label.textContent = 'Pysäytä';
+        if (label) label.textContent = t('autorotate_pause');
         if (icon) icon.className = 'fa-solid fa-pause text-cyan-400';
-        if (btn) btn.setAttribute('title', 'Pysäytä maapallon pyörintä (Pause)');
+        if (btn) btn.setAttribute('title', currentLang === 'fi' ? 'Pysäytä maapallon pyörintä (Pause)' : 'Pause Earth auto-rotation');
       } else {
-        if (label) label.textContent = 'Pyöritä';
+        if (label) label.textContent = t('autorotate_play');
         if (icon) icon.className = 'fa-solid fa-play text-emerald-400';
-        if (btn) btn.setAttribute('title', 'Käynnistä maapallon pyörintä (Play)');
+        if (btn) btn.setAttribute('title', currentLang === 'fi' ? 'Käynnistä maapallon pyörintä (Play)' : 'Start Earth auto-rotation');
       }
     }
 
