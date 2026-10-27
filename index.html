@@ -2,7 +2,7 @@
 <html lang="fi" class="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Mind-Why World Explorer v4.2 · Globe + Map + Finnish Radios</title>
   <meta name="description" content="Interaktiivinen 3D-maapallo, reaaliaikaiset radiot, live-webbikamerat, reaaliaikainen sää ja monipersoonainen tekoälyopas." />
   <meta property="og:title" content="Mind-Why World Explorer" />
@@ -410,6 +410,79 @@
       #map-legend { bottom: 76px; gap: 6px 9px; font-size: 9px; }
       #detail-map .leaflet-bottom.leaflet-right { bottom: 75px; }
     }
+
+    /* Mobile layout: one panel at a time, with a persistent way back to the map. */
+    #mobile-options-btn, #mobile-options-panel, .mobile-map-back { display:none; }
+    @media (max-width: 1023px) {
+      :root { --nova-vh:100dvh; --nova-safe:env(safe-area-inset-bottom, 0px); --nova-top:env(safe-area-inset-top, 0px); --nova-dock:calc(64px + var(--nova-safe)); }
+      html, body { width:100%; height:var(--nova-vh); overflow:hidden; }
+      #globe-viz, #detail-map { height:var(--nova-vh); width:100%; }
+      header { position:fixed!important; top:0; height:calc(56px + var(--nova-top))!important; padding:var(--nova-top) 8px 0!important; gap:6px; }
+      header > div:first-child { min-width:0; gap:6px; flex:1; }
+      header > div:first-child > div { min-width:0; gap:0; }
+      header > div:first-child > div > div:first-child { display:none; }
+      header h1 { font-size:13px!important; line-height:1.2!important; max-width:145px; }
+      header h1 span { display:block; }
+      header h1 + div, header > div:nth-child(2) { display:none!important; }
+      header > div:last-child { flex-shrink:0; gap:4px; }
+      #toggle-sidebar-btn { display:flex!important; min-width:44px!important; min-height:44px!important; }
+      #lang-btn-en, #lang-btn-fi { min-height:44px; padding:4px 7px!important; }
+      #mobile-options-btn { display:flex; align-items:center; justify-content:center; min-width:44px; min-height:44px; border:1px solid #155e75; border-radius:10px; background:#0e1d3e; color:#67e8f9; font-size:20px; }
+      #mobile-options-panel { position:fixed; top:calc(62px + var(--nova-top)); left:8px; right:8px; z-index:60; padding:12px; gap:8px; grid-template-columns:1fr 1fr; background:#09132b; border:1px solid #155e75; border-radius:14px; max-height:calc(var(--nova-vh) - 150px); overflow:auto; }
+      #mobile-options-panel:not([hidden]) { display:grid; }
+      #mobile-options-panel button { min-height:48px!important; padding:10px!important; justify-content:flex-start!important; font-size:12px!important; }
+      #mobile-options-panel button span { display:inline!important; }
+      #map-mode-switch { top:calc(64px + var(--nova-top)); z-index:33; max-width:calc(100% - 16px); }
+      #map-mode-switch button { min-height:44px; font-size:12px; }
+      .hud-wrapper-mobile { padding:0!important; pointer-events:none!important; }
+      #sidebar-panel, #active-location-panel { position:fixed!important; top:calc(62px + var(--nova-top))!important; left:8px!important; right:8px!important; bottom:auto!important; width:auto!important; max-width:none!important; height:calc(var(--nova-vh) - var(--nova-top) - var(--nova-dock) - 128px)!important; max-height:none!important; margin:0!important; border-radius:16px!important; z-index:45!important; background:#081323!important; backdrop-filter:none; overflow-y:auto!important; overscroll-behavior:contain; touch-action:pan-y!important; display:block; }
+      #active-location-panel.hidden { display:none!important; }
+      #sidebar-panel { visibility:hidden; pointer-events:none; }
+      #sidebar-panel.mobile-panel-visible { visibility:visible; pointer-events:auto; transform:none!important; }
+      #sidebar-panel > div, #active-location-panel > div { flex-shrink:0; }
+      #sidebar-panel > div:first-child { padding:12px!important; }
+      #sidebar-panel > div:first-child > div:first-child { margin-bottom:8px; }
+      #close-sidebar-btn { display:flex!important; min-height:44px; min-width:44px; }
+      #sidebar-panel #pins-list-container { overflow:visible!important; min-height:120px; }
+      #pins-list-container [data-pin-id] { min-height:52px; padding:10px; }
+      #pins-list-container [data-pin-id] .text-xs { font-size:13px; }
+      #active-location-panel > .mobile-scrollable { overflow:visible!important; padding:12px!important; }
+      #active-location-panel > .w-10 { display:none; }
+      #active-location-panel > .relative { padding:12px!important; }
+      #active-location-panel > .relative > .absolute { display:none; }
+      #active-location-panel > .relative > .pr-20 { padding-right:0; }
+      #loc-title { font-size:17px!important; overflow-wrap:anywhere; }
+      #loc-category-text { font-size:10px; }
+      #ai-question-input { min-width:0; }
+      input[type=text], input[type=search], textarea, select { font-size:16px!important; }
+      #search-input { padding-right:100px; }
+      #clear-search-btn.hidden { display:none!important; }
+      #category-tabs-container, #camera-subcats-container, #region-chips-container { overflow-x:auto!important; flex-wrap:nowrap!important; touch-action:pan-x!important; }
+      .cat-tab, .subcat-chip, .region-chip { min-height:44px; flex-shrink:0; }
+      #active-location-panel button, #active-location-panel a { min-height:44px; }
+      .mobile-map-back { display:flex; position:sticky; top:0; z-index:5; width:100%; min-height:48px; align-items:center; justify-content:center; gap:8px; background:#0e7490; color:white; font-weight:700; border:0; }
+      .mobile-panel-open #map-mode-switch, .mobile-panel-open #map-legend { visibility:hidden; }
+      #mobile-menu-wrap, #mobile-card-wrap { bottom:auto!important; top:calc(var(--nova-vh) - var(--nova-dock) - 56px); z-index:48; width:calc(50% - 12px); }
+      #mobile-menu-wrap { left:8px!important; }
+      #mobile-card-wrap { right:8px!important; }
+      #floating-menu-btn, #floating-card-btn { width:100%; min-height:48px; padding:8px!important; justify-content:center; border-radius:12px; background:#0e1d3e; box-shadow:none; }
+      #floating-card-title, #floating-menu-text { max-width:100%; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      footer { position:fixed!important; top:calc(var(--nova-vh) - var(--nova-dock)); bottom:auto!important; height:var(--nova-dock)!important; padding:6px 8px calc(6px + var(--nova-safe))!important; gap:8px; background:#081323!important; }
+      footer > div:first-child { flex:1; width:auto; min-width:0; gap:0; }
+      #dock-status-icon, #dock-eq-canvas, #dock-genre-text, #dock-genre-text + span { display:none; }
+      #dock-stream-status { font-size:10px; }
+      #dock-title-text { font-size:12px; }
+      footer > div:nth-child(2) { flex-shrink:0; }
+      footer > div:nth-child(2) > div { gap:2px; }
+      #dock-prev-btn, #dock-next-btn, #dock-play-btn { min-width:44px!important; min-height:44px!important; width:44px!important; height:44px!important; }
+      footer > div:last-child { display:none; }
+      #map-legend { bottom:auto!important; top:calc(var(--nova-vh) - var(--nova-dock) - 84px); padding:4px 8px; }
+      #map-legend .legend-label { display:none; }
+      #detail-map .leaflet-bottom.leaflet-right { bottom:calc(var(--nova-dock) + 88px); }
+      #autoplay-prompt { width:calc(100% - 16px); max-width:440px; bottom:auto; top:calc(var(--nova-vh) - var(--nova-dock) - 150px); }
+      #autoplay-allow-btn { min-width:56px; min-height:44px; }
+      #hero-teleport-btn { display:none; }
+    }
   </style>
 </head>
 <body class="bg-space-950 text-slate-100 font-sans overflow-hidden select-none h-screen w-screen relative">
@@ -533,6 +606,7 @@
     </div>
   </header>
 
+  <div id="mobile-options-panel" hidden aria-label="Lisäasetukset / More controls"></div>
   <!-- MAIN HUD WRAPPER (Pointer events pass through to Globe except for panels) -->
   <div class="absolute inset-0 z-20 pointer-events-none pt-16 pb-20 px-3 lg:px-6 flex justify-between hud-wrapper-mobile">
 
@@ -687,6 +761,7 @@
 
     <!-- RIGHT ACTIVE LOCATION HUD CARD -->
     <div id="active-location-panel" class="w-full sm:w-96 lg:w-[420px] max-h-full flex flex-col rounded-2xl glass-panel pointer-events-auto shadow-2xl transition-all duration-300 overflow-hidden hidden">
+      <button type="button" class="mobile-map-back" id="mobile-back-map">← <span>Takaisin kartalle / Back to map</span></button>
       <!-- Mobile handle indicator -->
       <div class="w-10 h-1 bg-slate-600/60 rounded-full mx-auto mt-2 lg:hidden"></div>
       
@@ -880,7 +955,7 @@
   </div>
 
   <!-- MOBILE FLOATING ACTION BUTTONS (Touch & 3D Globe Accessibility) -->
-  <div class="fixed bottom-20 left-3 z-30 flex items-center gap-2 pointer-events-auto lg:hidden">
+  <div id="mobile-menu-wrap" class="fixed bottom-20 left-3 z-30 flex items-center gap-2 pointer-events-auto lg:hidden">
     <!-- Floating Hamburger / Menu Opener -->
     <button 
       id="floating-menu-btn" 
@@ -892,7 +967,7 @@
     </button>
   </div>
 
-  <div class="fixed bottom-20 right-3 z-30 flex items-center gap-2 pointer-events-auto lg:hidden">
+  <div id="mobile-card-wrap" class="fixed bottom-20 right-3 z-30 flex items-center gap-2 pointer-events-auto lg:hidden">
     <!-- Re-open Active Location Card when minimized/closed -->
     <button 
       id="floating-card-btn" 
@@ -1325,6 +1400,7 @@
       currentLang = lang;
       localStorage.setItem('mind_why_lang', lang);
       applyLanguage(lang);
+      updateMobileFloatingControls();
       // Reload the encyclopedia extract in the newly selected language too.
       if (typeof activeLocation !== 'undefined' && activeLocation && typeof fetchWikipediaSummary === 'function') {
         fetchWikipediaSummary(activeLocation);
@@ -2663,7 +2739,7 @@
       document.getElementById('map-mode-switch')?.setAttribute('data-mode', 'map');
       document.getElementById('switch-globe-btn')?.setAttribute('aria-pressed', 'false');
       document.getElementById('switch-map-btn')?.setAttribute('aria-pressed', 'true');
-      if (window.innerWidth <= 768) {
+      if (window.innerWidth < 1024) {
         // Leave the map unobstructed; the floating location button reopens the card.
         document.getElementById('active-location-panel')?.classList.add('hidden');
         document.getElementById('sidebar-panel')?.classList.add('-translate-x-[110%]');
@@ -2701,7 +2777,7 @@
     function openMapAtSelection() {
       const point = isValidMapCoordinate(activeLocation) ? activeLocation : {lat:62.5,lng:25.5};
       openDetailMap(point.lat, point.lng, 12);
-      if (window.innerWidth <= 768) {
+      if (window.innerWidth < 1024) {
         document.getElementById('sidebar-panel')?.classList.add('-translate-x-[110%]');
         document.getElementById('active-location-panel')?.classList.add('hidden');
         updateMobileFloatingControls();
@@ -4172,7 +4248,7 @@
       const panel = document.getElementById('active-location-panel');
       if (panel) panel.classList.remove('hidden');
 
-      if (window.innerWidth <= 768) {
+      if (window.innerWidth < 1024) {
         const sidebar = document.getElementById('sidebar-panel');
         if (sidebar) sidebar.classList.add('-translate-x-[110%]');
       }
@@ -5795,7 +5871,7 @@
       const pin = allPins.find(p => p.id === id);
       if (pin) {
         selectLocation(pin, true);
-        if (window.innerWidth <= 768) {
+        if (window.innerWidth < 1024) {
           const sidebar = document.getElementById('sidebar-panel');
           if (sidebar) sidebar.classList.add('-translate-x-[110%]');
           if (typeof updateMobileFloatingControls === 'function') updateMobileFloatingControls();
@@ -5907,69 +5983,111 @@
     const floatingMenuBtn = document.getElementById('floating-menu-btn');
     const floatingCardBtn = document.getElementById('floating-card-btn');
 
+    const mobileQuery = window.matchMedia('(max-width: 1023px)');
+    const optionsPanel = document.getElementById('mobile-options-panel');
+    const optionsButton = document.createElement('button');
+    optionsButton.id = 'mobile-options-btn';
+    optionsButton.type = 'button';
+    optionsButton.textContent = '⚙';
+    optionsButton.setAttribute('aria-label', 'Lisäasetukset / More controls');
+    optionsButton.setAttribute('aria-expanded', 'false');
+    optionsButton.setAttribute('aria-controls', 'mobile-options-panel');
+    document.querySelector('header > div:last-child').append(optionsButton);
+    const mobileActionIds = ['toggle-sfx-btn','toggle-texture-btn','toggle-tilt-btn','toggle-autorotate-btn','header-teleport-btn'];
+    const actionSlots = mobileActionIds.map(id => {
+      const button = document.getElementById(id);
+      const slot = document.createComment(id + ' desktop position');
+      button.before(slot);
+      return { button, slot };
+    });
+    function closeMobileOptions() {
+      optionsPanel.hidden = true;
+      optionsButton.setAttribute('aria-expanded', 'false');
+    }
+    optionsButton.addEventListener('click', () => {
+      optionsPanel.hidden = !optionsPanel.hidden;
+      optionsButton.setAttribute('aria-expanded', String(!optionsPanel.hidden));
+    });
+    optionsPanel.addEventListener('click', event => {
+      if (event.target.closest('button')) closeMobileOptions();
+    });
+    document.addEventListener('pointerdown', event => {
+      if (!optionsPanel.contains(event.target) && !optionsButton.contains(event.target)) closeMobileOptions();
+    });
+    function mobileMapView() {
+      sidebar?.classList.add('-translate-x-[110%]');
+      locationPanel?.classList.add('hidden');
+      closeMobileOptions();
+      document.activeElement?.blur();
+      updateMobileFloatingControls();
+    }
     function updateMobileFloatingControls() {
-      if (window.innerWidth > 1024) {
-        if (floatingMenuBtn) floatingMenuBtn.classList.add('hidden');
-        if (floatingCardBtn) floatingCardBtn.classList.add('hidden');
-        return;
-      }
-
+      const mobile = mobileQuery.matches;
       const isSidebarOpen = sidebar && !sidebar.classList.contains('-translate-x-[110%]');
       const isCardOpen = locationPanel && !locationPanel.classList.contains('hidden');
-
+      sidebar?.classList.toggle('mobile-panel-visible', mobile && isSidebarOpen);
+      document.body.classList.toggle('mobile-panel-open', mobile && (isSidebarOpen || isCardOpen));
       if (floatingMenuBtn) {
-        floatingMenuBtn.classList.toggle('hidden', isSidebarOpen);
+        floatingMenuBtn.classList.toggle('hidden', !mobile);
+        floatingMenuBtn.setAttribute('aria-expanded', String(mobile && isSidebarOpen));
       }
-
       if (floatingCardBtn) {
-        floatingCardBtn.classList.toggle('hidden', isCardOpen || !activeLocation);
+        floatingCardBtn.classList.toggle('hidden', !mobile || !activeLocation);
+        floatingCardBtn.setAttribute('aria-expanded', String(mobile && isCardOpen));
       }
+      const menuText = document.getElementById('floating-menu-text');
+      if (menuText) menuText.textContent = isSidebarOpen ? (currentLang === 'fi' ? '← Kartalle' : '← Map') : (currentLang === 'fi' ? 'Haku ja kohteet' : 'Search & places');
+      const cardText = document.getElementById('floating-card-title');
+      if (cardText) cardText.textContent = isCardOpen ? (currentLang === 'fi' ? '← Kartalle' : '← Map') : (currentLang === 'fi' ? 'Kohteen tiedot' : 'Location info');
+      document.querySelector('#mobile-back-map span').textContent = currentLang === 'fi' ? 'Takaisin kartalle' : 'Back to map';
     }
-
-    document.getElementById('toggle-sidebar-btn')?.addEventListener('click', () => {
-      sound.playChime();
-      const willOpen = sidebar ? sidebar.classList.contains('-translate-x-[110%]') : false;
+    function toggleMobileMenu() {
+      closeMobileOptions();
+      const willOpen = sidebar?.classList.contains('-translate-x-[110%]');
       sidebar?.classList.toggle('-translate-x-[110%]');
-      if (willOpen && window.innerWidth <= 768 && locationPanel) {
-        locationPanel.classList.add('hidden');
-      }
+      if (mobileQuery.matches && willOpen) locationPanel?.classList.add('hidden');
       updateMobileFloatingControls();
-    });
-
-    floatingMenuBtn?.addEventListener('click', () => {
-      sound.playChime();
-      sidebar?.classList.remove('-translate-x-[110%]');
-      if (window.innerWidth <= 768 && locationPanel) {
-        locationPanel.classList.add('hidden');
-      }
-      updateMobileFloatingControls();
-    });
-
+    }
+    document.getElementById('toggle-sidebar-btn')?.addEventListener('click', toggleMobileMenu);
+    floatingMenuBtn?.addEventListener('click', toggleMobileMenu);
     document.getElementById('close-sidebar-btn')?.addEventListener('click', () => {
       sidebar?.classList.add('-translate-x-[110%]');
       updateMobileFloatingControls();
     });
-
-    // Close / Minimize Location HUD Panel
-    document.getElementById('close-location-panel-btn')?.addEventListener('click', () => {
-      clearSnapshotTimers();
-      locationPanel?.classList.add('hidden');
-      updateMobileFloatingControls();
+    ['close-location-panel-btn', 'minimize-location-panel-btn', 'mobile-back-map'].forEach(id => {
+      document.getElementById(id)?.addEventListener('click', () => {
+        locationPanel?.classList.add('hidden');
+        // Preserve media playback and snapshot refresh when merely hiding the card.
+        updateMobileFloatingControls();
+      });
     });
-
-    document.getElementById('minimize-location-panel-btn')?.addEventListener('click', () => {
-      clearSnapshotTimers();
-      locationPanel?.classList.add('hidden');
-      updateMobileFloatingControls();
-    });
-
     floatingCardBtn?.addEventListener('click', () => {
-      sound.playChime();
-      if (window.innerWidth <= 768 && sidebar) {
-        sidebar.classList.add('-translate-x-[110%]');
-      }
-      locationPanel?.classList.remove('hidden');
+      closeMobileOptions();
+      if (mobileQuery.matches) sidebar?.classList.add('-translate-x-[110%]');
+      locationPanel?.classList.toggle('hidden');
       updateMobileFloatingControls();
+    });
+    function applyMobileLayout() {
+      closeMobileOptions();
+      for (const {button, slot} of actionSlots) {
+        if (mobileQuery.matches) optionsPanel.append(button);
+        else slot.after(button);
+      }
+      if (mobileQuery.matches) mobileMapView();
+      else {
+        sidebar?.classList.add('-translate-x-[110%]');
+        if (activeLocation) locationPanel?.classList.remove('hidden');
+      }
+      updateMobileFloatingControls();
+    }
+    mobileQuery.addEventListener('change', applyMobileLayout);
+    function updateMobileViewport() {
+      if (mobileQuery.matches) document.documentElement.style.setProperty('--nova-vh', `${window.visualViewport?.height || window.innerHeight}px`);
+    }
+    window.visualViewport?.addEventListener('resize', updateMobileViewport);
+    window.addEventListener('resize', updateMobileViewport);
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && mobileQuery.matches) mobileMapView();
     });
 
     // Search and Filters with Dual-Purpose Smart Search Trigger
@@ -6243,7 +6361,8 @@
       fetchFintrafficRoadCameras();
       fetchPublicWorldwideCameras();
       fetchLondonPublicCameras();
-      updateMobileFloatingControls();
+      applyMobileLayout();
+      updateMobileViewport();
       window.addEventListener('resize', updateMobileFloatingControls);
     });
   </script>
