@@ -16,7 +16,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
   <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -75,7 +75,7 @@
     window.__TEMP_GLOBAL_THREE__ = window.THREE;
     window.THREE = undefined;
   </script>
-  <script src="https://unpkg.com/globe.gl" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/globe.gl@2.46.2/dist/globe.gl.min.js" crossorigin="anonymous"></script>
   <script>
     if (window.__TEMP_AMD_DEFINE__) {
       window.define = window.__TEMP_AMD_DEFINE__;
@@ -102,7 +102,7 @@
   <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js"></script>
   <!-- HLS.js for live video streams -->
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.7.3/dist/hls.min.js"></script>
 
   <style>
     /* Custom Scrollbars */
@@ -2620,7 +2620,7 @@
         const marker = L.marker([pin.lat, pin.lng], { icon: mapMarkerIcon(pin),
           title: String(pin.name || '') });
         // Tooltip is escaped because global station names are third-party data.
-        marker.bindTooltip(pin.category === 'radio' && pin.stationUUID ? String(pin.name || '') : safeHtml(pin.name || ''), { direction:'top', opacity:0.95 });
+        marker.bindTooltip(safeHtml(pin.name || ''), { direction:'top', opacity:0.95 });
         marker.on('click', () => {
           detailMapFocusId = pin.id;
           selectLocation(pin, true);  // Reuse video, radio, photo, Wikipedia, and weather card.
@@ -2656,6 +2656,7 @@
       const validLat = Number.isFinite(Number(lat)) && Math.abs(Number(lat)) <= 90 ? Number(lat) : 62.5;
       const validLng = Number.isFinite(Number(lng)) && Math.abs(Number(lng)) <= 180 ? Number(lng) : 25.5;
       mapMode = 'map';
+      syncGlobeRendering();
       document.getElementById('detail-map')?.classList.add('map-active');
       document.getElementById('globe-viz')?.classList.add('globe-suspended');
       document.getElementById('map-legend')?.classList.add('map-active');
@@ -2682,6 +2683,7 @@
       let center = null, zoom = 4;
       if (detailMap) { center = detailMap.getCenter(); zoom = detailMap.getZoom(); }
       mapMode = 'globe';
+      syncGlobeRendering();
       document.getElementById('detail-map')?.classList.remove('map-active');
       document.getElementById('globe-viz')?.classList.remove('globe-suspended');
       document.getElementById('map-legend')?.classList.remove('map-active');
@@ -2729,6 +2731,12 @@
     // ==========================================
     let worldGlobe = null;
     let ambientLight = null;
+    function syncGlobeRendering() {
+      if (!worldGlobe) return;
+      const method = document.hidden || mapMode !== 'globe' ? 'pauseAnimation' : 'resumeAnimation';
+      if (typeof worldGlobe[method] === 'function') worldGlobe[method]();
+    }
+    document.addEventListener('visibilitychange', syncGlobeRendering);
 
     function initGlobe() {
       const container = document.getElementById('globe-viz');
@@ -2737,10 +2745,10 @@
       // 1. If Globe.gl library is available, initialize it
       if (typeof window.Globe === 'function') {
         try {
-          worldGlobe = window.Globe()(container)
-            .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-            .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
-            .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
+          worldGlobe = new window.Globe(container)
+            .globeImageUrl('https://unpkg.com/three-globe@2.45.6/example/img/earth-blue-marble.jpg')
+            .bumpImageUrl('https://unpkg.com/three-globe@2.45.6/example/img/earth-topology.png')
+            .backgroundImageUrl('https://unpkg.com/three-globe@2.45.6/example/img/night-sky.png')
             .showAtmosphere(true)
             .atmosphereColor('#38bdf8')
             .atmosphereAltitude(0.18)
@@ -2850,8 +2858,8 @@
       const earthRadius = 92;
       const sphereGeo = new THREE.SphereGeometry(earthRadius, 64, 64);
       const textureLoader = new THREE.TextureLoader();
-      const blueMarbleTex = textureLoader.load('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg');
-      const dayTex = textureLoader.load('https://unpkg.com/three-globe/example/img/earth-day.jpg');
+      const blueMarbleTex = textureLoader.load('https://unpkg.com/three-globe@2.45.6/example/img/earth-blue-marble.jpg');
+      const dayTex = textureLoader.load('https://unpkg.com/three-globe@2.45.6/example/img/earth-day.jpg');
       
       const earthMat = new THREE.MeshStandardMaterial({
         map: blueMarbleTex,
@@ -3181,8 +3189,12 @@
       let beaconScale = 1;
       let beaconGrowing = true;
 
+      let earthFrame = null;
+      let earthPaused = false;
       function animate() {
-        requestAnimationFrame(animate);
+        earthFrame = null;
+        if (earthPaused) return;
+        earthFrame = requestAnimationFrame(animate);
 
         if (camAnimation) {
           camAnimation.update();
@@ -3237,6 +3249,17 @@
 
       // Unified worldGlobe API with full method chaining support
       worldGlobe = {
+        pauseAnimation: () => {
+          earthPaused = true;
+          if (earthFrame !== null) cancelAnimationFrame(earthFrame);
+          earthFrame = null;
+          return worldGlobe;
+        },
+        resumeAnimation: () => {
+          earthPaused = false;
+          if (earthFrame === null) animate();
+          return worldGlobe;
+        },
         pointOfView: (coords, duration = 1800) => {
           if (coords) {
             flyToLocation(coords.lat, coords.lng, coords.altitude || 1.5, duration);
@@ -3363,7 +3386,7 @@
                   <i class="${d.icon}"></i>
                 </div>
                 <div class="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-md text-[10px] font-mono whitespace-nowrap bg-space-950/95 text-slate-100 border border-slate-700/80 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity z-50 shadow-xl">
-                  <span class="mr-1">${d.flag || '📍'}</span>${d.name}
+                  <span class="mr-1">${safeHtml(d.flag || '📍')}</span>${safeHtml(d.name)}
                 </div>
               `;
 
@@ -3439,11 +3462,11 @@
       const label = document.getElementById('texture-mode-label');
       if (currentTextureMode === 'day') {
         currentTextureMode = 'surface';
-        worldGlobe.globeImageUrl('https://unpkg.com/three-globe/example/img/earth-day.jpg');
+        worldGlobe.globeImageUrl('https://unpkg.com/three-globe@2.45.6/example/img/earth-day.jpg');
         if (label) label.textContent = 'Maanpinta';
       } else {
         currentTextureMode = 'day';
-        worldGlobe.globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg');
+        worldGlobe.globeImageUrl('https://unpkg.com/three-globe@2.45.6/example/img/earth-blue-marble.jpg');
         if (label) label.textContent = 'Blue Marble';
       }
     }
@@ -3575,19 +3598,16 @@
           lng = 25.0;
         }
 
-        // HTML-escape directory names: the existing sidebar renders names into HTML.
-        const safeName = stationName.replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
         const genre = String(item.tags || '').split(',').slice(0, 2).map(t => t.trim()).join(' · ').slice(0, 100);
-        const htmlEscape = value => String(value).replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
         const record = {
           id: uuid ? `radio-rb-${uuid}` : `radio-dyn-${addedAt}-${idx}`,
-          stationUUID: uuid, name: safeName, displayName: stationName,
-          country: finnish ? 'Suomi' : htmlEscape(String(item.country || 'Maailma').slice(0, 70)),
+          stationUUID: uuid, name: stationName, displayName: stationName,
+          country: finnish ? 'Suomi' : String(item.country || 'Maailma').slice(0, 70),
           flag: getCountryFlag(item.countrycode),
           lat, lng, approximateLocation: missingGeo,
           category: 'radio', categoryColorBg: 'bg-emerald-500',
           categoryGlow: 'shadow-glow-emerald', icon: 'fa-solid fa-radio',
-          genre: htmlEscape(genre) || 'Live Radio', bitrate: Number(item.bitrate) || 0,
+          genre: genre || 'Live Radio', bitrate: Number(item.bitrate) || 0,
           streamUrl: streams[0], streamAlternates: streams.slice(1),
           codec: String(item.codec || ''),
           description: missingGeo
@@ -3643,7 +3663,7 @@
       const bannerText = document.getElementById('search-status-text');
       if (banner && bannerText) {
         banner.classList.remove('hidden');
-        bannerText.innerHTML = `<i class="fa-solid ${icon} text-cyan-400"></i> <span>${text}</span>`;
+        bannerText.innerHTML = `<i class="fa-solid ${icon} text-cyan-400"></i> <span>${safeHtml(text)}</span>`;
       }
       const dockStatus = document.getElementById('dock-stream-status');
       if (dockStatus && (text.includes('Striimi') || text.includes('Radio') || text.includes('radiota'))) {
@@ -3941,14 +3961,14 @@
           const country = String(code).slice(0,2);
           const sourceUrl = type === 'external' ? url : 'https://github.com/william-ricchiuti/Live-Environment-Streams';
           allPins.push({
-            id: `worldcam-${type}-${index}`, name: safeHtml(name), country, flag: getCountryFlag(code),
+            id: `worldcam-${type}-${stableSourceId(url)}`, name, country, flag: getCountryFlag(code),
             lat, lng, category: 'webcam', subCategory: type === 'hls' ? 'direct' : 'external',
             categoryColorBg: 'bg-cyan-500', categoryGlow: 'shadow-glow-cyan',
             icon: type === 'hls' ? 'fa-solid fa-video' : 'fa-solid fa-arrow-up-right-from-square',
             streamType: type, videoUrl: type === 'hls' ? url : undefined,
             sourceUrl, sourceName: sourceName.replace(/[<>]/g, ''),
             sourceId: 'public-global-directory', lastVerified: props.last_verified || '',
-            description: `${safeHtml(props.name)} · ${safeHtml(props.environment || 'Kamera')} · ${safeHtml(sourceName)}. Julkiseen luetteloon merkitty toimivaksi; videon toisto selaimessa riippuu kameran palvelimesta ja CORS-säännöistä.`
+            description: `${props.name} · ${props.environment || 'Kamera'} · ${sourceName}. Julkiseen luetteloon merkitty toimivaksi; videon toisto selaimessa riippuu kameran palvelimesta ja CORS-säännöistä.`
           });
           if (type === 'hls') addedVideos++; else addedSites++;
         });
@@ -3998,7 +4018,7 @@
           const id = `london-tfl-${String(cam.row.id || i).replace(/[^A-Za-z0-9_-]/g,'')}`;
           if (allPins.some(p => p.id === id)) return;
           allPins.push({
-            id, name: safeHtml(String(cam.row.commonName || `London JamCam ${i}`).slice(0,96)),
+            id, name: String(cam.row.commonName || `London JamCam ${i}`).slice(0,96),
             country: 'Iso-Britannia', flag: '🇬🇧', lat:cam.lat, lng:cam.lng,
             category:'snapshot', subCategory:'international', categoryColorBg:'bg-sky-500',
             categoryGlow:'shadow-glow-sky', icon:'fa-solid fa-camera', streamType:'snapshot',
@@ -4121,6 +4141,13 @@
     async function selectLocation(location, autoPlay = true) {
       if (!location) return;
       activeLocation = location;
+      selectionVersion++;
+      pendingSharedPinId = null;
+      weatherController?.abort();
+      wikiController?.abort();
+      lastFetchedWeather = null;
+      currentWikiData = null;
+      setupLocalClock(null);
       if (mapMode === 'map') {
         highlightMapSelection(location);
         // A sidebar search result should locate the item on the street map too.
@@ -4336,6 +4363,11 @@
     function safeHtml(value) {
       return String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]));
     }
+    function stableSourceId(value) {
+      let hash = 2166136261;
+      for (const char of String(value)) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
+      return (hash >>> 0).toString(16);
+    }
     function safeHttpsUrl(value) {
       try { const u = new URL(String(value)); return u.protocol === 'https:' ? u.href : ''; }
       catch (e) { return ''; }
@@ -4370,8 +4402,8 @@
               <i class="fa-solid fa-play ml-0.5" id="card-play-icon"></i>
             </button>
             <div class="flex-1 min-w-0">
-              <div class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider">${loc.genre || 'Live Stream'}</div>
-              <div class="font-display font-semibold text-white text-sm truncate">${loc.name}</div>
+              <div class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider">${safeHtml(loc.genre || 'Live Stream')}</div>
+              <div class="font-display font-semibold text-white text-sm truncate">${safeHtml(loc.name)}</div>
               <div class="text-[11px] font-mono text-slate-400 mt-0.5">Laatu: ${loc.bitrate ? loc.bitrate + ' kbps' : 'HD Audio'}</div>
             </div>
           </div>
@@ -4387,8 +4419,8 @@
         container.innerHTML = `
           <div class="relative w-full aspect-video bg-space-950 overflow-hidden group">
             <img 
-              src="${photo}" 
-              alt="${loc.name}" 
+              src="${safeHtml(safeHttpsUrl(photo))}" 
+              alt="${safeHtml(loc.name)}" 
               onclick="openMediaLightbox(this.currentSrc || this.src, this.alt)"
               title="Klikkaa kuva suureksi / Click to enlarge"
               class="w-full h-full object-cover cursor-zoom-in transition-transform duration-700 group-hover:scale-105"
@@ -4401,7 +4433,7 @@
             </div>
           </div>
           <div class="p-3 bg-space-900/90 text-xs text-slate-200 leading-relaxed border-t border-slate-800">
-            ${loc.description || 'Erityinen maantieteellinen tai tieteellinen tutkimuskohde maapallolla.'}
+            ${safeHtml(loc.description || 'Erityinen maantieteellinen tai tieteellinen tutkimuskohde maapallolla.')}
           </div>
         `;
         return;
@@ -4450,7 +4482,7 @@
           <div class="relative w-full aspect-video bg-space-950 overflow-hidden">
             <img 
               id="snapshot-cam-img"
-              src="${loc.snapshotUrl}${cacheBuster}" 
+              src="${safeHtml(safeHttpsUrl(loc.snapshotUrl) + cacheBuster)}" 
               alt="${safeHtml(loc.name)} kamerakuva" 
               class="w-full h-full object-cover cursor-zoom-in transition-opacity duration-300"
               onclick="openMediaLightbox(this.currentSrc || this.src, this.alt)"
@@ -4468,7 +4500,7 @@
                 <i class="${isFintraffic ? 'fa-solid fa-road' : 'fa-solid fa-camera'} text-[9px]"></i>
                 ${isFintraffic ? 'FINTRAFFIC KELIKAMERA' : 'PÄIVITTYVÄ KAMERAKUVA'}
               </span>
-              ${loc.road ? `<span class="px-2 py-0.5 rounded-md bg-space-900/85 text-sky-200 border border-sky-500/30 text-[10px] font-mono backdrop-blur-md font-semibold">${loc.road}</span>` : ''}
+              ${loc.road ? `<span class="px-2 py-0.5 rounded-md bg-space-900/85 text-sky-200 border border-sky-500/30 text-[10px] font-mono backdrop-blur-md font-semibold">${safeHtml(loc.road)}</span>` : ''}
             </div>
 
             <div class="absolute top-2 right-2">
@@ -4528,8 +4560,8 @@
         container.innerHTML = `
           <div class="relative w-full aspect-video bg-space-950 overflow-hidden group">
             <img 
-              src="${photo}" 
-              alt="${loc.name}" 
+              src="${safeHtml(safeHttpsUrl(photo))}" 
+              alt="${safeHtml(loc.name)}" 
               onclick="openMediaLightbox(this.currentSrc || this.src, this.alt)"
               title="Klikkaa kuva suureksi / Click to enlarge"
               class="w-full h-full object-cover cursor-zoom-in transition-transform duration-700 group-hover:scale-105"
@@ -4587,7 +4619,7 @@
               ` : ''}
             </div>
             ${loc.watchUrl ? `
-              <a href="${loc.watchUrl}" target="_blank" rel="noopener noreferrer" class="text-rose-400 hover:text-rose-300 flex items-center gap-1 font-semibold text-[10px] bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/30">
+              <a href="${safeHtml(safeHttpsUrl(loc.watchUrl))}" target="_blank" rel="noopener noreferrer" class="text-rose-400 hover:text-rose-300 flex items-center gap-1 font-semibold text-[10px] bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/30">
                 <i class="fa-brands fa-youtube"></i> Avaa YouTubessa <i class="fa-solid fa-arrow-up-right-from-square text-[8px]"></i>
               </a>
             ` : ''}
@@ -4659,7 +4691,7 @@
         <div class="relative w-full aspect-video bg-space-950">
           <iframe 
             id="webcam-iframe"
-            src="${loc.embedUrl}" 
+            src="${safeHtml(safeHttpsUrl(loc.embedUrl))}" 
             class="w-full h-full border-0" 
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
             referrerpolicy="strict-origin-when-cross-origin"
@@ -4696,11 +4728,11 @@
 
           <div class="flex items-center gap-2">
             ${loc.watchUrl ? `
-              <a href="${loc.watchUrl}" target="_blank" rel="noopener noreferrer" class="text-rose-400 hover:text-rose-300 flex items-center gap-1 font-semibold text-[10px]">
+              <a href="${safeHtml(safeHttpsUrl(loc.watchUrl))}" target="_blank" rel="noopener noreferrer" class="text-rose-400 hover:text-rose-300 flex items-center gap-1 font-semibold text-[10px]">
                 <i class="fa-brands fa-youtube"></i> YouTubessa
               </a>
             ` : ''}
-            <button onclick="window.open('${loc.embedUrl}', '_blank')" class="text-slate-400 hover:text-white flex items-center gap-1 text-[10px]">
+            <button onclick="window.open(safeHttpsUrl(activeLocation.embedUrl), '_blank', 'noopener,noreferrer')" class="text-slate-400 hover:text-white flex items-center gap-1 text-[10px]">
               <i class="fa-solid fa-expand"></i>
             </button>
           </div>
@@ -4719,8 +4751,19 @@
     // 6. OPEN-METEO WEATHER & LOCAL TIME
     // ==========================================
     let localClockInterval = null;
+    let selectionVersion = 0;
+    let weatherController = null;
+    let wikiController = null;
+    let weatherRequestVersion = 0;
+    let wikiRequestVersion = 0;
 
     async function fetchLiveWeather(lat, lng) {
+      weatherController?.abort();
+      const controller = weatherController = new AbortController();
+      const request = ++weatherRequestVersion;
+      const selection = selectionVersion;
+      const isCurrent = () => request === weatherRequestVersion && selection === selectionVersion;
+      const timeout = setTimeout(() => controller.abort(), 12000);
       const tempEl = document.getElementById('loc-weather-temp');
       const iconEl = document.getElementById('loc-weather-icon');
       const timeEl = document.getElementById('loc-local-time');
@@ -4728,9 +4771,11 @@
       if (tempEl) tempEl.textContent = 'Haetaan...';
 
       try {
-        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lng.toFixed(4)}&current_weather=true`;
-        const res = await fetch(url);
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lng.toFixed(4)}&current_weather=true&timezone=auto`;
+        const res = await fetch(url, { signal: controller.signal });
+        if (!res.ok) throw new Error(`Weather HTTP ${res.status}`);
         const data = await res.json();
+        if (!isCurrent()) return;
         const current = data.current_weather;
 
         if (current) {
@@ -4766,33 +4811,33 @@
           if (snapBadge) snapBadge.innerHTML = renderWeatherMiniBadge();
         }
 
-        // Setup ticking local clock based on longitude offset
-        setupLocalClock(lng);
+        // Use the IANA time zone returned for these coordinates.
+        setupLocalClock(data.timezone);
       } catch (err) {
+        if (!isCurrent()) return;
         console.warn('Weather fetch failed:', err);
         if (tempEl) tempEl.textContent = 'Ei säätietoa';
-        setupLocalClock(lng);
+        setupLocalClock(null);
+      } finally {
+        clearTimeout(timeout);
       }
     }
 
-    function setupLocalClock(lng) {
+    function setupLocalClock(timeZone) {
       if (localClockInterval) clearInterval(localClockInterval);
-
-      function updateClock() {
-        const now = new Date();
-        const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
-        // Solar time approximation from longitude (15 deg per hour)
-        const offsetHours = lng / 15;
-        const localDate = new Date(utcMs + (3600000 * offsetHours));
-
-        const hours = String(localDate.getHours()).padStart(2, '0');
-        const minutes = String(localDate.getMinutes()).padStart(2, '0');
-        const seconds = String(localDate.getSeconds()).padStart(2, '0');
-
-        const timeEl = document.getElementById('loc-local-time');
-        if (timeEl) timeEl.textContent = `${hours}:${minutes}:${seconds}`;
-      }
-
+      localClockInterval = null;
+      const el = document.getElementById('loc-local-time');
+      if (el) { el.textContent = '--:--:--'; el.removeAttribute('title'); }
+      if (!timeZone) return;
+      let formatter;
+      try {
+        formatter = new Intl.DateTimeFormat('en-GB', {
+          timeZone, hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23'
+        });
+      } catch (_) { return; }
+      const updateClock = () => {
+        if (el) { el.textContent = formatter.format(new Date()); el.title = timeZone; }
+      };
       updateClock();
       localClockInterval = setInterval(updateClock, 1000);
     }
@@ -5002,6 +5047,9 @@
       stopRadioStartTimeout();
       radioPlaybackSequence++;
       const sequence = radioPlaybackSequence;
+      let playbackStarted = false;
+      isPlaying = false;
+      updatePlayIcons();
       isFallbackSwitching = false;
 
       // Stop old media before wiring handlers for the new media. Native <audio>
@@ -5050,6 +5098,7 @@
       };
       const playThisAttempt = () => {
         if (sequence !== radioPlaybackSequence) return;
+        playbackStarted = true;
         stopRadioStartTimeout();
         handlePlaySuccess();
       };
@@ -5069,7 +5118,7 @@
       audioEl.onerror = failThisAttempt;
       // Some unreachable streams hang forever without raising an error.
       radioStartTimeout = setTimeout(() => {
-        if (sequence === radioPlaybackSequence && audioEl.paused) failThisAttempt();
+        if (sequence === radioPlaybackSequence && !playbackStarted) failThisAttempt();
       }, 18000);
 
       const isHls = /\.m3u8(?:[?#]|$)/i.test(stream);
@@ -5231,6 +5280,12 @@
     const wikiCache = new Map();
 
     async function fetchWikipediaSummary(location) {
+      wikiController?.abort();
+      const controller = wikiController = new AbortController();
+      const request = ++wikiRequestVersion;
+      const selection = selectionVersion;
+      const language = currentLang;
+      const isCurrent = () => request === wikiRequestVersion && selection === selectionVersion && language === currentLang;
       const container = document.getElementById('wiki-summary-container');
       const textEl = document.getElementById('wiki-extract-text');
       const linkEl = document.getElementById('wiki-link');
@@ -5239,7 +5294,7 @@
       if (container) container.classList.remove('hidden');
       if (textEl) textEl.textContent = t('wiki_loading');
 
-      const cacheKey = `${location.id || location.name}_${currentLang}`;
+      const cacheKey = `${location.id || location.name}_${language}`;
       if (wikiCache.has(cacheKey)) {
         currentWikiData = wikiCache.get(cacheKey);
         renderWikiBox(currentWikiData);
@@ -5261,14 +5316,20 @@
       if (location.country && location.country !== 'Maailma') titles.push(location.country);
 
       let found = null;
-      const wikiLangs = [currentLang];
+      const wikiLangs = [language];
       for (const lang of wikiLangs) {
         for (const title of titles) {
           if (!title || title.length < 2) continue;
           try {
             const url = `https://${lang}.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=true&explaintext=true&titles=${encodeURIComponent(title)}&format=json&origin=*`;
-            const res = await fetch(url);
-            const data = await res.json();
+            const timeout = setTimeout(() => controller.abort(), 10000);
+            let data;
+            try {
+              const res = await fetch(url, { signal: controller.signal });
+              if (!res.ok) throw new Error(`Wikipedia HTTP ${res.status}`);
+              data = await res.json();
+            } finally { clearTimeout(timeout); }
+            if (!isCurrent()) return null;
             const pages = data?.query?.pages;
             if (pages) {
               const pid = Object.keys(pages)[0];
@@ -5287,7 +5348,8 @@
               }
             }
           } catch (e) {
-            // Safe continuation
+            if (!isCurrent()) return null;
+            if (controller.signal.aborted) break;
           }
         }
         if (found) break;
@@ -5296,13 +5358,14 @@
       if (!found) {
         found = {
           title: location.name,
-          extract: location.description || (currentLang === 'fi' ? `${location.name} on merkittävä maantieteellinen kohde alueella ${location.country}.` : `${location.name} is a notable landmark in ${location.country}.`),
+          extract: location.description || (language === 'fi' ? `${location.name} on merkittävä maantieteellinen kohde alueella ${location.country}.` : `${location.name} is a notable landmark in ${location.country}.`),
           fullExtract: location.description || '',
-          lang: currentLang,
-          url: `https://${currentLang}.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(location.name)}`
+          lang: language,
+          url: `https://${language}.wikipedia.org/wiki/Special:Search?search=${encodeURIComponent(location.name)}`
         };
       }
 
+      if (!isCurrent()) return null;
       currentWikiData = found;
       wikiCache.set(cacheKey, found);
       renderWikiBox(found);
@@ -5403,7 +5466,12 @@
       const weatherText = document.getElementById('loc-weather-temp')?.textContent || '';
       const timeText = document.getElementById('loc-local-time')?.textContent || '';
 
-      const narrative = profile.generate(loc, weatherText, timeText, currentWikiData, customQuestion);
+      // Dynamic text is escaped; only the trusted template contributes markup.
+      const narrative = profile.generate(
+        { ...loc, name: safeHtml(loc.name), country: safeHtml(loc.country) },
+        safeHtml(weatherText), safeHtml(timeText),
+        currentWikiData ? { ...currentWikiData, extract: safeHtml(currentWikiData.extract) } : null,
+        customQuestion == null ? null : safeHtml(customQuestion));
       narrativeEl.innerHTML = narrative;
     }
 
@@ -5420,7 +5488,7 @@
       function showStatus(text, icon = 'fa-robot') {
         if (banner && bannerText) {
           banner.classList.remove('hidden');
-          bannerText.innerHTML = `<i class="fa-solid ${icon} text-cyan-400"></i> <span>${text}</span>`;
+          bannerText.innerHTML = `<i class="fa-solid ${icon} text-cyan-400"></i> <span>${safeHtml(text)}</span>`;
         }
       }
 
@@ -5615,6 +5683,7 @@
     }
 
     function renderPinsList() {
+      resolveSharedPin();
       const container = document.getElementById('pins-list-container');
       if (!container) return;
 
@@ -5687,17 +5756,17 @@
 
         return `
           <div 
-            onclick="handlePinListClick('${pin.id}')"
+            role="button" tabindex="0" data-pin-id="${safeHtml(pin.id)}"
             class="p-2 rounded-xl flex items-center justify-between cursor-pointer transition-all hover:bg-space-800/80 ${isActive ? 'bg-cyan-500/15 border border-cyan-500/30' : 'hover:border-slate-700/50'}"
           >
             <div class="flex items-center gap-2.5 min-w-0">
-              <span class="text-base shrink-0">${pin.flag || '📍'}</span>
+              <span class="text-base shrink-0">${safeHtml(pin.flag || '📍')}</span>
               <div class="min-w-0">
-                <div class="text-xs font-semibold text-white truncate">${pin.name}</div>
+                <div class="text-xs font-semibold text-white truncate">${safeHtml(pin.name)}</div>
                 <div class="text-[10px] text-slate-400 flex items-center gap-1.5 truncate">
                   <span class="${colorBorder} font-mono uppercase">${categoryLabel}</span>
                   <span aria-hidden="true">·</span>
-                  <span>${subLabel}</span>
+                  <span>${safeHtml(subLabel)}</span>
                 </div>
               </div>
             </div>
@@ -5712,6 +5781,16 @@
         </div>` : '');
     }
 
+    const pinList = document.getElementById('pins-list-container');
+    function activatePinRow(event) {
+      const row = event.target.closest('[data-pin-id]');
+      if (!row || !pinList.contains(row)) return;
+      if (event.type === 'keydown' && event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      window.handlePinListClick(row.dataset.pinId);
+    }
+    pinList?.addEventListener('click', activatePinRow);
+    pinList?.addEventListener('keydown', activatePinRow);
     window.handlePinListClick = (id) => {
       const pin = allPins.find(p => p.id === id);
       if (pin) {
@@ -6055,16 +6134,57 @@
     });
 
     // Share & Zoom Buttons
-    document.getElementById('share-loc-btn')?.addEventListener('click', () => {
-      if (navigator.clipboard && activeLocation) {
-        const shareUrl = `https://mind-why.com?lat=${activeLocation.lat}&lng=${activeLocation.lng}`;
-        navigator.clipboard.writeText(t('share_text', { name: activeLocation.name, url: shareUrl }));
-        const btn = document.getElementById('share-loc-btn');
-        if (btn) {
-          const orig = btn.innerHTML;
-          btn.innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i><span>${t('copied')}</span>`;
-          setTimeout(() => btn.innerHTML = orig, 1800);
-        }
+    function buildShareUrl(location, base = window.location.href) {
+      const url = new URL(base);
+      if (!['http:', 'https:'].includes(url.protocol)) return null;
+      url.searchParams.set('lat', location.lat.toFixed(6));
+      url.searchParams.set('lng', location.lng.toFixed(6));
+      url.searchParams.set('pin', String(location.id || ''));
+      return url.href;
+    }
+
+    let pendingSharedPinId = null;
+    function restoreSharedLocation() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('pin');
+      const known = id && allPins.find(pin => pin.id === id);
+      if (known) { selectLocation(known, false); return true; }
+      const latText = params.get('lat'), lngText = params.get('lng');
+      if (!latText?.trim() || !lngText?.trim()) return false;
+      const point = { lat: Number(latText), lng: Number(lngText) };
+      if (!isValidMapCoordinate(point)) return false;
+      const location = {
+        ...point, id: 'shared-location',
+        name: currentLang === 'fi' ? 'Jaettu sijainti' : 'Shared location',
+        country: '', flag: '📍', category: 'landmark', icon: 'fa-solid fa-location-dot',
+        categoryColorBg: 'bg-amber-500', categoryGlow: 'shadow-glow-amber',
+        description: currentLang === 'fi' ? 'Jakolinkin koordinaatit.' : 'Coordinates from a shared link.'
+      };
+      selectLocation(location, false);
+      // Resolve directory IDs when sources arrive, unless the user changes selection.
+      pendingSharedPinId = id;
+      return true;
+    }
+    function resolveSharedPin() {
+      if (!pendingSharedPinId) return;
+      const pin = allPins.find(p => p.id === pendingSharedPinId);
+      if (pin) selectLocation(pin, false);
+    }
+
+    document.getElementById('share-loc-btn')?.addEventListener('click', async () => {
+      if (!activeLocation) return;
+      const shareUrl = buildShareUrl(activeLocation);
+      if (!shareUrl) {
+        showStatus(currentLang === 'fi' ? 'Avaa sovellus verkkosivuna, jotta voit jakaa linkin.' : 'Open the hosted website to share a link.');
+        return;
+      }
+      const text = t('share_text', { name: activeLocation.name, url: shareUrl });
+      try {
+        if (!navigator.clipboard) throw new Error('Clipboard unavailable');
+        await navigator.clipboard.writeText(text);
+        showStatus(t('copied'), 'fa-check');
+      } catch (_) {
+        window.prompt(currentLang === 'fi' ? 'Kopioi jakolinkki:' : 'Copy the share link:', shareUrl);
       }
     });
 
@@ -6115,9 +6235,10 @@
     window.addEventListener('DOMContentLoaded', () => {
       applyLanguage(currentLang);
       initGlobe();
+      syncGlobeRendering();
       renderPinsList();
       updatePinCountBadge();
-      selectLocation(activeLocation, false);
+      if (!restoreSharedLocation()) selectLocation(activeLocation, false);
       fetchDynamicRadioStations();
       fetchFintrafficRoadCameras();
       fetchPublicWorldwideCameras();
