@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mind-Why World Explorer</title>
+  <title>Mind-Why World Explorer v4.2 · Globe + Map + Finnish Radios</title>
   <meta name="description" content="Interaktiivinen 3D-maapallo, reaaliaikaiset radiot, live-webbikamerat, reaaliaikainen sää ja monipersoonainen tekoälyopas." />
   <meta property="og:title" content="Mind-Why World Explorer" />
   <meta property="og:description" content="Tutki maapalloa 3D-tilassa: kuuntele paikallisia radiokanavia, katsele 24/7 live-webbikameroita ja keskustele tekoälyoppaan kanssa." />
@@ -87,6 +87,20 @@
     }
   </script>
 
+  <!-- Global camera listing: publicly accessible third-party GeoJSON served by GitHub.
+       No Windy API key is used or embedded. Each camera stays owned by its publisher.
+       External feed playback depends on CORS, availability and operator permissions. -->
+  <!-- Nova Globe v4: API-key-free 2D street map and marker clustering. -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <!-- Nova Globe v4.1: OpenFreeMap vector basemap (works without OSM raster Referer restrictions). -->
+  <!-- Requires WebGL; markers/clusters remain Leaflet elements, no API key. -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.1/dist/maplibre-gl.css" />
+  <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js"></script>
   <!-- HLS.js for live video streams -->
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
@@ -316,6 +330,14 @@
       }
     }
 
+
+    /* Click-to-enlarge media viewer */
+    #media-lightbox[hidden] { display: none !important; }
+    #media-lightbox { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 3vh 3vw; background: rgba(0, 0, 0, 0.94); }
+    #media-lightbox img { max-width: 94vw; max-height: 90vh; width: auto; height: auto; object-fit: contain; border-radius: 10px; box-shadow: 0 12px 60px rgba(0,0,0,.6); }
+    #media-lightbox-close { position: absolute; top: 16px; right: 18px; z-index: 1; min-width: 44px; min-height: 44px; border-radius: 12px; background: rgba(15,23,42,.9); border: 1px solid rgba(103,232,249,.5); color: white; font-size: 24px; }
+    #media-lightbox-caption { position: absolute; bottom: 12px; left: 3vw; right: 3vw; text-align: center; color: #cbd5e1; font-size: 12px; }
+
     @media (max-width: 480px) {
       /* Extra fine-tuning for compact smartphone viewports */
       #loc-title {
@@ -329,12 +351,87 @@
         width: 60px !important;
       }
     }
+
+    /* NOVA v4 - Street-map mode sits behind the existing panels. */
+    #detail-map { position: absolute; inset: 0; z-index: 2; display: none; background: #111827; }
+    #detail-map.map-active { display: block; }
+    #globe-viz.globe-suspended { visibility: hidden; pointer-events: none; }
+    #map-mode-switch { position: fixed; top: 76px; left: 50%; transform: translateX(-50%);
+      z-index: 33; display: flex; align-items: center; gap: 5px; padding: 5px;
+      border-radius: 14px; border: 1px solid rgba(103,232,249,.35);
+      background: rgba(4,12,27,.96); color: #cbd5e1; box-shadow: 0 8px 30px #0009;
+      backdrop-filter: blur(12px); max-width: calc(100vw - 16px); }
+    #map-mode-switch button { min-height: 34px; border-radius: 9px; font-size: 12px;
+      white-space: nowrap; padding: 6px 11px; font-weight: 700; transition: background .2s,color .2s; }
+    #map-mode-switch button:hover { background: rgba(6,182,212,.18); color: #fff; }
+    #map-mode-switch button[aria-pressed="true"] { background: #0891b2; color: white; }
+    #map-mode-switch .map-toolbar-separator { width: 1px; background: #334155; align-self: stretch; }
+    #map-mode-switch .map-zoom-btn { display: none; padding: 4px 11px; font-size: 19px; min-width: 32px; }
+    #map-mode-switch[data-mode="map"] .map-zoom-btn { display: block; }
+    #map-legend { display: none; position: fixed; bottom: 75px; left: 50%; transform: translateX(-50%);
+      z-index: 31; max-width: calc(100vw - 16px); padding: 7px 11px; gap: 10px;
+      align-items: center; flex-wrap: wrap; justify-content: center;
+      background: rgba(4,12,27,.9); border: 1px solid #334155; border-radius: 11px;
+      color: #e2e8f0; font-size: 10px; font-family: sans-serif; pointer-events: none; }
+    #map-legend.map-active { display: flex; }
+    #map-legend .dot { width: 9px; height: 9px; display: inline-block; border-radius: 50%; margin-right: 4px; }
+    #map-legend .legend-label { display: inline-flex; align-items: center; white-space: nowrap; }
+    #map-legend-count { color: #67e8f9; white-space: nowrap; }
+    #detail-map .leaflet-container { background: #182b3e; }
+    #detail-map .leaflet-control-attribution { font-size: 10px; background: rgba(255,255,255,.94); }
+    #detail-map .leaflet-bottom.leaflet-right { bottom: 66px; }
+    #detail-map .leaflet-top.leaflet-left { top: 62px; }
+    .nova-map-pin { width: 31px; height: 31px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.95); box-shadow: 0 2px 11px #020617a8;
+      display: grid; place-items: center; font-size: 14px; color: #06111f; }
+    .nova-map-pin.is-selected { outline: 3px solid #facc15; outline-offset: 2px; }
+    .nova-map-pin.snapshot { background: #38bdf8; }
+    .nova-map-pin.webcam { background: #22d3ee; }
+    .nova-map-pin.radio { background: #34d399; }
+    .nova-map-pin.photo { background: #f0abfc; }
+    .nova-map-pin.landmark { background: #fbbf24; }
+    .nova-map-cluster { border-radius: 50%; display: grid; place-items: center;
+      color: #fff; background: #164e63; border: 3px solid #67e8f9;
+      font-weight: 800; box-shadow: 0 3px 15px #02061799; font-family: sans-serif; }
+    .nova-map-cluster.small { width: 38px; height: 38px; font-size: 12px; }
+    .nova-map-cluster.medium { width: 46px; height: 46px; font-size: 13px; background: #155e75; }
+    .nova-map-cluster.large { width: 55px; height: 55px; font-size: 14px; background: #0e7490; }
+    #detail-map .leaflet-tooltip { color: #f8fafc; background: #0f172a; border: 1px solid #0891b2;
+      font-size: 12px; box-shadow: 0 3px 12px #0006; }
+    #detail-map .leaflet-tooltip::before { border-top-color: #0891b2; }
+    #open-detail-map-btn { width: 100%; display: flex; align-items: center; justify-content: center;
+      gap: 9px; margin-top: 9px; padding: 10px; background: rgba(8,145,178,.24);
+      border: 1px solid rgba(103,232,249,.45); border-radius: 10px; color: #a5f3fc;
+      font-size: 12px; font-weight: 700; cursor: pointer; }
+    #open-detail-map-btn:hover { background: rgba(8,145,178,.42); color: white; }
+    @media (max-width: 768px) {
+      #map-mode-switch { top: 56px; }
+      #map-mode-switch button { min-height: 36px; padding: 6px 9px; font-size: 11px; }
+      #map-legend { bottom: 76px; gap: 6px 9px; font-size: 9px; }
+      #detail-map .leaflet-bottom.leaflet-right { bottom: 75px; }
+    }
   </style>
 </head>
 <body class="bg-space-950 text-slate-100 font-sans overflow-hidden select-none h-screen w-screen relative">
 
   <!-- 3D Globe Canvas Container -->
   <div id="globe-viz"></div>
+  <div id="detail-map" role="region" aria-label="Tarkka kartta / Detailed street map"></div>
+  <div id="map-mode-switch" data-mode="globe" role="group" aria-label="Valitse karttatila">
+    <button id="switch-globe-btn" type="button" aria-pressed="true">🌍 <span data-map-i18n="globe">Maapallo 3D</span></button>
+    <button id="switch-map-btn" type="button" aria-pressed="false">🗺️ <span data-map-i18n="map">Tarkka kartta</span></button>
+    <span class="map-toolbar-separator" aria-hidden="true"></span>
+    <button class="map-zoom-btn" id="map-zoom-out" type="button" aria-label="Loitonna">−</button>
+    <button class="map-zoom-btn" id="map-zoom-in" type="button" aria-label="Lähennä">+</button>
+  </div>
+  <div id="map-legend" aria-live="polite">
+    <span class="legend-label"><i class="dot" style="background:#38bdf8"></i><span data-map-i18n="road">Kelikamerat</span></span>
+    <span class="legend-label"><i class="dot" style="background:#22d3ee"></i><span data-map-i18n="webcam">Webkamerat</span></span>
+    <span class="legend-label"><i class="dot" style="background:#34d399"></i><span data-map-i18n="radio">Radiot</span></span>
+    <span class="legend-label"><i class="dot" style="background:#f0abfc"></i><span data-map-i18n="photo">Kuvat</span></span>
+    <span class="legend-label"><i class="dot" style="background:#fbbf24"></i><span data-map-i18n="landmark">Nähtävyydet</span></span>
+    <span id="map-legend-count"></span>
+  </div>
 
   <!-- Loading Overlay -->
   <div id="app-loader" class="absolute inset-0 z-50 bg-space-950 flex flex-col items-center justify-center transition-opacity duration-700 pointer-events-none">
@@ -494,7 +591,7 @@
             <span class="w-2 h-2 rounded-full bg-sky-400"></span>
             <span id="tab-snapshot-text">Weather Cams & Snapshots</span>
           </button>
-          <button data-cat="webcam" class="cat-tab px-2.5 py-1 rounded-lg bg-slate-800/60 text-slate-400 hover:text-slate-200 border border-slate-700/50 whitespace-nowrap transition-colors flex items-center gap-1.5" title="YouTube Live streams">
+          <button data-cat="webcam" class="cat-tab px-2.5 py-1 rounded-lg bg-slate-800/60 text-slate-400 hover:text-slate-200 border border-slate-700/50 whitespace-nowrap transition-colors flex items-center gap-1.5" title="Direct live HLS video, public camera sites and YouTube">
             <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
             <span id="tab-webcam-text">Live Video (YouTube)</span>
           </button>
@@ -521,7 +618,14 @@
             <span id="subcat-intl-text">🌐 Global (Snapshot)</span>
           </button>
           <button data-subcat="youtube" class="subcat-chip hover:text-cyan-300 px-2 py-0.5 rounded-lg bg-slate-800/40 text-slate-400 hover:bg-slate-700/50 border border-transparent whitespace-nowrap transition-colors flex items-center gap-1">
-            <span id="subcat-youtube-text">📹 Live Streams (YouTube)</span>
+            <span id="subcat-youtube-text">📹 Live (HLS / YouTube)</span>
+          </button>
+        </div>
+
+        <div class="mt-2 flex items-center justify-between gap-2 px-1">
+          <span id="webcam-source-state" class="text-[10px] text-slate-400 truncate" title="Avaimettomat julkiset kamerahakemistot">🌍 Maailmankameroita haetaan avaimettomista lähteistä</span>
+          <button type="button" id="refresh-world-cams-btn" class="shrink-0 text-[10px] text-cyan-300 hover:text-white font-semibold" title="Lataa avaimettomat kameraluettelot uudelleen">
+            <i class="fa-solid fa-arrows-rotate"></i> <span id="refresh-world-cams-text">Kamerat</span>
           </button>
         </div>
 
@@ -704,6 +808,7 @@
               <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-400 group-hover:text-emerald-300 shrink-0 ml-1"></i>
             </a>
           </div>
+          <button id="open-detail-map-btn" type="button"><i class="fa-solid fa-map-location-dot"></i><span data-map-i18n="showCurrent">Näytä tämä kohde tarkalla kartalla</span></button>
         </div>
 
         <!-- AI GUIDE SECTION ("Maailman Opas") -->
@@ -864,7 +969,8 @@
   </footer>
 
   <!-- Hidden HTML5 Audio Element for Radio Streams -->
-  <audio id="global-radio-audio" preload="none" crossorigin="anonymous"></audio>
+  <!-- Native audio playback does not need CORS; forcing anonymous CORS blocked many radio streams. -->
+  <audio id="global-radio-audio" preload="none"></audio>
 
   <!-- Autoplay Prompt Toast (If browser blocks audio) -->
   <div id="autoplay-prompt" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 glass-panel border border-cyan-400/50 rounded-xl px-4 py-2.5 shadow-glow-cyan flex items-center gap-3 transition-all duration-300 translate-y-24 opacity-0 pointer-events-none">
@@ -905,14 +1011,14 @@
         search_btn: 'Search',
         tab_all: 'All',
         tab_snapshot: 'Road Cams',
-        tab_webcam: 'Webcams',
+        tab_webcam: 'Webcams & Video',
         tab_radio: 'Radios',
         tab_landmark: 'Special',
         cam_subcat_label: 'Camera type:',
         subcat_all: 'All',
         subcat_fintraffic: 'Finland road cams',
         subcat_international: 'Global snapshot',
-        subcat_youtube: 'YouTube Live',
+        subcat_youtube: 'HLS / YouTube Live',
         region_label: 'Region:',
         reg_all: 'Global',
         reg_suomi: 'Finland',
@@ -924,6 +1030,7 @@
         reg_etelamanner: 'Antarctica',
         loading_locations: 'Loading locations...',
         refresh_radios: 'Refresh radios',
+        refresh_cameras: 'Cameras',
         local_weather: 'Local Weather',
         local_time: 'Local Time',
         wiki_read: 'Read article',
@@ -975,7 +1082,7 @@
         fallback_day: '☀️ Day (Sunlight)',
         fallback_night: '🌙 Night (Dark)',
         special_landmark: 'SPECIAL LANDMARK',
-        live_stream_badge: '24/7 Live Stream',
+        live_stream_badge: 'Stream status varies',
         not_playing_weather: 'Not playing? Show weather',
         open_youtube: 'On YouTube',
         weather_clear: 'Clear',
@@ -1009,14 +1116,14 @@
         search_btn: 'Hae',
         tab_all: 'Kaikki',
         tab_snapshot: 'Kelikamerat',
-        tab_webcam: 'Webkamerat',
+        tab_webcam: 'Webkamerat & Videot',
         tab_radio: 'Radiot',
         tab_landmark: 'Erikoiset',
         cam_subcat_label: 'Kameratyyppi:',
         subcat_all: 'Kaikki',
         subcat_fintraffic: 'Suomi kelikamerat',
-        subcat_international: 'Kansainväliset snapshot',
-        subcat_youtube: 'YouTube Live',
+        subcat_international: 'Maailman kamerakuvat & valokuvat',
+        subcat_youtube: 'HLS / YouTube Live',
         region_label: 'Alue:',
         reg_all: 'Koko maapallo',
         reg_suomi: 'Suomi',
@@ -1028,6 +1135,7 @@
         reg_etelamanner: 'Etelämanner',
         loading_locations: 'Ladataan kohteita...',
         refresh_radios: 'Päivitä radiot',
+        refresh_cameras: 'Kamerat',
         local_weather: 'Paikallissää',
         local_time: 'Paikallisaika',
         wiki_read: 'Lue artikkelista',
@@ -1079,7 +1187,7 @@
         fallback_day: '☀️ Päivä (Auringonvalo)',
         fallback_night: '🌙 Yö (Pimeää)',
         special_landmark: 'ERIKOISKOHDE',
-        live_stream_badge: '24/7 Live Stream',
+        live_stream_badge: 'Striimin tila vaihtelee',
         not_playing_weather: 'Ei toistu? Näytä sää',
         open_youtube: 'YouTubessa',
         weather_clear: 'Selkeää',
@@ -1152,6 +1260,8 @@
       setElText('reg-arktis-text', 'reg_arktis');
       setElText('reg-etelamanner-text', 'reg_etelamanner');
       setElText('refresh-radios-text', 'refresh_radios');
+      setElText('refresh-world-cams-text', 'refresh_cameras');
+      if (typeof updateMapTranslations === 'function') updateMapTranslations();
 
       setElText('loc-weather-heading', 'local_weather');
       setElText('loc-time-heading', 'local_time');
@@ -1215,6 +1325,10 @@
       currentLang = lang;
       localStorage.setItem('mind_why_lang', lang);
       applyLanguage(lang);
+      // Reload the encyclopedia extract in the newly selected language too.
+      if (typeof activeLocation !== 'undefined' && activeLocation && typeof fetchWikipediaSummary === 'function') {
+        fetchWikipediaSummary(activeLocation);
+      }
       if (typeof sound !== 'undefined' && typeof sound.playChime === 'function') sound.playChime();
       if (typeof showStatus === 'function') {
         showStatus(lang === 'en' ? 'Language switched to English' : 'Kieli vaihdettu suomeksi', 'fa-globe');
@@ -1687,7 +1801,7 @@
         categoryColorBg: 'bg-sky-500',
         categoryGlow: 'shadow-glow-sky',
         icon: 'fa-solid fa-volcano',
-        streamType: 'snapshot',
+        streamType: 'photo',
         snapshotUrl: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=1200&q=80',
         refreshInterval: 60,
         photoUrl: 'https://images.unsplash.com/photo-1578637387939-43c525550085?auto=format&fit=crop&w=1200&q=80',
@@ -1705,7 +1819,7 @@
         categoryColorBg: 'bg-sky-500',
         categoryGlow: 'shadow-glow-sky',
         icon: 'fa-solid fa-moon',
-        streamType: 'snapshot',
+        streamType: 'photo',
         snapshotUrl: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=1200&q=80',
         refreshInterval: 60,
         photoUrl: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=1200&q=80',
@@ -1723,7 +1837,7 @@
         categoryColorBg: 'bg-sky-500',
         categoryGlow: 'shadow-glow-sky',
         icon: 'fa-solid fa-mountain',
-        streamType: 'snapshot',
+        streamType: 'photo',
         snapshotUrl: 'https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?auto=format&fit=crop&w=1200&q=80',
         refreshInterval: 60,
         photoUrl: 'https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?auto=format&fit=crop&w=1200&q=80',
@@ -1741,7 +1855,7 @@
         categoryColorBg: 'bg-sky-500',
         categoryGlow: 'shadow-glow-sky',
         icon: 'fa-solid fa-water',
-        streamType: 'snapshot',
+        streamType: 'photo',
         snapshotUrl: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=1200&q=80',
         refreshInterval: 60,
         photoUrl: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=1200&q=80',
@@ -1759,7 +1873,7 @@
         categoryColorBg: 'bg-sky-500',
         categoryGlow: 'shadow-glow-sky',
         icon: 'fa-solid fa-landmark',
-        streamType: 'snapshot',
+        streamType: 'photo',
         snapshotUrl: 'https://images.unsplash.com/photo-1474044159687-1ee9f3a51722?auto=format&fit=crop&w=1200&q=80',
         refreshInterval: 60,
         photoUrl: 'https://images.unsplash.com/photo-1474044159687-1ee9f3a51722?auto=format&fit=crop&w=1200&q=80',
@@ -1777,7 +1891,7 @@
         categoryColorBg: 'bg-sky-500',
         categoryGlow: 'shadow-glow-sky',
         icon: 'fa-solid fa-mountain',
-        streamType: 'snapshot',
+        streamType: 'photo',
         snapshotUrl: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=1200&q=80',
         refreshInterval: 60,
         photoUrl: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=1200&q=80',
@@ -1795,7 +1909,7 @@
         categoryColorBg: 'bg-sky-500',
         categoryGlow: 'shadow-glow-sky',
         icon: 'fa-solid fa-umbrella-beach',
-        streamType: 'snapshot',
+        streamType: 'photo',
         snapshotUrl: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=1200&q=80',
         refreshInterval: 60,
         photoUrl: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=1200&q=80',
@@ -1813,7 +1927,7 @@
         categoryColorBg: 'bg-sky-500',
         categoryGlow: 'shadow-glow-sky',
         icon: 'fa-solid fa-tree',
-        streamType: 'snapshot',
+        streamType: 'photo',
         snapshotUrl: 'https://images.unsplash.com/photo-1503614472-8c93d56e92ce?auto=format&fit=crop&w=1200&q=80',
         refreshInterval: 60,
         photoUrl: 'https://images.unsplash.com/photo-1503614472-8c93d56e92ce?auto=format&fit=crop&w=1200&q=80',
@@ -1831,7 +1945,7 @@
         categoryColorBg: 'bg-sky-500',
         categoryGlow: 'shadow-glow-sky',
         icon: 'fa-solid fa-icicles',
-        streamType: 'snapshot',
+        streamType: 'photo',
         snapshotUrl: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=1200&q=80',
         refreshInterval: 60,
         photoUrl: 'https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=1200&q=80',
@@ -1849,7 +1963,7 @@
         categoryColorBg: 'bg-sky-500',
         categoryGlow: 'shadow-glow-sky',
         icon: 'fa-solid fa-mountain',
-        streamType: 'snapshot',
+        streamType: 'photo',
         snapshotUrl: 'https://images.unsplash.com/photo-1589553416260-f586c8f1514f?auto=format&fit=crop&w=1200&q=80',
         refreshInterval: 60,
         photoUrl: 'https://images.unsplash.com/photo-1589553416260-f586c8f1514f?auto=format&fit=crop&w=1200&q=80',
@@ -1867,7 +1981,7 @@
         categoryColorBg: 'bg-sky-500',
         categoryGlow: 'shadow-glow-sky',
         icon: 'fa-solid fa-volcano',
-        streamType: 'snapshot',
+        streamType: 'photo',
         snapshotUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
         refreshInterval: 60,
         photoUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80',
@@ -1885,7 +1999,7 @@
         categoryColorBg: 'bg-sky-500',
         categoryGlow: 'shadow-glow-sky',
         icon: 'fa-solid fa-mountain',
-        streamType: 'snapshot',
+        streamType: 'photo',
         snapshotUrl: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1200&q=80',
         refreshInterval: 60,
         photoUrl: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1200&q=80',
@@ -2361,6 +2475,254 @@
     let activePersona = 'geographer'; // 'geographer' | 'guide' | 'rabbit'
     let currentTextureMode = 'day'; // 'day' | 'surface'
     let isAutoRotating = true; // Earth auto-rotation on/off
+
+
+    // ==========================================
+    // NOVA GLOBE v4.2: 3D <-> accurate 2D map + Finnish radio fix
+    // Leaflet + OpenFreeMap (MapLibre GL) + MarkerCluster, no Google API key.
+    // ==========================================
+    let mapMode = 'globe';
+    let detailMap = null;
+    let detailMapCluster = null;
+    let detailMapMarkerById = new Map();
+    let currentMapFilteredPins = [];
+    let detailMapRefreshTimer = null;
+    let detailMapFocusId = null;
+    // OpenFreeMap public vector tiles, no API key and no file:// Referer restrictions
+    // from the OSMF standard raster tile server. Provider may still be offline.
+    // If vector rendering is unavailable, OSMF raster is a fallback ONLY on HTTP(S)
+    // where a valid Referer can be sent; never silently use it from file://.
+    const NOVA_MAP_TILES = {
+      vectorStyle: 'https://tiles.openfreemap.org/styles/liberty',
+      rasterFallback: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      attribution: '&copy; <a href="https://openfreemap.org/" target="_blank" rel="noopener noreferrer">OpenFreeMap</a> · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors'
+    };
+    const NOVA_MAP_STRINGS = {
+      fi: { globe:'Maapallo 3D', map:'Tarkka kartta', road:'Kelikamerat', webcam:'Webkamerat',
+        radio:'Radiot', photo:'Kuvat', landmark:'Nähtävyydet', showCurrent:'Näytä tämä kohde tarkalla kartalla',
+        places:'kohdetta kartalla', unavailable:'Tarkka kartta ei latautunut. Tarkista verkkoyhteys.' },
+      en: { globe:'3D Globe', map:'Street Map', road:'Road cameras', webcam:'Webcams',
+        radio:'Radios', photo:'Photos', landmark:'Landmarks', showCurrent:'Show this location on detailed map',
+        places:'map locations', unavailable:'Detailed map could not load. Check your connection.' }
+    };
+
+    function updateMapTranslations() {
+      const dict = NOVA_MAP_STRINGS[currentLang] || NOVA_MAP_STRINGS.en;
+      document.querySelectorAll('[data-map-i18n]').forEach(el => {
+        const key = el.getAttribute('data-map-i18n');
+        if (dict[key]) el.textContent = dict[key];
+      });
+      updateDetailMapCount();
+    }
+
+    function isValidMapCoordinate(pin) {
+      return pin && typeof pin.lat === 'number' && Number.isFinite(pin.lat) && Math.abs(pin.lat) <= 90 &&
+        typeof pin.lng === 'number' && Number.isFinite(pin.lng) && Math.abs(pin.lng) <= 180;
+    }
+
+    function mapMarkerKind(pin) {
+      if (pin.streamType === 'photo') return 'photo';
+      if (pin.category === 'webcam') return 'webcam';
+      if (pin.category === 'radio') return 'radio';
+      if (pin.category === 'landmark') return 'landmark';
+      return 'snapshot';
+    }
+    function mapMarkerIcon(pin) {
+      const kind = mapMarkerKind(pin);
+      const glyphs = { photo:'fa-image', snapshot:'fa-road', webcam:'fa-video', radio:'fa-radio', landmark:'fa-landmark' };
+      const selected = activeLocation && pin.id === activeLocation.id ? ' is-selected' : '';
+      return L.divIcon({
+        className: 'nova-map-pin-holder', iconSize:[33,33], iconAnchor:[16,16],
+        html: `<span class="nova-map-pin ${kind}${selected}"><i class="fa-solid ${glyphs[kind]}" aria-hidden="true"></i></span>`
+      });
+    }
+
+    function initDetailMap() {
+      if (detailMap) return true;
+      if (!window.L || typeof L.markerClusterGroup !== 'function') {
+        showStatus(NOVA_MAP_STRINGS[currentLang]?.unavailable || 'Map unavailable', 'fa-triangle-exclamation');
+        return false;
+      }
+      try {
+        // Normal interactive browsing only; no tile preloading/bulk downloads.
+        detailMap = L.map('detail-map', {
+          zoomControl: false, attributionControl: true, preferCanvas: true,
+          zoomSnap: 1, zoomDelta: 1, minZoom: 2, maxZoom: 19,
+          worldCopyJump: true, scrollWheelZoom: true, doubleClickZoom: true
+        });
+        // Use key-free vector maps by default. No direct OSM raster requests from file://.
+        if (typeof L.maplibreGL === 'function' && window.maplibregl) {
+          L.maplibreGL({
+            style: NOVA_MAP_TILES.vectorStyle,
+            attribution: NOVA_MAP_TILES.attribution,
+            interactive: false
+          }).addTo(detailMap);
+        } else if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+          // Conservative fallback for older browsers without MapLibre/WebGL.
+          // The host must permit a valid Referer and obey the OSMF tile policy.
+          L.tileLayer(NOVA_MAP_TILES.rasterFallback, {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors',
+            maxZoom: 19, minZoom: 2, detectRetina: false,
+            referrerPolicy: 'strict-origin-when-cross-origin'
+          }).addTo(detailMap);
+        } else {
+          showStatus(currentLang === 'fi'
+            ? 'Karttakirjaston lataus epäonnistui. Internet-yhteys tai WebGL saattaa puuttua.'
+            : 'Could not load the map renderer. Check Internet or WebGL.', 'fa-triangle-exclamation');
+        }
+        detailMapCluster = L.markerClusterGroup({
+          chunkedLoading: true, chunkInterval: 120, chunkDelay: 30,
+          removeOutsideVisibleBounds: true, showCoverageOnHover: false,
+          spiderfyOnMaxZoom: true, zoomToBoundsOnClick: true,
+          maxClusterRadius: zoom => zoom >= 13 ? 34 : zoom >= 8 ? 48 : 63,
+          iconCreateFunction: cluster => {
+            const count = cluster.getChildCount();
+            const sz = count < 12 ? 38 : count < 100 ? 46 : 55;
+            const cls = count < 12 ? 'small' : count < 100 ? 'medium' : 'large';
+            return L.divIcon({ html:`<div class="nova-map-cluster ${cls}">${count}</div>`,
+              className:'nova-cluster-holder', iconSize:[sz,sz], iconAnchor:[sz/2,sz/2] });
+          }
+        });
+        detailMap.addLayer(detailMapCluster);
+        detailMap.setView([62.5, 25.5], 6);
+        return true;
+      } catch (err) {
+        console.warn('Nova Globe 2D map initialization:', err);
+        if (detailMap) { try { detailMap.remove(); } catch (_) {} detailMap = null; }
+        detailMapCluster = null;
+        showStatus(NOVA_MAP_STRINGS[currentLang]?.unavailable || 'Map unavailable', 'fa-triangle-exclamation');
+        return false;
+      }
+    }
+
+    function updateDetailMapCount() {
+      const count = document.getElementById('map-legend-count');
+      if (count) count.textContent = `${(currentMapFilteredPins || []).length} ${(NOVA_MAP_STRINGS[currentLang] || NOVA_MAP_STRINGS.en).places}`;
+    }
+
+    function scheduleDetailMapRefresh() {
+      if (mapMode !== 'map' || !detailMapCluster) return;
+      if (detailMapRefreshTimer) clearTimeout(detailMapRefreshTimer);
+      detailMapRefreshTimer = setTimeout(() => {
+        detailMapRefreshTimer = null;
+        refreshDetailMapMarkers();
+      }, 100);
+    }
+
+    function refreshDetailMapMarkers() {
+      if (!detailMapCluster || mapMode !== 'map') return;
+      // Add all matching records, not merely the first 600 shown in the sidebar.
+      const filtered = (currentMapFilteredPins || allPins).filter(isValidMapCoordinate);
+      const newMarkers = [];
+      detailMapCluster.clearLayers();
+      detailMapMarkerById.clear();
+      filtered.forEach(pin => {
+        const marker = L.marker([pin.lat, pin.lng], { icon: mapMarkerIcon(pin),
+          title: String(pin.name || '') });
+        // Tooltip is escaped because global station names are third-party data.
+        marker.bindTooltip(pin.category === 'radio' && pin.stationUUID ? String(pin.name || '') : safeHtml(pin.name || ''), { direction:'top', opacity:0.95 });
+        marker.on('click', () => {
+          detailMapFocusId = pin.id;
+          selectLocation(pin, true);  // Reuse video, radio, photo, Wikipedia, and weather card.
+          updateDetailMapSelectionIcons();
+        });
+        if (pin.id != null) detailMapMarkerById.set(pin.id, marker);
+        newMarkers.push(marker);
+      });
+      // Chunked loading prevents long UI freezes with many Finnish traffic cams.
+      detailMapCluster.addLayers(newMarkers);
+      updateDetailMapCount();
+    }
+
+    function updateDetailMapSelectionIcons() {
+      // Keep marker updates cheap: change DOM instead of rebuilding thousands of markers.
+      const previouslySelected = document.querySelectorAll('#detail-map .nova-map-pin.is-selected');
+      previouslySelected.forEach(el => el.classList.remove('is-selected'));
+      if (activeLocation && detailMapMarkerById.has(activeLocation.id)) {
+        const marker = detailMapMarkerById.get(activeLocation.id);
+        const el = marker.getElement();
+        if (el) el.querySelector('.nova-map-pin')?.classList.add('is-selected');
+      }
+    }
+
+    function highlightMapSelection(location) {
+      detailMapFocusId = location?.id ?? null;
+      if (mapMode !== 'map' || !detailMap) return;
+      updateDetailMapSelectionIcons();
+    }
+
+    function openDetailMap(lat, lng, zoom = 8) {
+      if (!initDetailMap()) return;
+      const validLat = Number.isFinite(Number(lat)) && Math.abs(Number(lat)) <= 90 ? Number(lat) : 62.5;
+      const validLng = Number.isFinite(Number(lng)) && Math.abs(Number(lng)) <= 180 ? Number(lng) : 25.5;
+      mapMode = 'map';
+      document.getElementById('detail-map')?.classList.add('map-active');
+      document.getElementById('globe-viz')?.classList.add('globe-suspended');
+      document.getElementById('map-legend')?.classList.add('map-active');
+      document.getElementById('map-mode-switch')?.setAttribute('data-mode', 'map');
+      document.getElementById('switch-globe-btn')?.setAttribute('aria-pressed', 'false');
+      document.getElementById('switch-map-btn')?.setAttribute('aria-pressed', 'true');
+      if (window.innerWidth <= 768) {
+        // Leave the map unobstructed; the floating location button reopens the card.
+        document.getElementById('active-location-panel')?.classList.add('hidden');
+        document.getElementById('sidebar-panel')?.classList.add('-translate-x-[110%]');
+        if (typeof updateMobileFloatingControls === 'function') updateMobileFloatingControls();
+      }
+      if (detailMapRefreshTimer) clearTimeout(detailMapRefreshTimer);
+      // Leaflet must be sized AFTER becoming visible.
+      requestAnimationFrame(() => {
+        detailMap.invalidateSize({ pan:false });
+        detailMap.setView([validLat, validLng], Math.max(2, Math.min(19, zoom)), { animate:false });
+        refreshDetailMapMarkers();
+      });
+    }
+
+    function returnTo3DGlobe() {
+      if (mapMode !== 'map') return;
+      let center = null, zoom = 4;
+      if (detailMap) { center = detailMap.getCenter(); zoom = detailMap.getZoom(); }
+      mapMode = 'globe';
+      document.getElementById('detail-map')?.classList.remove('map-active');
+      document.getElementById('globe-viz')?.classList.remove('globe-suspended');
+      document.getElementById('map-legend')?.classList.remove('map-active');
+      document.getElementById('map-mode-switch')?.setAttribute('data-mode', 'globe');
+      document.getElementById('switch-globe-btn')?.setAttribute('aria-pressed', 'true');
+      document.getElementById('switch-map-btn')?.setAttribute('aria-pressed', 'false');
+      if (detailMapRefreshTimer) { clearTimeout(detailMapRefreshTimer); detailMapRefreshTimer = null; }
+      // Return to the same part of Earth, at a comfortable 3D altitude.
+      if (center && worldGlobe && typeof worldGlobe.pointOfView === 'function') {
+        try { worldGlobe.pointOfView({ lat:center.lat, lng:center.lng,
+          altitude: zoom >= 12 ? .35 : zoom >= 8 ? .75 : 1.7 }, 900); } catch (_) {}
+      }
+    }
+
+    function openMapAtSelection() {
+      const point = isValidMapCoordinate(activeLocation) ? activeLocation : {lat:62.5,lng:25.5};
+      openDetailMap(point.lat, point.lng, 12);
+      if (window.innerWidth <= 768) {
+        document.getElementById('sidebar-panel')?.classList.add('-translate-x-[110%]');
+        document.getElementById('active-location-panel')?.classList.add('hidden');
+        updateMobileFloatingControls();
+      }
+    }
+
+    document.getElementById('switch-map-btn')?.addEventListener('click', () => {
+      if (mapMode === 'map') return;
+      // Prefer the currently visible globe viewport; fall back to the selected place.
+      let point = isValidMapCoordinate(activeLocation) ? activeLocation : {lat:62.5,lng:25.5};
+      try {
+        const pov = worldGlobe && worldGlobe.pointOfView && worldGlobe.pointOfView();
+        if (isValidMapCoordinate(pov)) point = pov;
+      } catch (_) {}
+      openDetailMap(point.lat, point.lng, 7);
+    });
+    document.getElementById('switch-globe-btn')?.addEventListener('click', returnTo3DGlobe);
+    document.getElementById('open-detail-map-btn')?.addEventListener('click', openMapAtSelection);
+    document.getElementById('map-zoom-in')?.addEventListener('click', () => detailMap?.zoomIn());
+    document.getElementById('map-zoom-out')?.addEventListener('click', () => detailMap?.zoomOut());
+    window.addEventListener('resize', () => {
+      if (mapMode === 'map' && detailMap) detailMap.invalidateSize({ pan:false });
+    });
 
     // ==========================================
     // 3. 3D EARTH GLOBE - 100% BRIGHT DAY VIEW (Globe.gl + Three.js)
@@ -3005,15 +3367,14 @@
                 </div>
               `;
 
+              // One activation path only. pointerup + click fired selectLocation twice,
+              // which could restart the radio stream and make marker selection feel laggy.
               wrapper.addEventListener('pointerdown', (e) => e.stopPropagation());
-              wrapper.addEventListener('pointerup', (e) => {
+              wrapper.addEventListener('click', (e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 selectLocation(d);
               });
-              wrapper.onclick = (e) => {
-                e.stopPropagation();
-                selectLocation(d);
-              };
               return wrapper;
             });
         }
@@ -3147,70 +3508,133 @@
     const fetchedRegionalQueries = new Set();
 
     async function queryRadioBrowser(apiPath) {
+      // Rotate through mirrors when a server is slow or unavailable.
+      // Never cache a failed request as successful.
       for (let attempt = 0; attempt < RADIO_BROWSER_MIRRORS.length; attempt++) {
         const mirror = RADIO_BROWSER_MIRRORS[(currentMirrorIdx + attempt) % RADIO_BROWSER_MIRRORS.length];
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 8500);
         try {
-          const controller = new AbortController();
-          const timer = setTimeout(() => controller.abort(), 7000);
-          const response = await fetch(`${mirror}${apiPath}`, { signal: controller.signal });
-          clearTimeout(timer);
+          const response = await fetch(`${mirror}${apiPath}`, {
+            signal: controller.signal,
+            headers: { 'Accept': 'application/json' }
+          });
           if (response.ok) {
-            currentMirrorIdx = (currentMirrorIdx + attempt) % RADIO_BROWSER_MIRRORS.length;
-            return await response.json();
+            const data = await response.json();
+            if (Array.isArray(data)) {
+              currentMirrorIdx = (currentMirrorIdx + attempt) % RADIO_BROWSER_MIRRORS.length;
+              return data;
+            }
           }
         } catch (e) {
-          // Try next mirror
+          console.warn('Radio Browser mirror unavailable:', mirror, e?.message || e);
+        } finally {
+          clearTimeout(timer);
         }
       }
       return null;
     }
 
+    function validRadioStreams(item) {
+      const sources = [item.url_resolved, item.url];
+      return [...new Set(sources.map(url => {
+        try {
+          const parsed = new URL(String(url || ''));
+          return parsed.protocol === 'https:' ? parsed.href : '';
+        } catch (_) { return ''; }
+      }).filter(Boolean))];
+    }
+
     function processAndAddRadioStations(rawStations) {
       if (!Array.isArray(rawStations) || rawStations.length === 0) return 0;
       let added = 0;
+      const knownIds = new Set(allPins.filter(p => p.stationUUID).map(p => p.stationUUID));
+      const knownStreams = new Set(allPins.filter(p => p.category === 'radio')
+        .flatMap(p => [p.streamUrl, p.audioFallback, ...(p.streamAlternates || [])])
+        .filter(Boolean).map(u => u.toLowerCase()));
+      const addedAt = Date.now();
 
       rawStations.forEach((item, idx) => {
-        const lat = parseFloat(item.geo_lat);
-        const lng = parseFloat(item.geo_long);
-        const stream = item.url_resolved || item.url;
+        if (item.lastcheckok === 0 || item.lastcheckok === false) return;
+        const streams = validRadioStreams(item);
+        if (!streams.length) return; // HTTPS is essential for mind-why.com
+        const stationName = String(item.name || '').trim().slice(0, 100);
+        if (stationName.length < 2) return;
+        const uuid = String(item.stationuuid || '').trim();
+        if ((uuid && knownIds.has(uuid)) || streams.some(u => knownStreams.has(u.toLowerCase()))) return;
 
-        // STRICT HTTPS ONLY: Filter out HTTP and Mixed Content streams
-        if (!stream || !stream.startsWith('https://')) return;
-
-        // STRICT COORDINATE CHECK: Must have valid non-zero latitude and longitude
-        if (isNaN(lat) || isNaN(lng) || (lat === 0 && lng === 0)) return;
-
-        // Clean station name
-        const stationName = (item.name || '').trim();
-        if (!stationName || stationName.length < 2) return;
-
-        // Duplicate prevention by name and stream URL
-        const isDuplicate = allPins.some(p => 
-          p.name.toLowerCase() === stationName.toLowerCase() || 
-          p.streamUrl === stream
-        );
-
-        if (!isDuplicate) {
-          allPins.push({
-            id: `radio-dyn-${idx}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-            name: stationName,
-            country: item.country || 'Maailma',
-            flag: getCountryFlag(item.countrycode),
-            lat: lat,
-            lng: lng,
-            category: 'radio',
-            categoryColorBg: 'bg-emerald-500',
-            categoryGlow: 'shadow-glow-emerald',
-            icon: 'fa-solid fa-radio',
-            genre: item.tags ? item.tags.split(',').slice(0, 2).map(t => t.trim()).join(' · ') : 'Live Radio',
-            bitrate: item.bitrate || 128,
-            streamUrl: stream
-          });
-          added++;
+        let lat = item.geo_lat === null || item.geo_lat === '' ? NaN : Number(item.geo_lat);
+        let lng = item.geo_long === null || item.geo_long === '' ? NaN : Number(item.geo_long);
+        const missingGeo = !Number.isFinite(lat) || !Number.isFinite(lng) ||
+          Math.abs(lat) > 90 || Math.abs(lng) > 180 || (lat === 0 && lng === 0);
+        const finnish = String(item.countrycode || '').toUpperCase() === 'FI';
+        if (missingGeo && !finnish) return; // Do not invent positions for other countries
+        if (missingGeo) {
+          // One clearly labelled national radio hub, NOT a claimed transmitter location.
+          lat = 62.0;
+          lng = 25.0;
         }
-      });
 
+        // HTML-escape directory names: the existing sidebar renders names into HTML.
+        const safeName = stationName.replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+        const genre = String(item.tags || '').split(',').slice(0, 2).map(t => t.trim()).join(' · ').slice(0, 100);
+        const htmlEscape = value => String(value).replace(/[<>&"']/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;',"'":'&#39;'}[c]));
+        const record = {
+          id: uuid ? `radio-rb-${uuid}` : `radio-dyn-${addedAt}-${idx}`,
+          stationUUID: uuid, name: safeName, displayName: stationName,
+          country: finnish ? 'Suomi' : htmlEscape(String(item.country || 'Maailma').slice(0, 70)),
+          flag: getCountryFlag(item.countrycode),
+          lat, lng, approximateLocation: missingGeo,
+          category: 'radio', categoryColorBg: 'bg-emerald-500',
+          categoryGlow: 'shadow-glow-emerald', icon: 'fa-solid fa-radio',
+          genre: htmlEscape(genre) || 'Live Radio', bitrate: Number(item.bitrate) || 0,
+          streamUrl: streams[0], streamAlternates: streams.slice(1),
+          codec: String(item.codec || ''),
+          description: missingGeo
+            ? 'Aseman sijaintia ei ole Radio Browser -hakemistossa. Karttamerkki on Suomen yleinen radiokeskus, ei lähettimen sijainti.'
+            : 'Radio Browser -hakemiston radiolähetys. Toimivuus tarkistetaan kuunneltaessa.'
+        };
+        allPins.push(record);
+        if (uuid) knownIds.add(uuid);
+        streams.forEach(u => knownStreams.add(u.toLowerCase()));
+        added++;
+      });
       return added;
+    }
+
+    function refreshRadioPinsUI() {
+      if (worldGlobe) {
+        worldGlobe.pointsData(allPins);
+        if (typeof worldGlobe.htmlElementsData === 'function') worldGlobe.htmlElementsData(allPins);
+      }
+      renderPinsList();
+      updatePinCountBadge();
+    }
+
+    let finnishRadioFetchPromise = null;
+    let finnishRadiosLoaded = false;
+    async function fetchFinnishRadioStations(force = false) {
+      if (finnishRadioFetchPromise) return finnishRadioFetchPromise;
+      if (finnishRadiosLoaded && !force) return 0;
+      finnishRadioFetchPromise = (async () => {
+        // Crucial: do NOT require has_geo_info. Most stations have no coordinates.
+        const data = await queryRadioBrowser('/json/stations/bycountrycodeexact/FI?hidebroken=true&limit=600&order=votes&reverse=true');
+        if (!Array.isArray(data)) {
+          showStatus('Suomen radiohakemisto ei vastannut · Päivitä radiot yrittää uudelleen', 'fa-triangle-exclamation');
+          return 0;
+        }
+        finnishRadiosLoaded = true;
+        fetchedRegionalQueries.add('suomi');
+        fetchedRegionalQueries.add('finland');
+        fetchedRegionalQueries.add('fi');
+        const added = processAndAddRadioStations(data);
+        refreshRadioPinsUI();
+        const count = allPins.filter(p => p.category === 'radio' && p.country === 'Suomi').length;
+        showStatus(`🇫🇮 Suomalaisia HTTPS-radioita luettelossa: ${count} (+${added} uutta) · toimivuus selviää toistettaessa`, 'fa-radio');
+        return added;
+      })();
+      try { return await finnishRadioFetchPromise; }
+      finally { finnishRadioFetchPromise = null; }
     }
 
     // Global Status & Notification Banner
@@ -3228,29 +3652,47 @@
     }
     window.showStatus = showStatus;
 
-    // High-capacity global radio fetch (500-1000 stations with strict HTTPS & geo filtering)
+    // Keep the global radio directory, but ALWAYS load Finland separately.
+    // Previously the top-voted geo-only global results largely excluded Finland.
+    let globalRadioFetchPromise = null;
     async function fetchDynamicRadioStations() {
-      const statusEl = document.getElementById('filtered-count-text');
-      if (statusEl) statusEl.textContent = 'Haetaan 1000 maantieteellistä HTTPS-radioasemaa...';
-
-      try {
-        const data = await queryRadioBrowser('/json/stations/search?limit=1000&has_geo_info=true&hidebroken=true&order=votes&reverse=true');
-        if (data && data.length > 0) {
-          const added = processAndAddRadioStations(data);
-
-          if (worldGlobe) {
-            worldGlobe.pointsData(allPins);
-            if (typeof worldGlobe.htmlElementsData === 'function') {
-              worldGlobe.htmlElementsData(allPins);
-            }
+      if (globalRadioFetchPromise) return globalRadioFetchPromise;
+      globalRadioFetchPromise = (async () => {
+        const statusEl = document.getElementById('filtered-count-text');
+        if (statusEl) statusEl.textContent = 'Haetaan HTTPS-radioasemia ja Suomen kanavia...';
+        // The Finnish fetch runs independently: even if worldwide browsing fails,
+        // Finnish radio stations still have their own chance to load.
+        const finlandFetch = fetchFinnishRadioStations();
+        let fetched = 0;
+        try {
+          for (const offset of [0, 1000]) {
+            const data = await queryRadioBrowser(`/json/stations/search?limit=1000&offset=${offset}&has_geo_info=true&hidebroken=true&order=votes&reverse=true`);
+            if (!Array.isArray(data)) break;
+            fetched += data.length;
+            processAndAddRadioStations(data);
+            if (data.length < 1000) break;
           }
-          renderPinsList();
-          updatePinCountBadge();
-          if (statusEl) statusEl.textContent = `${allPins.length} kohdetta maapallolla (${allPins.filter(p => p.category === 'radio').length} radiota)`;
-          showStatus(`${allPins.filter(p => p.category === 'radio').length} HTTPS-radioasemaa ladattu maapallolle!`, 'fa-radio');
+        } catch (err) {
+          console.warn('Worldwide Radio Browser fetch failed:', err);
         }
-      } catch (err) {
-        console.warn('Radio-Browser fetch failed:', err);
+        refreshRadioPinsUI();
+        await finlandFetch;
+        if (statusEl) statusEl.textContent = `${allPins.length} kohdetta maapallolla`;
+        if (!fetched && !finnishRadiosLoaded) {
+          showStatus('Radio Browser ei vastannut. Kokeile Päivitä radiot uudelleen.', 'fa-triangle-exclamation');
+        }
+      })();
+      try { return await globalRadioFetchPromise; }
+      finally { globalRadioFetchPromise = null; }
+    }
+
+    async function refreshAllRadios() {
+      failedRadioIds.clear();
+      finnishRadiosLoaded = false;
+      fetchedRegionalQueries.clear();
+      await fetchDynamicRadioStations();
+      if (selectedRegion !== 'all' && selectedRegion !== 'suomi') {
+        await fetchRegionalRadios(selectedRegion);
       }
     }
 
@@ -3259,12 +3701,12 @@
       if (!regionOrQuery || regionOrQuery === 'all') return;
       const key = String(regionOrQuery).toLowerCase().trim();
       if (fetchedRegionalQueries.has(key)) return;
-      fetchedRegionalQueries.add(key);
-
+      if (['suomi', 'finland', 'fi'].includes(key)) {
+        await fetchFinnishRadioStations();
+        return;
+      }
       let paths = [];
-      if (key === 'suomi' || key === 'finland' || key === 'fi') {
-        paths = ['/json/stations/bycountrycodeexact/FI?has_geo_info=true&hidebroken=true&limit=250&order=votes&reverse=true'];
-      } else if (key === 'eurooppa' || key === 'europe') {
+      if (key === 'eurooppa' || key === 'europe') {
         paths = [
           '/json/stations/bycountrycodeexact/DE?has_geo_info=true&hidebroken=true&limit=150&order=votes&reverse=true',
           '/json/stations/bycountrycodeexact/FR?has_geo_info=true&hidebroken=true&limit=150&order=votes&reverse=true',
@@ -3295,26 +3737,20 @@
       }
 
       let totalAdded = 0;
+      let queriedSuccessfully = false;
       for (const p of paths) {
         try {
           const resData = await queryRadioBrowser(p);
-          if (resData && resData.length > 0) {
-            const added = processAndAddRadioStations(resData);
-            totalAdded += added;
+          if (Array.isArray(resData)) {
+            queriedSuccessfully = true;
+            totalAdded += processAndAddRadioStations(resData);
           }
-        } catch (e) {}
+        } catch (e) { console.warn('Regional radio fetch:', e); }
       }
-
+      if (queriedSuccessfully) fetchedRegionalQueries.add(key);
       if (totalAdded > 0) {
-        if (worldGlobe) {
-          worldGlobe.pointsData(allPins);
-          if (typeof worldGlobe.htmlElementsData === 'function') {
-            worldGlobe.htmlElementsData(allPins);
-          }
-        }
-        renderPinsList();
-        updatePinCountBadge();
-        showStatus(`+${totalAdded} uutta paikallisradiota ladattu alueelta "${key}"!`, 'fa-radio');
+        refreshRadioPinsUI();
+        showStatus(`+${totalAdded} uutta paikallisradiota alueelta "${key}"`, 'fa-radio');
       }
     }
 
@@ -3331,9 +3767,8 @@
         const data = await res.json();
         if (data && data.features && Array.isArray(data.features)) {
           let added = 0;
-          // Sample well-distributed Finnish road weather camera presets across regions
-          const sample = data.features.filter((f, idx) => idx % 10 === 0).slice(0, 40);
-          sample.forEach((st, idx) => {
+          // Load all public stations; use only presets currently marked in collection.
+          data.features.forEach((st, idx) => {
             const coords = st.geometry?.coordinates;
             const props = st.properties;
             if (!coords || coords.length < 2) return;
@@ -3342,7 +3777,7 @@
             const rawName = props?.names?.fi || props?.name || `Kelikamera ${props?.id || idx}`;
             const cleanName = rawName.replace(/_/g, ' ').trim();
             const presets = props?.presets || [];
-            const preset = presets.find(p => p.inCollection) || presets[0];
+            const preset = presets.find(p => p.inCollection) || null;
             const presetId = preset?.id;
             if (!presetId) return;
 
@@ -3364,9 +3799,9 @@
                 icon: 'fa-solid fa-road',
                 streamType: 'snapshot',
                 snapshotUrl: snapshotUrl,
-                refreshInterval: 60,
+                refreshInterval: 600,
                 photoUrl: snapshotUrl,
-                description: `Fintrafficin virallinen tieverkon kelikamera kohteessa ${cleanName}. Kuva päivittyy suoraan liikennekeskuksen kameroista minuutin välein ilman YouTube-rajoituksia.`
+                description: `Fintrafficin virallinen tieverkon kelikamera kohteessa ${cleanName}. Kuva päivittyy suoraan liikennekeskuksen kameroista noin 10 minuutin välein ilman YouTube-rajoituksia.`
               });
               added++;
             }
@@ -3395,6 +3830,192 @@
         .split('')
         .map(char => 127397 + char.charCodeAt(0));
       return String.fromCodePoint(...codePoints);
+    }
+
+    // ==========================================
+    // 4C. PUBLIC GLOBAL CAMERA DIRECTORY – NO USER API KEY
+    // Data: Live Environment Streams (GitHub). External publisher streams are
+    // subject to their own availability, embedding/CORS rules and terms.
+    // Pull only verified, direct HTTPS HLS plus a small group of publisher pages.
+    // ==========================================
+    const publicWebcamCatalogUrls = [
+      'https://raw.githubusercontent.com/william-ricchiuti/Live-Environment-Streams/main/streams.geojson',
+      'https://cdn.jsdelivr.net/gh/william-ricchiuti/Live-Environment-Streams@main/streams.geojson'
+    ];
+    let cameraCatalogLoading = false;
+    const WORLD_CAM_MAX_HLS = 340;
+    const WORLD_CAM_MAX_EXTERNAL = 90;
+    const CAMERA_COUNTRY_CAP = {US:46, JP:28, GB:20, DE:22, IT:22, FR:16, ES:16, TH:20, KR:20,
+      ID:18, PT:12, GR:14, NO:12, IS:10, CA:16, AU:12, BR:12, MX:10, NZ:10, PL:14, TR:14};
+
+    function selectDistributedCameras(features, maxItems, perCountryDefault) {
+      // Two passes: round-robin across nations, then fill remaining gaps from best sources.
+      const buckets = new Map();
+      for (const f of features) {
+        const p = f.properties, code = p.country_code;
+        if (!buckets.has(code)) buckets.set(code, []);
+        buckets.get(code).push(f);
+      }
+      const score = f => {
+        const p = f.properties;
+        const age = p.last_verified ? (Date.now() - Date.parse(p.last_verified)) / 86400000 : 99999;
+        return (p.coordinates_quality === 'exact' ? 1000 : 0)
+          + (p.quality_tier === 'premium' ? 150 : p.quality_tier === 'high' ? 75 : 0)
+          + (p.environment !== 'traffic' ? 150 : 0)
+          + Math.max(0, 200 - Math.max(0, age));
+      };
+      for (const arr of buckets.values()) arr.sort((a,b) => score(b) - score(a));
+      const result = [], counts = new Map(), keys = [...buckets.keys()].sort();
+      let remaining = true;
+      while (result.length < maxItems && remaining) {
+        remaining = false;
+        for (const country of keys) {
+          const arr = buckets.get(country);
+          if (!arr.length) continue;
+          const allowed = CAMERA_COUNTRY_CAP[country] || perCountryDefault;
+          if ((counts.get(country) || 0) >= allowed) continue;
+          const f = arr.shift();
+          result.push(f);
+          counts.set(country, (counts.get(country) || 0) + 1);
+          remaining = true;
+          if (result.length >= maxItems) break;
+        }
+      }
+      return result;
+    }
+
+    async function fetchPublicWorldwideCameras() {
+      if (cameraCatalogLoading) return;
+      cameraCatalogLoading = true;
+      const el = document.getElementById('webcam-source-state');
+      if (el) el.textContent = '🌍 Haetaan maailman kameroita (ei API-avainta)…';
+      const refreshBtn = document.getElementById('refresh-world-cams-btn');
+      if (refreshBtn) refreshBtn.disabled = true;
+      try {
+        let data = null, failure = null;
+        for (const catalogUrl of publicWebcamCatalogUrls) {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 16000);
+          try {
+            const res = await fetch(catalogUrl, { signal: controller.signal, cache: 'no-store' });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            data = await res.json();
+            if (!data || !Array.isArray(data.features)) throw new Error('Virheellinen kameraluettelo');
+            break;
+          } catch (err) { failure = err; }
+          finally { clearTimeout(timeout); }
+        }
+        if (!data) throw failure || new Error('Ei verkkoyhteyttä kameraluetteloon');
+
+        const direct = [], pages = [];
+        for (const feature of data.features) {
+          const p = feature?.properties, coords = feature?.geometry?.coordinates;
+          if (!p || !Array.isArray(coords) || coords.length < 2) continue;
+          const lat = Number(coords[1]), lng = Number(coords[0]);
+          if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) continue;
+          if (!/^[A-Z]{2}$/.test(p.country_code || '') || p.coordinates_quality === 'country_centroid') continue;
+          const url = safeHttpsUrl(p.url);
+          if (!url || !p.name) continue;
+          if (p.url_type === 'hls' && p.status === 'active' && !p.source_url_requires && /\.m3u8(?:$|[?#])/i.test(url)) direct.push(feature);
+          // An expiring HTML-page token doesn't prevent opening the actual publisher page.
+          else if (p.url_type === 'html_page' && p.status !== 'dead') pages.push(feature);
+        }
+        const chosen = [
+          ...selectDistributedCameras(direct, WORLD_CAM_MAX_HLS, 8),
+          ...selectDistributedCameras(pages, WORLD_CAM_MAX_EXTERNAL, 3)
+        ];
+        // Remove only this directory's pins on refresh; keep radios, Fintraffic and saved curated cameras.
+        allPins = allPins.filter(p => p.sourceId !== 'public-global-directory');
+        const seen = new Set();
+        let addedVideos = 0, addedSites = 0;
+        chosen.forEach((feature, index) => {
+          const props = feature.properties;
+          const lat = Number(feature.geometry.coordinates[1]), lng = Number(feature.geometry.coordinates[0]);
+          const url = safeHttpsUrl(props.url);
+          const type = props.url_type === 'hls' ? 'hls' : 'external';
+          if (seen.has(url)) return;
+          seen.add(url);
+          const code = props.country_code;
+          const sourceName = String(props.source_family || 'Julkinen lähde').slice(0,80);
+          const name = String(props.display_name || props.name).slice(0,96);
+          const country = String(code).slice(0,2);
+          const sourceUrl = type === 'external' ? url : 'https://github.com/william-ricchiuti/Live-Environment-Streams';
+          allPins.push({
+            id: `worldcam-${type}-${index}`, name: safeHtml(name), country, flag: getCountryFlag(code),
+            lat, lng, category: 'webcam', subCategory: type === 'hls' ? 'direct' : 'external',
+            categoryColorBg: 'bg-cyan-500', categoryGlow: 'shadow-glow-cyan',
+            icon: type === 'hls' ? 'fa-solid fa-video' : 'fa-solid fa-arrow-up-right-from-square',
+            streamType: type, videoUrl: type === 'hls' ? url : undefined,
+            sourceUrl, sourceName: sourceName.replace(/[<>]/g, ''),
+            sourceId: 'public-global-directory', lastVerified: props.last_verified || '',
+            description: `${safeHtml(props.name)} · ${safeHtml(props.environment || 'Kamera')} · ${safeHtml(sourceName)}. Julkiseen luetteloon merkitty toimivaksi; videon toisto selaimessa riippuu kameran palvelimesta ja CORS-säännöistä.`
+          });
+          if (type === 'hls') addedVideos++; else addedSites++;
+        });
+        if (worldGlobe) {
+          worldGlobe.pointsData(allPins);
+          if (typeof worldGlobe.htmlElementsData === 'function') worldGlobe.htmlElementsData(allPins);
+        }
+        renderPinsList();
+        updatePinCountBadge();
+        if (el) el.textContent = `🌍 +${addedVideos} videolähdettä · +${addedSites} kamerasivua (avaimeton)`;
+        showStatus(`Kameraluettelo: ${addedVideos} HLS-videota ja ${addedSites} ulkoista kamerakohdetta. Toistettavuus tarkistuu avattaessa.`, 'fa-video');
+      } catch (err) {
+        console.warn('Public worldwide camera directory unavailable:', err);
+        if (el) el.textContent = '🌍 Maailman kameraluettelo ei latautunut · yritä uudelleen';
+      } finally {
+        cameraCatalogLoading = false;
+        if (refreshBtn) refreshBtn.disabled = false;
+      }
+    }
+
+    // Extra keyless official still-image source, if its anonymous public endpoint is available.
+    async function fetchLondonPublicCameras() {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8500);
+        let response;
+        try { response = await fetch('https://api.tfl.gov.uk/Place/Type/JamCam', {signal:controller.signal}); }
+        finally { clearTimeout(timeout); }
+        if (!response.ok) return;
+        const rows = await response.json();
+        if (!Array.isArray(rows)) return;
+        const valid = [];
+        for (const row of rows) {
+          const props = Object.fromEntries((row.additionalProperties || []).filter(p=>p && p.key).map(p=>[p.key,p.value]));
+          const lat = Number(row.lat), lng = Number(row.lon);
+          const imageUrl = safeHttpsUrl(props.imageUrl);
+          if (!imageUrl || !Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+          if (lat < 51.25 || lat > 51.8 || lng < -0.6 || lng > 0.35) continue;
+          if (String(props.available).toLowerCase() === 'false') continue;
+          valid.push({row, imageUrl, lat, lng});
+        }
+        // Spread cameras across London rather than clustering every intersection.
+        const stride = Math.max(1, Math.ceil(valid.length / 140));
+        let added = 0;
+        valid.forEach((cam,i)=>{
+          if (i % stride) return;
+          const id = `london-tfl-${String(cam.row.id || i).replace(/[^A-Za-z0-9_-]/g,'')}`;
+          if (allPins.some(p => p.id === id)) return;
+          allPins.push({
+            id, name: safeHtml(String(cam.row.commonName || `London JamCam ${i}`).slice(0,96)),
+            country: 'Iso-Britannia', flag: '🇬🇧', lat:cam.lat, lng:cam.lng,
+            category:'snapshot', subCategory:'international', categoryColorBg:'bg-sky-500',
+            categoryGlow:'shadow-glow-sky', icon:'fa-solid fa-camera', streamType:'snapshot',
+            snapshotUrl:cam.imageUrl, photoUrl:cam.imageUrl, refreshInterval:180,
+            sourceId:'tfl-open-data', sourceName:'Transport for London · JamCam',
+            sourceUrl:'https://tfl.gov.uk/info-for/open-data-users/our-open-data',
+            description:'Lontoon liikenteen virallinen JamCam-kamerakuva. Lähde: Transport for London Open Data. Päivittyy noin 3 minuutin välein, jos kamera on käytettävissä.'
+          });
+          added++;
+        });
+        if (added) {
+          if (worldGlobe) { worldGlobe.pointsData(allPins); if (worldGlobe.htmlElementsData) worldGlobe.htmlElementsData(allPins); }
+          renderPinsList(); updatePinCountBadge();
+          const el = document.getElementById('webcam-source-state');
+          if (el) el.textContent += ` · +${added} London-kuvaa`;
+        }
+      } catch (e) { console.warn('TfL cameras unavailable (optional):', e); }
     }
 
     // ==========================================
@@ -3431,7 +4052,13 @@
       }
     }
 
-    async function handleCustomGlobeClick(lat, lng) {
+    function handleCustomGlobeClick(lat, lng) {
+      // v4: Clicking any unoccupied point on Earth opens a road-level 2D map.
+      // Point-marker clicks keep the original selectLocation() behavior.
+      openDetailMap(lat, lng, 7);
+    }
+
+    async function handleCustomGlobeClickLegacy(lat, lng) {
       if (typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) return;
 
       // Check if user clicked close to an existing pin
@@ -3494,6 +4121,14 @@
     async function selectLocation(location, autoPlay = true) {
       if (!location) return;
       activeLocation = location;
+      if (mapMode === 'map') {
+        highlightMapSelection(location);
+        // A sidebar search result should locate the item on the street map too.
+        if (detailMap && isValidMapCoordinate(location) &&
+            !detailMap.getBounds().contains([location.lat, location.lng])) {
+          detailMap.setView([location.lat, location.lng], Math.max(9, detailMap.getZoom()), {animate:true});
+        }
+      }
       sound.playChime();
 
       // 1. Smoothly rotate & fly Globe camera
@@ -3516,7 +4151,7 @@
       }
 
       const floatingCardTitle = document.getElementById('floating-card-title');
-      if (floatingCardTitle) floatingCardTitle.textContent = location.name;
+      if (floatingCardTitle) floatingCardTitle.textContent = location.displayName || location.name;
       if (typeof updateMobileFloatingControls === 'function') updateMobileFloatingControls();
 
       // 3. Update active card header
@@ -3526,24 +4161,27 @@
       const categoryBadge = document.getElementById('loc-category-badge');
       const coordsEl = document.getElementById('loc-coords');
 
-      if (titleEl) titleEl.textContent = `${location.flag || ''} ${location.name}`;
+      if (titleEl) titleEl.textContent = `${location.flag || ''} ${location.displayName || location.name}`;
       if (countryEl) countryEl.textContent = location.country;
-      if (coordsEl) coordsEl.textContent = `${location.lat.toFixed(4)}°, ${location.lng.toFixed(4)}°`;
+      if (coordsEl) coordsEl.textContent = location.approximateLocation
+        ? (currentLang === 'fi' ? '🇫🇮 Suomen radiohakemisto · sijainti ei tiedossa' : '🇫🇮 Finnish radio · position unknown')
+        : `${location.lat.toFixed(4)}°, ${location.lng.toFixed(4)}°`;
 
       if (categoryTextEl && categoryBadge) {
         if (location.category === 'snapshot') {
           const isFintraffic = (location.subCategory === 'fintraffic' || location.country === 'Suomi');
-          categoryTextEl.textContent = isFintraffic ? 'KELIKAMERA · FINNTRAFFIC' : 'SNAPSHOT-KAMERA';
+          categoryTextEl.textContent = isFintraffic ? 'KELIKAMERA · FINTRAFFIC' : (location.streamType === 'photo' ? 'VALOKUVA · EI LIVE' : 'PÄIVITTYVÄ KAMERAKUVA');
           categoryTextEl.className = 'text-sky-400 font-semibold uppercase';
           categoryBadge.className = 'w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-500/40 flex items-center justify-center text-sky-400 shrink-0 text-base';
           categoryBadge.innerHTML = isFintraffic ? '<i class="fa-solid fa-road"></i>' : '<i class="fa-solid fa-camera"></i>';
         } else if (location.category === 'webcam') {
-          categoryTextEl.textContent = 'LIVE WEBCAM';
+          categoryTextEl.textContent = location.streamType === 'external' ? 'KAMERASIVU · ULKOINEN' : 'LIVEVIDEO · YHTEYS TESTATAAN';
           categoryTextEl.className = 'text-cyan-400 font-semibold uppercase';
           categoryBadge.className = 'w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400 shrink-0 text-base';
           categoryBadge.innerHTML = '<i class="fa-solid fa-video"></i>';
         } else if (location.category === 'radio') {
-          categoryTextEl.textContent = 'LIVE RADIO';
+          categoryTextEl.textContent = location.approximateLocation
+            ? 'LIVE RADIO · SIJAINTI SUUNTAA-ANTAVA' : 'LIVE RADIO';
           categoryTextEl.className = 'text-emerald-400 font-semibold uppercase';
           categoryBadge.className = 'w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0 text-base';
           categoryBadge.innerHTML = '<i class="fa-solid fa-radio"></i>';
@@ -3557,6 +4195,22 @@
 
       // 3B. Update Coordinates & Direct Google Link Buttons (Street View & Google Maps)
       updateGoogleActionButtons(location.lat, location.lng);
+      // Do not point Street View or Google Maps at a fictional transmitter position.
+      ['google-streetview-btn', 'google-maps-btn'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (location.approximateLocation) {
+          el.style.pointerEvents = 'none';
+          el.style.opacity = '0.35';
+          el.setAttribute('aria-disabled', 'true');
+          el.title = 'Radioaseman tarkka maantieteellinen sijainti ei ole tiedossa';
+        } else {
+          el.style.pointerEvents = '';
+          el.style.opacity = '';
+          el.removeAttribute('aria-disabled');
+          el.removeAttribute('title');
+        }
+      });
 
       // 4. Update Media Container
       renderLocationMedia(location);
@@ -3577,6 +4231,8 @@
     }
 
     let currentMediaMode = null;
+    let webcamHlsPlayer = null;
+    let activeWebcamPlaybackToken = 0;
     let snapshotCountdownTimer = null;
     let snapshotCountdownSec = 60;
     let lastFetchedWeather = null;
@@ -3605,7 +4261,7 @@
 
     window.handleSnapshotLoadSuccess = function() {
       const msg = document.getElementById('snapshot-status-msg');
-      if (msg) msg.textContent = 'Suora kuvasarja · Yhteys aktiivinen';
+      if (msg) msg.textContent = 'Kamerakuva ladattu · lähteen aikaleima voi poiketa';
     };
 
     window.handleSnapshotLoadError = function(imgEl) {
@@ -3613,7 +4269,7 @@
         if (activeLocation.photoUrl && imgEl.src !== activeLocation.photoUrl) {
           imgEl.src = activeLocation.photoUrl;
           const msg = document.getElementById('snapshot-status-msg');
-          if (msg) msg.textContent = 'Kamerayhteys tilapäisesti poikki – esitetään arkistokuva';
+          if (msg) msg.textContent = 'Kamera ei latautunut · näytössä voi olla arkistokuva';
         }
       }
     };
@@ -3677,11 +4333,33 @@
       return `<span>${lastFetchedWeather.temperature} °C</span> · <span>${lastFetchedWeather.weatherName}</span>`;
     }
 
+    function safeHtml(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]));
+    }
+    function safeHttpsUrl(value) {
+      try { const u = new URL(String(value)); return u.protocol === 'https:' ? u.href : ''; }
+      catch (e) { return ''; }
+    }
+    function cameraSourceLink(loc, label = 'Avaa alkuperäinen lähde') {
+      const u = safeHttpsUrl(loc.sourceUrl || loc.watchUrl || '');
+      return u ? `<a class="text-cyan-300 hover:text-white underline underline-offset-2" href="${safeHtml(u)}" target="_blank" rel="noopener noreferrer">${safeHtml(label)} <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a>` : '';
+    }
+    function clearWebcamPlayback() {
+      activeWebcamPlaybackToken++;
+      if (webcamHlsPlayer) {
+        try { webcamHlsPlayer.destroy(); } catch (e) { }
+        webcamHlsPlayer = null;
+      }
+      const oldVideo = document.getElementById('direct-webcam-video');
+      if (oldVideo) { try { oldVideo.pause(); oldVideo.removeAttribute('src'); oldVideo.load(); } catch (e) {} }
+    }
+
     function renderLocationMedia(loc, requestedMode = null) {
       const container = document.getElementById('loc-media-container');
       if (!container) return;
 
       clearSnapshotTimers();
+      clearWebcamPlayback();
 
       // RADIO STATION PLAYER DOCK
       if (loc.category === 'radio') {
@@ -3711,7 +4389,9 @@
             <img 
               src="${photo}" 
               alt="${loc.name}" 
-              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              onclick="openMediaLightbox(this.currentSrc || this.src, this.alt)"
+              title="Klikkaa kuva suureksi / Click to enlarge"
+              class="w-full h-full object-cover cursor-zoom-in transition-transform duration-700 group-hover:scale-105"
               referrerpolicy="no-referrer"
               onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80';"
             />
@@ -3732,7 +4412,11 @@
       if (!mode) {
         if (loc.streamType === 'snapshot') {
           mode = 'snapshot';
-        } else if (loc.streamType === 'fallback' || !loc.embedUrl) {
+        } else if (loc.streamType === 'external') {
+          mode = 'external';
+        } else if (loc.streamType === 'photo') {
+          mode = 'fallback';
+        } else if (loc.streamType === 'fallback' || (!loc.embedUrl && !loc.videoUrl)) {
           mode = 'fallback';
         } else {
           mode = 'video';
@@ -3742,7 +4426,23 @@
 
       const photo = loc.photoUrl || 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?auto=format&fit=crop&w=1200&q=80';
 
-      // 1. SNAPSHOT MODE: Direct kuvasarjakamerat (no CORS/embed restrictions)
+      // External publisher site: never pretend an HTML website is a playable video.
+      if (mode === 'external') {
+        const source = safeHttpsUrl(loc.sourceUrl || '');
+        container.innerHTML = `
+          <div class="relative w-full aspect-video bg-space-950 flex items-center justify-center text-center p-6">
+            <div>
+              <i class="fa-solid fa-camera text-4xl text-cyan-300 mb-3"></i>
+              <div class="text-sm text-white font-semibold mb-2">${currentLang === 'fi' ? 'Julkinen webkamera – alkuperäisellä sivulla' : 'Public webcam – on the publisher site'}</div>
+              <div class="text-xs text-slate-300 mb-4">${currentLang === 'fi' ? 'Tämä kamera ei tarjoa pysyvää suoraan upotettavaa videolinkkiä.' : 'This camera has no permanent direct embed URL.'}</div>
+              ${source ? `<a href="${safeHtml(source)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-cyan-700 text-white hover:bg-cyan-600 text-xs"><i class="fa-solid fa-arrow-up-right-from-square"></i>${currentLang === 'fi' ? 'Avaa kameran sivu' : 'Open camera site'}</a>` : ''}
+            </div>
+          </div>
+          <div class="p-2 text-[10px] text-slate-400 bg-space-900 border-t border-slate-800">${safeHtml(loc.sourceName || 'Julkinen kamerahakemisto')} · ${currentLang === 'fi' ? 'Kameran todellinen tila selviää lähdesivulta' : 'Actual camera status depends on source'}</div>`;
+        return;
+      }
+
+      // 1. SNAPSHOT MODE: Current public camera frames (camera may be offline).
       if (mode === 'snapshot' && loc.snapshotUrl) {
         const cacheBuster = loc.snapshotUrl.includes('?') ? `&t=${Date.now()}` : `?t=${Date.now()}`;
         const isFintraffic = (loc.subCategory === 'fintraffic' || loc.country === 'Suomi');
@@ -3751,8 +4451,10 @@
             <img 
               id="snapshot-cam-img"
               src="${loc.snapshotUrl}${cacheBuster}" 
-              alt="${loc.name} live kuva" 
-              class="w-full h-full object-cover transition-opacity duration-300"
+              alt="${safeHtml(loc.name)} kamerakuva" 
+              class="w-full h-full object-cover cursor-zoom-in transition-opacity duration-300"
+              onclick="openMediaLightbox(this.currentSrc || this.src, this.alt)"
+              title="Klikkaa kuva suureksi / Click to enlarge"
               referrerpolicy="no-referrer"
               onload="handleSnapshotLoadSuccess()"
               onerror="handleSnapshotLoadError(this)"
@@ -3764,7 +4466,7 @@
               <span class="px-2 py-0.5 rounded-md ${isFintraffic ? 'bg-sky-500/25 text-sky-300 border-sky-500/40' : 'bg-emerald-500/25 text-emerald-300 border-emerald-500/40'} border text-[10px] font-mono font-semibold flex items-center gap-1.5 backdrop-blur-md shadow-md">
                 <span class="w-1.5 h-1.5 rounded-full ${isFintraffic ? 'bg-sky-400' : 'bg-emerald-400'} animate-pulse"></span>
                 <i class="${isFintraffic ? 'fa-solid fa-road' : 'fa-solid fa-camera'} text-[9px]"></i>
-                ${isFintraffic ? 'FINNTRAFFIC KELIKAMERA' : 'KANSAINVÄLINEN SNAPSHOT'}
+                ${isFintraffic ? 'FINTRAFFIC KELIKAMERA' : 'PÄIVITTYVÄ KAMERAKUVA'}
               </span>
               ${loc.road ? `<span class="px-2 py-0.5 rounded-md bg-space-900/85 text-sky-200 border border-sky-500/30 text-[10px] font-mono backdrop-blur-md font-semibold">${loc.road}</span>` : ''}
             </div>
@@ -3785,7 +4487,7 @@
             <div class="absolute bottom-2 left-2 right-2 p-2 rounded-lg bg-space-950/85 backdrop-blur-md border border-white/10 flex items-center justify-between text-[11px] font-mono text-slate-200">
               <span class="truncate flex items-center gap-1.5 text-slate-300 text-[10px]">
                 <i class="fa-solid ${isFintraffic ? 'fa-road text-sky-400' : 'fa-camera text-cyan-400'}"></i>
-                <span id="snapshot-status-msg">${isFintraffic ? 'Suora tieverkkoyhteys · Päivittyy minuutin välein' : 'Suora yhteys · Päivittyy automaattisesti'}</span>
+                <span id="snapshot-status-msg">${isFintraffic ? 'Kelikamerakuva · Ladataan lähteestä' : 'Kamerakuva · Ladataan lähteestä'}</span>
               </span>
               <div id="snapshot-weather-badge" class="shrink-0 text-cyan-300 font-medium text-[10px] flex items-center gap-1">
                 ${renderWeatherMiniBadge()}
@@ -3796,7 +4498,7 @@
           <!-- Bottom Toolbar -->
           <div class="p-2 bg-space-900/95 flex items-center justify-between text-[11px] font-mono text-slate-300 border-t border-slate-800">
             <span class="text-[10px] text-emerald-400 flex items-center gap-1">
-              <i class="fa-solid fa-shield-check"></i> ${isFintraffic ? 'Vakaa kelikamerayhteys (Ei YouTube-katkoksia)' : 'Ei CORS- tai YouTube-upotusrajoituksia'}
+              <i class="fa-solid fa-circle-info"></i> ${isFintraffic ? 'Fintraffic · Päivitysväli noin 10 min' : safeHtml(loc.sourceName || 'Julkinen kuvalähde')} · ${cameraSourceLink(loc, 'Lähde')}
             </span>
             <button onclick="renderLocationMedia(activeLocation, 'fallback')" class="text-slate-400 hover:text-cyan-300 text-[10px] flex items-center gap-1">
               <i class="fa-solid fa-image"></i> Valokuva & Sää
@@ -3807,14 +4509,30 @@
         return;
       }
 
-      // 2. FALLBACK MODE: Valokuva & Sää (Smart Visual Fallback)
+      // 2. FALLBACK MODE: do not invent camera photography for external feeds.
+      if (mode === 'fallback' && loc.sourceId === 'public-global-directory') {
+        container.innerHTML = `
+          <div class="w-full aspect-video bg-space-950 flex items-center justify-center p-6 text-center">
+            <div>
+              <i class="fa-solid fa-video-slash text-3xl text-amber-300 mb-3"></i>
+              <div class="text-sm text-slate-100 font-semibold">${currentLang === 'fi' ? 'Videokuvan toisto ei ole saatavilla' : 'Video unavailable'}</div>
+              <div class="text-[11px] text-slate-400 mt-2">${currentLang === 'fi' ? 'Tässä ei näytetä vanhaa maisemakuvaa livekamerana. Sää ja sijaintitiedot näkyvät muualla paneelissa.' : 'We do not substitute unrelated photos for a live camera. Local weather and location remain available.'}</div>
+              <div class="mt-3">${cameraSourceLink(loc, currentLang === 'fi' ? 'Kameraluettelon lähde' : 'Camera directory source')}</div>
+            </div>
+          </div>`;
+        return;
+      }
+
+      // 2B. FALLBACK MODE: clearly labeled photo and weather.
       if (mode === 'fallback') {
         container.innerHTML = `
           <div class="relative w-full aspect-video bg-space-950 overflow-hidden group">
             <img 
               src="${photo}" 
               alt="${loc.name}" 
-              class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              onclick="openMediaLightbox(this.currentSrc || this.src, this.alt)"
+              title="Klikkaa kuva suureksi / Click to enlarge"
+              class="w-full h-full object-cover cursor-zoom-in transition-transform duration-700 group-hover:scale-105"
               referrerpolicy="no-referrer"
               onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=80';"
             />
@@ -3824,9 +4542,9 @@
             <div class="absolute top-2 left-2 right-2 p-2 rounded-lg bg-space-900/90 backdrop-blur-md border border-cyan-500/35 text-[11px] text-slate-200 shadow-xl flex items-start gap-2">
               <i class="fa-solid fa-satellite-dish text-cyan-400 text-xs mt-0.5 shrink-0"></i>
               <div class="flex-1 min-w-0">
-                <div class="font-semibold text-cyan-300 text-[11px]">Satelliitti- & säänäkymä aktiivinen</div>
+                <div class="font-semibold text-cyan-300 text-[11px]">${loc.streamType === 'photo' ? 'Valokuva · ei livekamerakuva' : 'Varakuva ja sää · ei livevideota'}</div>
                 <div class="text-[10px] text-slate-300 leading-snug mt-0.5">
-                  Reaaliaikainen videostriimi ei ole tällä hetkellä upotettavissa – esitetään paikan sää ja satelliittinäkymä.
+                  ${loc.streamType === 'photo' ? 'Tämä on tavallinen maisemakuva. Kuva ei päivity kamerasta.' : 'Kamera ei toistu tässä selaimessa. Kuvassa voi olla arkistovalokuva, ei reaaliaikainen kamerakuva.'}
                 </div>
               </div>
             </div>
@@ -3878,7 +4596,65 @@
         return;
       }
 
-      // 3. YOUTUBE LIVE VIDEO MODE (With quick fallback switcher)
+      // 3. DIRECT LIVE VIDEO (HLS / MP4): cataloged active does NOT imply browser-playable.
+      if (mode === 'video' && loc.videoUrl) {
+        const videoUrl = safeHttpsUrl(loc.videoUrl);
+        if (!videoUrl) { renderLocationMedia(loc, 'external'); return; }
+        const isHls = /\.m3u8(?:$|\?)/i.test(videoUrl) || loc.streamType === 'hls';
+        const playbackToken = activeWebcamPlaybackToken;
+        const labels = currentLang === 'fi'
+          ? { connecting: 'Yhdistetään videolähteeseen…', working: 'Kuva toistuu · lähteen nykytila voi vaihdella', failed: 'Video ei toimi tässä selaimessa tai kamera on offline. Voit kokeilla alkuperäistä lähdettä.', full: 'Koko ruutu', photo: 'Näytä varakuva ja sää', source: 'Lähdeluettelo' }
+          : { connecting: 'Connecting to video…', working: 'Video playing · source availability may change', failed: 'Video unavailable here or the camera is offline. Try the publisher.', full: 'Fullscreen', photo: 'Fallback photo & weather', source: 'Source directory' };
+        container.innerHTML = `
+          <div class="relative w-full aspect-video bg-space-950">
+            <video id="direct-webcam-video" class="w-full h-full" controls autoplay muted playsinline preload="none" referrerpolicy="strict-origin-when-cross-origin"></video>
+            <div id="webcam-video-status" class="absolute left-2 bottom-12 right-2 bg-space-950/90 text-slate-200 text-[11px] px-3 py-2 rounded-lg border border-slate-700/60 pointer-events-none">${labels.connecting}</div>
+          </div>
+          <div class="p-2 flex flex-wrap items-center justify-between gap-2 bg-space-900/95 text-[11px] border-t border-slate-800">
+            <span class="text-cyan-300">📹 ${safeHtml(loc.sourceName || 'HLS')} · ${loc.lastVerified ? `${currentLang === 'fi' ? 'Luettelon tarkistus' : 'Catalog checked'}: ${safeHtml(loc.lastVerified.split('T')[0])}` : (currentLang === 'fi' ? 'Nykytila tarkistetaan toistettaessa' : 'Checking playback')}</span>
+            <div class="flex gap-3 items-center">
+              <button id="webcam-fullscreen-btn" type="button" class="text-slate-200 hover:text-cyan-200"><i class="fa-solid fa-expand"></i> ${labels.full}</button>
+              ${cameraSourceLink(loc, labels.source)}
+              <a class="text-cyan-300 hover:text-white underline underline-offset-2" href="${safeHtml(videoUrl)}" target="_blank" rel="noopener noreferrer">${currentLang === 'fi' ? 'Striimin osoite' : 'Stream URL'}</a>
+              <button type="button" id="webcam-photo-btn" class="text-slate-300 hover:text-cyan-200">${labels.photo}</button>
+            </div>
+          </div>`;
+        const video = document.getElementById('direct-webcam-video');
+        const status = document.getElementById('webcam-video-status');
+        const setStatus = (message, good=false) => {
+          if (playbackToken !== activeWebcamPlaybackToken || !status) return;
+          status.textContent = message;
+          status.className = `absolute left-2 bottom-12 right-2 bg-space-950/90 text-[11px] px-3 py-2 rounded-lg border ${good ? 'text-emerald-200 border-emerald-500/50' : 'text-amber-200 border-amber-500/40'} pointer-events-none`;
+        };
+        const reportVideoError = () => setStatus(labels.failed);
+        document.getElementById('webcam-fullscreen-btn')?.addEventListener('click', () => {
+          if (video && video.requestFullscreen) video.requestFullscreen().catch(() => {});
+        });
+        document.getElementById('webcam-photo-btn')?.addEventListener('click', () => renderLocationMedia(loc, 'fallback'));
+        video?.addEventListener('playing', () => setStatus(labels.working, true));
+        video?.addEventListener('error', reportVideoError);
+        if (isHls) {
+          if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = videoUrl;
+          } else if (typeof Hls !== 'undefined' && Hls.isSupported()) {
+            const player = new Hls({ enableWorker: true, lowLatencyMode: true });
+            webcamHlsPlayer = player;
+            player.on(Hls.Events.ERROR, (_event, data) => { if (data && data.fatal) reportVideoError(); });
+            player.on(Hls.Events.MANIFEST_PARSED, () => { if (playbackToken === activeWebcamPlaybackToken) video.play().catch(reportVideoError); });
+            player.attachMedia(video);
+            player.loadSource(videoUrl);
+          } else {
+            reportVideoError();
+          }
+        } else {
+          video.src = videoUrl;
+        }
+        return;
+      }
+
+      // 4. YOUTUBE LIVE VIDEO MODE. YouTube needs an HTTP referrer; local file://
+      // pages commonly trigger error 153 because no HTTP Referer is sent.
+      const openedAsLocalFile = window.location.protocol === 'file:';
       container.innerHTML = `
         <div class="relative w-full aspect-video bg-space-950">
           <iframe 
@@ -3886,9 +4662,15 @@
             src="${loc.embedUrl}" 
             class="w-full h-full border-0" 
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            referrerpolicy="strict-origin-when-cross-origin"
             allowfullscreen
             onerror="handleIframeError()"
           ></iframe>
+          ${openedAsLocalFile ? `
+            <div class="absolute inset-x-2 bottom-2 p-2 rounded-lg bg-amber-950/95 border border-amber-400/50 text-amber-100 text-[11px] leading-snug z-10">
+              YouTube-upotus voi estyä, koska sivu avattiin suoraan tiedostona (file://). Avaa tämä HTML localhost-palvelimen tai HTTPS-verkkosivun kautta, tai paina “YouTubessa”.
+            </div>
+          ` : ''}
 
           <!-- Quick Switcher to Photo/Weather -->
           <button 
@@ -3905,7 +4687,7 @@
         <div class="p-2 bg-space-900/95 flex items-center justify-between text-[11px] font-mono text-slate-300 border-t border-slate-800">
           <div class="flex items-center gap-2">
             <span class="flex items-center gap-1.5 text-cyan-400 font-medium text-[10px]">
-              <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span> 24/7 Live Stream
+              <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span> YouTube · Saatavuus vaihtelee
             </span>
             <button onclick="renderLocationMedia(activeLocation, 'fallback')" class="text-slate-400 hover:text-cyan-300 text-[10px] underline ml-1" title="Jos YouTube-upotus on estetty">
               Ei toistu? Näytä sää
@@ -4062,6 +4844,16 @@
     let consecutiveFailures = 0;
     const failedRadioIds = new Set();
     let isFallbackSwitching = false;
+    let radioPlaybackSequence = 0;
+    let radioStartTimeout = null;
+    let radioStreamState = null; // { stationId, urls, index }
+
+    function stopRadioStartTimeout() {
+      if (radioStartTimeout !== null) {
+        clearTimeout(radioStartTimeout);
+        radioStartTimeout = null;
+      }
+    }
 
     // Calculate geographically closest active HTTPS radio station on the globe
     function findClosestRadioStation(fromLoc) {
@@ -4074,6 +4866,9 @@
         p.streamUrl.startsWith('https://')
       );
       if (candidates.length === 0) return null;
+      // Prefer other channels from the same country before a different country.
+      const sameCountry = candidates.filter(p => p.country === fromLoc.country);
+      const pool = sameCountry.length ? sameCountry : candidates;
 
       let closest = null;
       let minDistance = Infinity;
@@ -4081,8 +4876,8 @@
       const rLat = fromLoc.lat * (Math.PI / 180);
       const rLng = fromLoc.lng * (Math.PI / 180);
 
-      for (let i = 0; i < candidates.length; i++) {
-        const c = candidates[i];
+      for (let i = 0; i < pool.length; i++) {
+        const c = pool[i];
         const cLat = c.lat * (Math.PI / 180);
         const cLng = c.lng * (Math.PI / 180);
         const dLat = cLat - rLat;
@@ -4106,10 +4901,26 @@
     function handleRadioStreamFailure(station) {
       if (isFallbackSwitching) return;
       isFallbackSwitching = true;
+      stopRadioStartTimeout();
 
-      if (station && station.id) {
-        failedRadioIds.add(station.id);
+      // Try another HTTPS stream address for THIS station before switching stations.
+      if (station && radioStreamState && radioStreamState.stationId === station.id &&
+          radioStreamState.index + 1 < radioStreamState.urls.length) {
+        radioStreamState.index++;
+        const sequence = radioPlaybackSequence;
+        const dockStatus = document.getElementById('dock-stream-status');
+        if (dockStatus) dockStatus.textContent = 'Ensimmäinen lähetys ei vastannut · kokeillaan vaihtoehtoista osoitetta...';
+        setTimeout(() => {
+          if (sequence !== radioPlaybackSequence || activeLocation.id !== station.id) {
+            isFallbackSwitching = false;
+            return;
+          }
+          isFallbackSwitching = false;
+          playRadioStation(station, true);
+        }, 280);
+        return;
       }
+      if (station && station.id) failedRadioIds.add(station.id);
 
       const dockStatus = document.getElementById('dock-stream-status');
       if (dockStatus) {
@@ -4121,11 +4932,17 @@
 
       consecutiveFailures++;
 
-      // Try up to 3 consecutive nearest stations before settling on Web Audio static
+      // Try at most 3 other stations, preferring the same country.
       if (consecutiveFailures <= 3) {
         const nextStation = findClosestRadioStation(station || activeLocation);
         if (nextStation) {
+          const sequence = radioPlaybackSequence;
           setTimeout(() => {
+            if (sequence !== radioPlaybackSequence ||
+                (station && activeLocation.id !== station.id)) {
+              isFallbackSwitching = false;
+              return;
+            }
             isFallbackSwitching = false;
             selectLocation(nextStation, true);
           }, 650);
@@ -4140,6 +4957,11 @@
     }
 
     function switchToRadioStaticNoise() {
+      stopRadioStartTimeout();
+      radioPlaybackSequence++;
+      audioEl.onerror = null;
+      audioEl.onplaying = null;
+      audioEl.onpause = null;
       if (hlsPlayer) {
         try { hlsPlayer.destroy(); } catch (e) {}
         hlsPlayer = null;
@@ -4173,77 +4995,99 @@
       showStatus('Siirrytty analogiseen viritinkohinaan (Web Audio)', 'fa-sliders');
     }
 
-    function playRadioStation(station) {
-      // 1. Immediately resume AudioContext to avoid browser autoplay blocks
+    function playRadioStation(station, tryAlternate = false) {
       sound.init();
       sound.playRadioStatic(0.35);
+      if (sound.isStaticPlaying) sound.stopContinuousStatic();
+      stopRadioStartTimeout();
+      radioPlaybackSequence++;
+      const sequence = radioPlaybackSequence;
+      isFallbackSwitching = false;
 
-      if (sound.isStaticPlaying) {
-        sound.stopContinuousStatic();
-      }
-
+      // Stop old media before wiring handlers for the new media. Native <audio>
+      // (without crossorigin) can play many Icecast/SHOUTcast streams that do not
+      // provide CORS headers. HLS via hls.js still requires a CORS-compatible host.
+      audioEl.onerror = null;
+      audioEl.onplaying = null;
+      audioEl.onpause = null;
+      try { audioEl.pause(); audioEl.removeAttribute('src'); audioEl.load(); } catch (_) {}
       if (hlsPlayer) {
-        try { hlsPlayer.destroy(); } catch (e) {}
+        try { hlsPlayer.destroy(); } catch (_) {}
         hlsPlayer = null;
       }
 
-      let stream = station.streamUrl || station.audioFallback;
-
-      // STRICT HTTPS ENFORCEMENT: Never load insecure HTTP streams (Mixed Content)
-      if (!stream || !stream.startsWith('https://')) {
+      if (!tryAlternate || !radioStreamState || radioStreamState.stationId !== station.id) {
+        const urls = [station.streamUrl, station.audioFallback, ...(station.streamAlternates || [])]
+          .map(u => { try { const x = new URL(String(u)); return x.protocol === 'https:' ? x.href : ''; }
+                      catch (_) { return ''; } })
+          .filter((u, i, a) => !!u && a.indexOf(u) === i);
+        radioStreamState = { stationId: station.id, urls, index: 0 };
+      }
+      const stream = radioStreamState.urls[radioStreamState.index];
+      if (!stream) {
         handleRadioStreamFailure(station);
         return;
       }
 
-      // 2. Update Dock UI immediately
       const dockTitle = document.getElementById('dock-title-text');
       const dockGenre = document.getElementById('dock-genre-text');
       const dockStatus = document.getElementById('dock-stream-status');
       const dockIcon = document.getElementById('dock-status-icon');
-
-      if (dockTitle) dockTitle.textContent = `${station.flag || ''} ${station.name}`;
+      if (dockTitle) dockTitle.textContent = `${station.flag || ''} ${station.displayName || station.name}`;
       if (dockGenre) dockGenre.textContent = station.genre || 'Live Radio (HTTPS)';
       if (dockStatus) {
-        dockStatus.textContent = 'Yhdistetään HTTPS-striimiin...';
+        dockStatus.textContent = radioStreamState.index
+          ? `Kokeillaan vaihtoehtoista HTTPS-lähetystä (${radioStreamState.index+1}/${radioStreamState.urls.length})...`
+          : 'Yhdistetään HTTPS-lähetykseen...';
         dockStatus.className = 'text-[11px] font-mono text-cyan-400 font-medium truncate';
       }
       if (dockIcon) {
         dockIcon.className = 'w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center shrink-0 text-sm';
       }
-
-      // Synchronous event attachment
-      audioEl.onplaying = handlePlaySuccess;
-      audioEl.onpause = handlePause;
-      audioEl.onerror = () => handleRadioStreamFailure(station);
-
-      // Check if HLS stream (.m3u8)
-      if (stream.includes('.m3u8') && typeof Hls !== 'undefined' && Hls.isSupported()) {
-        hlsPlayer = new Hls({ enableWorker: true, lowLatencyMode: true });
-        hlsPlayer.loadSource(stream);
-        hlsPlayer.attachMedia(audioEl);
-        hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => {
-          const promise = audioEl.play();
-          if (promise !== undefined) {
-            promise.then(handlePlaySuccess).catch(err => {
-              if (err.name === 'NotAllowedError') handlePlayBlock(err);
-              else handleRadioStreamFailure(station);
-            });
-          }
-        });
-        hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
-          if (data && data.fatal) {
-            handleRadioStreamFailure(station);
-          }
-        });
-      } else {
-        audioEl.src = stream;
-        const promise = audioEl.play();
-        if (promise !== undefined) {
-          promise.then(handlePlaySuccess).catch(err => {
-            if (err.name === 'NotAllowedError') handlePlayBlock(err);
-            else handleRadioStreamFailure(station);
+      const failThisAttempt = () => {
+        if (sequence !== radioPlaybackSequence) return;
+        handleRadioStreamFailure(station);
+      };
+      const playThisAttempt = () => {
+        if (sequence !== radioPlaybackSequence) return;
+        stopRadioStartTimeout();
+        handlePlaySuccess();
+      };
+      const handlePlayPromise = promise => {
+        if (promise && typeof promise.catch === 'function') {
+          promise.then(playThisAttempt).catch(err => {
+            if (sequence !== radioPlaybackSequence) return;
+            if (err && err.name === 'NotAllowedError') {
+              stopRadioStartTimeout();
+              handlePlayBlock(err);
+            } else failThisAttempt();
           });
         }
+      };
+      audioEl.onplaying = playThisAttempt;
+      audioEl.onpause = () => { if (sequence === radioPlaybackSequence) handlePause(); };
+      audioEl.onerror = failThisAttempt;
+      // Some unreachable streams hang forever without raising an error.
+      radioStartTimeout = setTimeout(() => {
+        if (sequence === radioPlaybackSequence && audioEl.paused) failThisAttempt();
+      }, 18000);
+
+      const isHls = /\.m3u8(?:[?#]|$)/i.test(stream);
+      if (isHls && typeof Hls !== 'undefined' && Hls.isSupported()) {
+        try {
+          hlsPlayer = new Hls({ enableWorker: true, lowLatencyMode: true });
+          hlsPlayer.loadSource(stream);
+          hlsPlayer.attachMedia(audioEl);
+          hlsPlayer.on(Hls.Events.MANIFEST_PARSED, () => {
+            if (sequence === radioPlaybackSequence) handlePlayPromise(audioEl.play());
+          });
+          hlsPlayer.on(Hls.Events.ERROR, (event, data) => {
+            if (data && data.fatal) failThisAttempt();
+          });
+        } catch (_) { failThisAttempt(); }
+      } else {
+        audioEl.src = stream;
+        handlePlayPromise(audioEl.play());
       }
     }
 
@@ -4263,6 +5107,7 @@
     }
 
     function handlePause() {
+      stopRadioStartTimeout();
       isPlaying = false;
       const dockStatus = document.getElementById('dock-stream-status');
       if (dockStatus) {
@@ -4301,7 +5146,7 @@
       if (isPlaying) {
         audioEl.pause();
       } else {
-        if (!audioEl.src && activeLocation.category === 'radio') {
+        if ((!audioEl.getAttribute('src') || audioEl.error) && activeLocation.category === 'radio') {
           playRadioStation(activeLocation);
           return;
         }
@@ -4416,7 +5261,7 @@
       if (location.country && location.country !== 'Maailma') titles.push(location.country);
 
       let found = null;
-      const wikiLangs = currentLang === 'fi' ? ['fi', 'en'] : ['en', 'fi'];
+      const wikiLangs = [currentLang];
       for (const lang of wikiLangs) {
         for (const title of titles) {
           if (!title || title.length < 2) continue;
@@ -4813,6 +5658,9 @@
         return matchesCategory && matchesRegion && matchesSearch;
       });
 
+      // The detailed 2D map shares *exactly* the sidebar's active filters.
+      currentMapFilteredPins = filtered;
+      if (mapMode === 'map') scheduleDetailMapRefresh();
       const countEl = document.getElementById('filtered-count-text');
       if (countEl) countEl.textContent = `${filtered.length} kohdetta näkyvissä`;
 
@@ -4826,13 +5674,15 @@
         return;
       }
 
-      container.innerHTML = filtered.map(pin => {
+      // Virtual-sized listing: keep scrolling/snappy with thousands of live radios/cameras.
+      const visiblePins = (activeFilter === 'radio' || (activeFilter === 'all' && filtered.length <= 600)) ? filtered : filtered.slice(0, 600);
+      container.innerHTML = visiblePins.map(pin => {
         const isActive = activeLocation && activeLocation.id === pin.id;
         const isSnapshot = pin.category === 'snapshot';
         const colorBorder = isSnapshot ? 'text-sky-400' : (pin.category === 'webcam' ? 'text-cyan-400' : pin.category === 'radio' ? 'text-emerald-400' : 'text-amber-400');
         const categoryLabel = isSnapshot 
-          ? (pin.subCategory === 'fintraffic' || pin.country === 'Suomi' ? 'Kelikamera' : 'Snapshot') 
-          : pin.category;
+          ? (pin.streamType === 'photo' ? 'Valokuva' : (pin.subCategory === 'fintraffic' || pin.country === 'Suomi' ? 'Kelikamera' : 'Kamerakuva')) 
+          : (pin.category === 'webcam' ? (pin.streamType === 'external' ? 'Kamerasivu' : pin.streamType === 'hls' ? 'HLS-video' : 'YouTube') : pin.category);
         const subLabel = pin.road || pin.genre || pin.country;
 
         return `
@@ -4856,7 +5706,10 @@
             </div>
           </div>
         `;
-      }).join('');
+      }).join('') + (filtered.length > visiblePins.length ? `
+        <div class="p-3 text-center text-[11px] text-slate-400 border-t border-slate-800">
+          ${currentLang === 'fi' ? 'Näytetään ensimmäiset' : 'Showing first'} ${visiblePins.length} / ${filtered.length} · ${currentLang === 'fi' ? 'Rajaa hakua tai aluetta' : 'Filter by name or region'}
+        </div>` : '');
     }
 
     window.handlePinListClick = (id) => {
@@ -4873,7 +5726,7 @@
 
     function updatePinCountBadge() {
       const countEl = document.getElementById('pin-count-badge');
-      if (countEl) countEl.textContent = `${allPins.length} aktiivista`;
+      if (countEl) countEl.textContent = `${allPins.length} ${currentLang === 'fi' ? 'kohdetta' : 'places'}`;
     }
 
     // Navigation and Teleport listeners
@@ -5157,6 +6010,12 @@
           worldGlobe.pointOfView(targetView, 1600);
         }
 
+        // In 2D mode follow the same region shortcut as the 3D camera.
+        if (mapMode === 'map' && detailMap) {
+          const regionZooms = { all: 3, suomi: 6, eurooppa: 4, japani: 6, usa: 4, arktis: 4, etelamanner: 4 };
+          detailMap.setView([targetView.lat, targetView.lng], regionZooms[selectedRegion] || 5, { animate: true });
+        }
+
         // Dynamically fetch and display additional local radios for this region on the fly
         fetchRegionalRadios(selectedRegion);
 
@@ -5212,6 +6071,11 @@
     document.getElementById('zoom-in-loc-btn')?.addEventListener('click', () => {
       sound.playChime();
       if (activeLocation) {
+        if (mapMode === 'map' && detailMap) {
+          detailMap.setView([activeLocation.lat, activeLocation.lng], Math.max(14, detailMap.getZoom()), { animate: true });
+          highlightMapSelection(activeLocation);
+          return;
+        }
         if (worldGlobe) {
           worldGlobe.pointOfView({
             lat: activeLocation.lat,
@@ -5230,7 +6094,8 @@
     document.getElementById('lang-btn-en')?.addEventListener('click', () => setLanguage('en'));
     document.getElementById('lang-btn-fi')?.addEventListener('click', () => setLanguage('fi'));
 
-    document.getElementById('refresh-radios-btn')?.addEventListener('click', fetchDynamicRadioStations);
+    document.getElementById('refresh-radios-btn')?.addEventListener('click', refreshAllRadios);
+    document.getElementById('refresh-world-cams-btn')?.addEventListener('click', fetchPublicWorldwideCameras);
     document.getElementById('autoplay-allow-btn')?.addEventListener('click', () => {
       sound.init();
       audioEl.play().then(handlePlaySuccess).catch(handlePlayBlock);
@@ -5255,9 +6120,46 @@
       selectLocation(activeLocation, false);
       fetchDynamicRadioStations();
       fetchFintrafficRoadCameras();
+      fetchPublicWorldwideCameras();
+      fetchLondonPublicCameras();
       updateMobileFloatingControls();
       window.addEventListener('resize', updateMobileFloatingControls);
     });
+  </script>
+
+  <!-- Full-screen image viewer for snapshots and location photos -->
+  <div id="media-lightbox" hidden role="dialog" aria-modal="true" aria-label="Kuva suurennettuna" onclick="if(event.target === this) closeMediaLightbox()">
+    <button id="media-lightbox-close" type="button" onclick="closeMediaLightbox()" aria-label="Sulje kuva">×</button>
+    <img id="media-lightbox-image" alt="" />
+    <div id="media-lightbox-caption"></div>
+  </div>
+  <script>
+    function openMediaLightbox(src, caption = '') {
+      if (!src) return;
+      const viewer = document.getElementById('media-lightbox');
+      const image = document.getElementById('media-lightbox-image');
+      const label = document.getElementById('media-lightbox-caption');
+      if (!viewer || !image) return;
+      image.src = src;
+      image.alt = caption || 'Suurennettu kuva';
+      if (label) label.textContent = caption || '';
+      viewer.hidden = false;
+      document.body.style.overflow = 'hidden';
+      document.addEventListener('keydown', handleMediaLightboxKey);
+    }
+    function closeMediaLightbox() {
+      const viewer = document.getElementById('media-lightbox');
+      const image = document.getElementById('media-lightbox-image');
+      if (viewer) viewer.hidden = true;
+      if (image) image.src = '';
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', handleMediaLightboxKey);
+    }
+    function handleMediaLightboxKey(event) {
+      if (event.key === 'Escape') closeMediaLightbox();
+    }
+    window.openMediaLightbox = openMediaLightbox;
+    window.closeMediaLightbox = closeMediaLightbox;
   </script>
 </body>
 </html>
