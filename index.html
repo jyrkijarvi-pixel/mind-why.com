@@ -507,6 +507,11 @@
       header > div:nth-child(2) { gap:10px; }
       header > div:last-child { flex-shrink:0; }
     }
+
+    #radio-recovery-notice { position:fixed; bottom:86px; left:50%; transform:translateX(-50%); z-index:55; width:min(440px,calc(100% - 16px)); padding:12px; border:1px solid #22d3ee; border-radius:14px; background:#09132b; color:#e2e8f0; box-shadow:0 8px 30px #0008; font-size:12px; }
+    #radio-recovery-notice[hidden] { display:none!important; }
+    #radio-recovery-notice button { min-height:44px; padding:8px 12px; margin-top:8px; border:1px solid #475569; border-radius:9px; color:#a5f3fc; background:#0e1d3e; }
+    @media (max-width:1023px) { #radio-recovery-notice { bottom:auto; top:calc(var(--nova-vh) - var(--nova-dock) - 64px); transform:translate(-50%,-100%); max-height:calc(var(--nova-vh) - var(--nova-dock) - 124px); overflow-y:auto; } }
   </style>
 </head>
 <body class="bg-space-950 text-slate-100 font-sans overflow-hidden select-none h-screen w-screen relative">
@@ -1064,6 +1069,11 @@
 
   </footer>
 
+  <div id="radio-recovery-notice" hidden role="status" aria-live="polite">
+    <p id="radio-recovery-message" style="padding-right:36px"></p>
+    <button type="button" id="radio-recovery-close" aria-label="Piilota ilmoitus / Hide notification" style="position:absolute;right:4px;top:0;margin-top:0;min-width:44px">×</button>
+    <button type="button" id="radio-recovery-action"></button>
+  </div>
   <!-- Hidden HTML5 Audio Element for Radio Streams -->
   <!-- Native audio playback does not need CORS; forcing anonymous CORS blocked many radio streams. -->
   <audio id="global-radio-audio" preload="none"></audio>
@@ -4241,7 +4251,7 @@
       } catch (e) {}
     }
 
-    async function selectLocation(location, autoPlay = true, remember = true) {
+    async function selectLocation(location, autoPlay = true, remember = true, radioRecoverySelection = false) {
       if (!location) return;
       activeLocation = location;
       if (remember) rememberPlace(location);
@@ -4359,7 +4369,7 @@
 
       // 8. Auto Play stream if requested
       if (autoPlay && location.category === 'radio') {
-        playRadioStation(location);
+        playRadioStation(location, false, radioRecoverySelection);
       }
       if (personalView === 'recent') renderPinsList();
     }
@@ -5008,12 +5018,13 @@
     }
 
     // Calculate geographically closest active HTTPS radio station on the globe
-    function findClosestRadioStation(fromLoc) {
+    function findClosestRadioStation(fromLoc, excludedIds = null) {
       if (!fromLoc) return null;
       const candidates = allPins.filter(p => 
         p.category === 'radio' && 
         p.id !== fromLoc.id && 
-        !failedRadioIds.has(p.id) && 
+        !failedRadioIds.has(p.id) &&
+        (!excludedIds || !excludedIds.has(p.id)) && 
         p.streamUrl && 
         p.streamUrl.startsWith('https://')
       );
@@ -5051,6 +5062,65 @@
     }
 
     let radioFailureStation = null;
+    let currentRadioStation = null;
+    let radioConnecting = false;
+    let radioRecovery = null;
+    let radioRecoveryTimer = null;
+    let radioNoticeTimer = null;
+    const RADIO_MAX_RECOVERY = 3;
+
+    function hideRadioRecoveryNotice() {
+      if (radioNoticeTimer !== null) clearTimeout(radioNoticeTimer);
+      radioNoticeTimer = null;
+      document.getElementById('radio-recovery-notice').hidden = true;
+    }
+    function showRadioRecoveryNotice(message, action) {
+      hideRadioRecoveryNotice();
+      const notice = document.getElementById('radio-recovery-notice');
+      document.getElementById('radio-recovery-message').textContent = message;
+      const button = document.getElementById('radio-recovery-action');
+      button.dataset.action = action;
+      button.textContent = action === 'stop' ? (currentLang === 'fi' ? 'Keskeytä' : 'Stop')
+        : action === 'options' ? (currentLang === 'fi' ? 'Näytä vaihtoehdot' : 'Show options')
+        : (currentLang === 'fi' ? 'Sulje' : 'Close');
+      notice.hidden = false;
+      if (action === 'close') radioNoticeTimer = setTimeout(hideRadioRecoveryNotice, 10000);
+    }
+    // Invalidate all promises and media events from the old attempt before replacing it.
+    function stopRadioAttempt() {
+      stopRadioStartTimeout();
+      radioPlaybackSequence++;
+      audioEl.onerror = null; audioEl.onplaying = null; audioEl.onpause = null;
+      if (hlsPlayer) { try { hlsPlayer.destroy(); } catch (_) {} hlsPlayer = null; }
+      try { audioEl.pause(); audioEl.removeAttribute('src'); audioEl.load(); } catch (_) {}
+      if (sound.isStaticPlaying) sound.stopContinuousStatic();
+      isPlaying = false;
+    }
+    function cancelRadioPlayback() {
+      if (radioRecoveryTimer !== null) clearTimeout(radioRecoveryTimer);
+      radioRecoveryTimer = null;
+      radioRecovery = null;
+      radioConnecting = false;
+      isFallbackSwitching = false;
+      stopRadioAttempt();
+      hideRadioRecoveryNotice();
+      handlePause();
+    }
+    document.getElementById('radio-recovery-close').addEventListener('click', hideRadioRecoveryNotice);
+    document.getElementById('radio-recovery-action').addEventListener('click', event => {
+      const action = event.currentTarget.dataset.action;
+      if (action === 'stop') cancelRadioPlayback();
+      else if (action === 'options') { hideRadioRecoveryNotice(); showRadioFailureOptions(); }
+      else hideRadioRecoveryNotice();
+    });
+    function playRecoveredRadio(station, previous) {
+      // If the user is exploring another place, keep their map and card unchanged.
+      if (activeLocation?.id !== previous?.id) { playRadioStation(station, false, true); return; }
+      const panel = document.getElementById('active-location-panel');
+      const wasHidden = panel?.classList.contains('hidden');
+      selectLocation(station, true, false, true);
+      if (wasHidden) { panel.classList.add('hidden'); updateMobileFloatingControls(); }
+    }
     function radioFailureLabels() {
       return currentLang==='fi'
         ? {failed:'Aseman toisto ei onnistunut.',retry:'Yritä uudelleen',open:'Avaa aseman sivu ↗',other:'Kokeile toista asemaa',newTab:'Avautuu uuteen välilehteen. Palaa sulkemalla välilehti tai vaihtamalla takaisin.',missing:'Aseman HTTPS-kotisivua ei ole tiedossa.',none:'Toista asemaa ei löytynyt.',show:'Toisto epäonnistui · avaa vaihtoehdot'}
@@ -5058,7 +5128,7 @@
     }
     function showRadioFailureOptions() {
       if (!radioFailureStation) return;
-      selectLocation(radioFailureStation,false);
+      selectLocation(radioFailureStation,false,false);
       renderRadioFailure();
     }
     function renderRadioFailure() {
@@ -5095,33 +5165,63 @@
     });
     function handleRadioStreamFailure(station) {
       if (isFallbackSwitching) return;
-      isFallbackSwitching=true;
-      stopRadioStartTimeout();
-      if (station && radioStreamState && radioStreamState.stationId===station.id && radioStreamState.index+1<radioStreamState.urls.length) {
+      isFallbackSwitching = true;
+      stopRadioAttempt();
+      const sequence = radioPlaybackSequence;
+      const recovery = radioRecovery;
+      // Exhaust the selected station's own HTTPS addresses first.
+      if (station && radioStreamState && radioStreamState.stationId === station.id &&
+          radioStreamState.index + 1 < radioStreamState.urls.length) {
         radioStreamState.index++;
-        const sequence=radioPlaybackSequence;
-        setTimeout(()=>{
-          if (sequence!==radioPlaybackSequence) return;
-          if (isPlaying) {isFallbackSwitching=false;return;}
-          isFallbackSwitching=false;
-          playRadioStation(station,true);
-        },280);
+        radioConnecting = true;
+        updatePlayIcons(); updateCardPlayButton();
+        const status = document.getElementById('dock-stream-status');
+        if (status) status.textContent = currentLang === 'fi' ? 'Kokeillaan aseman varaosoitetta…' : 'Trying another address for this station…';
+        radioRecoveryTimer = setTimeout(() => {
+          radioRecoveryTimer = null;
+          if (sequence !== radioPlaybackSequence || recovery !== radioRecovery) return;
+          isFallbackSwitching = false;
+          playRadioStation(station, true, true);
+        }, 280);
         return;
       }
-      radioPlaybackSequence++;
-      audioEl.onerror=null; audioEl.onplaying=null; audioEl.onpause=null;
-      if (hlsPlayer) {try {hlsPlayer.destroy();} catch (_) {} hlsPlayer=null;}
-      try {audioEl.pause();audioEl.removeAttribute('src');audioEl.load();} catch (_) {}
-      if (sound.isStaticPlaying) sound.stopContinuousStatic();
-      isPlaying=false;
-      isFallbackSwitching=false;
-      radioFailureStation=station;
-      const title=document.getElementById('dock-title-text');
-      if (title && station) title.textContent=station.displayName || station.name;
-      if (station?.id) failedRadioIds.add(station.id);
-      const status=document.getElementById('dock-stream-status');
-      if (status) {status.textContent=radioFailureLabels().show;status.className='text-[11px] font-mono text-amber-300 truncate';}
-      updatePlayIcons();updateCardPlayButton();renderRadioFailure();
+      // Mark failure BEFORE choosing a replacement, preventing A -> B -> A loops.
+      if (station?.id) {
+        failedRadioIds.add(station.id);
+        recovery?.visited.add(station.id);
+      }
+      const next = recovery && recovery.switches < RADIO_MAX_RECOVERY
+        ? findClosestRadioStation(station, recovery.visited) : null;
+      if (next) {
+        recovery.switches++;
+        recovery.visited.add(next.id);
+        radioConnecting = true;
+        updatePlayIcons(); updateCardPlayButton();
+        const message = currentLang === 'fi'
+          ? `${station.name} ei vastaa. Kokeillaan asemaa ${next.name} (${recovery.switches}/${RADIO_MAX_RECOVERY}).`
+          : `${station.name} is unavailable. Trying ${next.name} (${recovery.switches}/${RADIO_MAX_RECOVERY}).`;
+        showRadioRecoveryNotice(message, 'stop');
+        const status = document.getElementById('dock-stream-status');
+        if (status) status.textContent = currentLang === 'fi' ? 'Kokeillaan toista asemaa…' : 'Trying another station…';
+        radioRecoveryTimer = setTimeout(() => {
+          radioRecoveryTimer = null;
+          if (sequence !== radioPlaybackSequence || recovery !== radioRecovery) return;
+          isFallbackSwitching = false;
+          playRecoveredRadio(next, station);
+        }, 650);
+        return;
+      }
+      radioConnecting = false;
+      isFallbackSwitching = false;
+      radioFailureStation = station;
+      const title = document.getElementById('dock-title-text');
+      if (title && station) title.textContent = station.displayName || station.name;
+      const status = document.getElementById('dock-stream-status');
+      if (status) { status.textContent = radioFailureLabels().show; status.className = 'text-[11px] font-mono text-amber-300 truncate'; }
+      showRadioRecoveryNotice(currentLang === 'fi'
+        ? 'Radiotoisto ei onnistunut. Voit yrittää uudelleen tai avata aseman vaihtoehdot.'
+        : 'Radio playback failed. You can retry or open the station options.', 'options');
+      updatePlayIcons(); updateCardPlayButton(); renderRadioFailure();
     }
 
     function switchToRadioStaticNoise() {
@@ -5163,7 +5263,16 @@
       showStatus('Siirrytty analogiseen viritinkohinaan (Web Audio)', 'fa-sliders');
     }
 
-    function playRadioStation(station, tryAlternate = false) {
+    function playRadioStation(station, tryAlternate = false, isRecovery = false) {
+      if (radioRecoveryTimer !== null) clearTimeout(radioRecoveryTimer);
+      radioRecoveryTimer = null;
+      if (!tryAlternate && !isRecovery) {
+        radioRecovery = { switches: 0, visited: new Set([station.id]), origin: station };
+        failedRadioIds.delete(station.id);
+        hideRadioRecoveryNotice();
+      }
+      currentRadioStation = station;
+      radioConnecting = true;
       radioFailureStation=null;
       renderRadioFailure();
       sound.init();
@@ -5222,7 +5331,7 @@
         handleRadioStreamFailure(station);
       };
       const playThisAttempt = () => {
-        if (sequence !== radioPlaybackSequence) return;
+        if (sequence !== radioPlaybackSequence || playbackStarted) return;
         playbackStarted = true;
         stopRadioStartTimeout();
         handlePlaySuccess();
@@ -5239,7 +5348,7 @@
         }
       };
       audioEl.onplaying = playThisAttempt;
-      audioEl.onpause = () => { if (sequence === radioPlaybackSequence) handlePause(); };
+      audioEl.onpause = () => { if (sequence === radioPlaybackSequence && playbackStarted && audioEl.paused) cancelRadioPlayback(); };
       audioEl.onerror = failThisAttempt;
       // Some unreachable streams hang forever without raising an error.
       radioStartTimeout = setTimeout(() => {
@@ -5267,6 +5376,14 @@
 
     function handlePlaySuccess() {
       isPlaying = true;
+      radioConnecting = false;
+      isFallbackSwitching = false;
+      if (currentRadioStation?.id) failedRadioIds.delete(currentRadioStation.id);
+      if (radioRecovery?.switches > 0) {
+        showRadioRecoveryNotice(currentLang === 'fi'
+          ? `Nyt soi ${currentRadioStation.name}. Vaihdettu asemasta ${radioRecovery.origin.name}.`
+          : `Now playing ${currentRadioStation.name}. Switched from ${radioRecovery.origin.name}.`, 'close');
+      } else hideRadioRecoveryNotice();
       consecutiveFailures = 0; // Reset consecutive failures counter
       if (sound.isStaticPlaying) sound.stopContinuousStatic();
 
@@ -5295,6 +5412,9 @@
     function handlePlayBlock(err) {
       console.warn('Autoplay blocked by browser policy:', err);
       isPlaying = false;
+      radioConnecting = false;
+      isFallbackSwitching = false;
+      hideRadioRecoveryNotice();
       const dockStatus = document.getElementById('dock-stream-status');
       if (dockStatus) {
         dockStatus.textContent = 'Klikkaa toistaaksesi';
@@ -5307,40 +5427,33 @@
     function toggleCurrentRadio() {
       sound.init();
       if (radioFailureStation) { playRadioStation(radioFailureStation); return; }
-
-      if (sound.isStaticPlaying) {
-        sound.stopContinuousStatic();
-        isPlaying = false;
-        updatePlayIcons();
-        updateCardPlayButton();
-        const dockStatus = document.getElementById('dock-stream-status');
-        if (dockStatus) dockStatus.textContent = 'Pysäytetty';
+      if (isPlaying || radioConnecting || radioRecoveryTimer !== null || sound.isStaticPlaying) {
+        cancelRadioPlayback();
         return;
       }
-
-      if (isPlaying) {
-        audioEl.pause();
-      } else {
-        if ((!audioEl.getAttribute('src') || audioEl.error) && activeLocation.category === 'radio') {
-          playRadioStation(activeLocation);
-          return;
-        }
-        audioEl.play().catch(handlePlayBlock);
-      }
+      const station = currentRadioStation || (activeLocation?.category === 'radio' ? activeLocation : null);
+      if (station) playRadioStation(station);
+      else showStatus(currentLang === 'fi' ? 'Valitse ensin radioasema.' : 'Choose a radio station first.', 'fa-radio');
     }
 
+    function updateRadioControl(buttonId, iconId, dock) {
+      const button = document.getElementById(buttonId);
+      if (!button) return;
+      const glyph = radioConnecting ? 'stop' : (isPlaying || sound.isStaticPlaying) ? 'pause' : 'play';
+      // Recreate the icon: Font Awesome may have replaced the old <i> with an SVG.
+      button.innerHTML = `<i id="${iconId}" class="fa-solid fa-${glyph}${dock ? ' text-sm' : ''}${glyph === 'play' ? ' ml-0.5' : ''}"></i>`;
+      const fi = currentLang === 'fi';
+      const label = radioConnecting ? (fi ? 'Keskeytä yhdistäminen' : 'Stop connecting')
+        : glyph === 'pause' ? (fi ? 'Pysäytä radio' : 'Pause radio')
+        : (fi ? 'Toista radio' : 'Play radio');
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
     function updatePlayIcons() {
-      const playIcon = document.getElementById('dock-play-icon');
-      if (playIcon) {
-        playIcon.className = (isPlaying || sound.isStaticPlaying) ? 'fa-solid fa-pause text-sm' : 'fa-solid fa-play text-sm ml-0.5';
-      }
+      updateRadioControl('dock-play-btn', 'dock-play-icon', true);
     }
-
     function updateCardPlayButton() {
-      const cardIcon = document.getElementById('card-play-icon');
-      if (cardIcon) {
-        cardIcon.className = (isPlaying || sound.isStaticPlaying) ? 'fa-solid fa-pause' : 'fa-solid fa-play ml-0.5';
-      }
+      updateRadioControl('card-play-btn', 'card-play-icon', false);
     }
 
     function showAutoplayPrompt() {
@@ -6499,7 +6612,8 @@
     document.getElementById('refresh-world-cams-btn')?.addEventListener('click', fetchPublicWorldwideCameras);
     document.getElementById('autoplay-allow-btn')?.addEventListener('click', () => {
       sound.init();
-      audioEl.play().then(handlePlaySuccess).catch(handlePlayBlock);
+      if (currentRadioStation) playRadioStation(currentRadioStation);
+      else toggleCurrentRadio();
     });
 
     // Real-time UTC clock in header
