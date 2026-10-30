@@ -745,20 +745,6 @@
       </div>
     </aside>
 
-    <!-- FLOATING CENTER-LEFT RANDOM TELEPORT BUTTON (Desktop prominence) -->
-    <div class="hidden lg:flex flex-col items-start justify-center pl-4 pointer-events-auto">
-      <button id="hero-teleport-btn" class="group relative px-5 py-3 rounded-2xl glass-panel border border-cyan-500/30 hover:border-cyan-400 shadow-glow-cyan flex items-center gap-3 transition-all duration-300 hover:scale-105 active:scale-95 bg-gradient-to-r from-space-900/90 via-space-850/90 to-cyan-950/60">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-emerald-400 flex items-center justify-center text-slate-950 shadow-md group-hover:rotate-12 transition-transform">
-          <i class="fa-solid fa-dice text-xl"></i>
-        </div>
-        <div class="text-left">
-          <div id="hero-teleport-title" class="text-xs text-cyan-400 font-mono tracking-wider uppercase font-semibold">Teleport</div>
-          <div id="hero-teleport-desc" class="font-display font-bold text-sm text-white group-hover:text-cyan-200 transition-colors">Take me somewhere</div>
-        </div>
-        <i class="fa-solid fa-chevron-right text-xs text-slate-400 group-hover:translate-x-1 transition-transform"></i>
-      </button>
-    </div>
-
     <!-- RIGHT ACTIVE LOCATION HUD CARD -->
     <div id="active-location-panel" class="w-full sm:w-96 lg:w-[420px] max-h-full flex flex-col rounded-2xl glass-panel pointer-events-auto shadow-2xl transition-all duration-300 overflow-hidden hidden">
       <button type="button" class="mobile-map-back" id="mobile-back-map">← <span>Takaisin kartalle / Back to map</span></button>
@@ -5886,7 +5872,6 @@
 
     // Navigation and Teleport listeners
     document.getElementById('header-teleport-btn')?.addEventListener('click', triggerRandomTeleport);
-    document.getElementById('hero-teleport-btn')?.addEventListener('click', triggerRandomTeleport);
     document.getElementById('dock-teleport-btn')?.addEventListener('click', triggerRandomTeleport);
 
     // Audio Controls
