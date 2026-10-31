@@ -2,13 +2,15 @@
 <html lang="fi" class="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="mind-why-version" content="F1-2026-10-30-favorites" />
+  <meta name="mind-why-version" content="F1-2026-10-31-seo" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Mind-Why World Explorer · F1 · Suosikit / Favorites</title>
-  <meta name="description" content="Interaktiivinen 3D-maapallo, reaaliaikaiset radiot, live-webbikamerat, reaaliaikainen sää ja monipersoonainen tekoälyopas." />
-  <meta property="og:title" content="Mind-Why World Explorer" />
-  <meta property="og:description" content="Tutki maapalloa 3D-tilassa: kuuntele paikallisia radiokanavia, katsele 24/7 live-webbikameroita ja keskustele tekoälyoppaan kanssa." />
+  <title>Kuuntele radioita maailmalta – Mind-Why World Explorer</title>
+  <meta name="description" content="Tutki maailmaa 3D-maapallolla ja kartalla. Kuuntele radioasemia eri maista, katsele kameroita ja kuvia sekä tarkista paikallinen sää ja aika." />
+  <meta property="og:title" content="Kuuntele radioita maailmalta – Mind-Why World Explorer" />
+  <meta property="og:description" content="Tutki maailmaa 3D-maapallolla ja kartalla. Kuuntele radioasemia eri maista, katsele kameroita ja kuvia sekä tarkista paikallinen sää ja aika." />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://mind-why.com/" />
+  <link rel="canonical" href="https://mind-why.com/" />
   <meta name="twitter:card" content="summary_large_image" />
 
   <!-- Google Fonts -->
@@ -513,6 +515,10 @@
     #radio-recovery-notice[hidden] { display:none!important; }
     #radio-recovery-notice button { min-height:44px; padding:8px 12px; margin-top:8px; border:1px solid #475569; border-radius:9px; color:#a5f3fc; background:#0e1d3e; }
     @media (max-width:1023px) { #radio-recovery-notice { bottom:auto; top:calc(var(--nova-vh) - var(--nova-dock) - 64px); transform:translate(-50%,-100%); max-height:calc(var(--nova-vh) - var(--nova-dock) - 124px); overflow-y:auto; } }
+    /* Short visible introduction; stays inside the existing scrollable place panel. */
+    .site-intro { margin:0 0 12px; }
+    .site-intro h2 { margin:0 0 5px; color:#e2e8f0; font:600 14px/1.45 "Plus Jakarta Sans",system-ui,sans-serif; }
+    .site-intro p { margin:0; color:#94a3b8; font-size:12px; line-height:1.65; }
   </style>
 </head>
 <body class="bg-space-950 text-slate-100 font-sans overflow-hidden select-none h-screen w-screen relative">
@@ -565,7 +571,7 @@
         </div>
         <div>
           <h1 class="font-display font-bold text-base lg:text-lg tracking-tight text-white leading-none">
-            Mind-Why <span class="text-cyan-400 font-medium">World Explorer · F1</span>
+            Mind-Why <span class="text-cyan-400 font-medium">World Explorer</span>
           </h1>
           <div class="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
             <span>mind-why.com</span>
@@ -655,6 +661,10 @@
           </button>
         </div>
 
+      <section class="site-intro" aria-labelledby="site-intro-title">
+        <h2 id="site-intro-title">Kuuntele radioita maailmalta</h2>
+        <p id="site-intro-text">Valitse paikka 3D-maapallolta tai kartalta. Kuuntele radioita, katso kameroita ja tarkista paikallinen sää.</p>
+      </section>
       <div class="personal-tabs" role="group" aria-label="Omat kohteet / My places">
         <button type="button" data-personal-view="all" aria-pressed="true"></button>
         <button type="button" data-personal-view="favorites" aria-pressed="false"></button>
@@ -1100,6 +1110,10 @@
     // ==========================================
     const I18N = {
       en: {
+        seo_title: "Listen to radio around the world – Mind-Why World Explorer",
+        seo_description: "Explore a 3D globe and map. Listen to radio stations from different countries, view cameras and photos, and check local weather and time.",
+        intro_title: "Listen to radio around the world",
+        intro_text: "Pick a place on the 3D globe or map. Listen to radio, explore cameras and check the local weather.",
         brand_sub: 'Interactive 3D Earth · Webcams & Weather & Radios',
         sun: 'Sun',
         pins: 'Pins',
@@ -1205,6 +1219,10 @@
         weather_no_data: 'No weather data'
       },
       fi: {
+        seo_title: "Kuuntele radioita maailmalta – Mind-Why World Explorer",
+        seo_description: "Tutki maailmaa 3D-maapallolla ja kartalla. Kuuntele radioasemia eri maista, katsele kameroita ja kuvia sekä tarkista paikallinen sää ja aika.",
+        intro_title: "Kuuntele radioita maailmalta",
+        intro_text: "Valitse paikka 3D-maapallolta tai kartalta. Kuuntele radioita, katso kameroita ja tarkista paikallinen sää.",
         brand_sub: 'Interaktiivinen 3D-maapallo · Kelikamerat & Sää & Radiot',
         sun: 'Aurinko',
         pins: 'Nastat',
@@ -1311,7 +1329,7 @@
       }
     };
 
-    let currentLang = 'en';
+    let currentLang = 'fi';
     try { const storedLang=localStorage.getItem('mind_why_lang'); if (storedLang==='fi' || storedLang==='en') currentLang=storedLang; } catch (_) {}
 
     function t(key, replacements = {}) {
@@ -1325,6 +1343,15 @@
 
     function applyLanguage(lang) {
       currentLang = lang;
+      document.documentElement.lang = lang;
+      document.title = t('seo_title');
+      for (const [selector, key] of [
+        ['meta[name="description"]', 'seo_description'],
+        ['meta[property="og:title"]', 'seo_title'],
+        ['meta[property="og:description"]', 'seo_description']
+      ]) document.querySelector(selector)?.setAttribute('content', t(key));
+      document.getElementById('site-intro-title').textContent = t('intro_title');
+      document.getElementById('site-intro-text').textContent = t('intro_text');
       const setElText = (id, key, replacements) => {
         const el = document.getElementById(id);
         if (el) el.textContent = t(key, replacements);
