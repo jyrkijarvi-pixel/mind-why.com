@@ -2,7 +2,7 @@
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="mind-why-version" content="F1-2026-10-31-languages" />
+  <meta name="mind-why-version" content="F1-2026-10-31-radio-panel" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Listen to radio around the world – Mind-Why World Explorer</title>
   <meta name="description" content="Explore a 3D globe and map. Listen to radio stations from different countries, view cameras and photos, and check local weather and time." />
@@ -519,6 +519,9 @@
     #radio-recovery-notice button { min-height:44px; padding:8px 12px; margin-top:8px; border:1px solid #475569; border-radius:9px; color:#a5f3fc; background:#0e1d3e; }
     @media (max-width:1023px) { #radio-recovery-notice { bottom:auto; top:calc(var(--nova-vh) - var(--nova-dock) - 64px); transform:translate(-50%,-100%); max-height:calc(var(--nova-vh) - var(--nova-dock) - 124px); overflow-y:auto; } }
     /* Short visible introduction; stays inside the existing scrollable place panel. */
+    /* Camera-only controls do not belong above the station list. */
+    #sidebar-panel.radio-list-view #camera-subcats-container,
+    #sidebar-panel.radio-list-view #source-controls { display:none!important; }
     .site-intro { margin:0 0 12px; }
     .site-intro h2 { margin:0 0 5px; color:#e2e8f0; font:600 14px/1.45 "Plus Jakarta Sans",system-ui,sans-serif; }
     .site-intro p { margin:0; color:#94a3b8; font-size:12px; line-height:1.65; }
@@ -6084,6 +6087,7 @@
     window.addEventListener('storage',event=>{ if (event.key===PERSONAL_KEY || event.key===null) { readPersonalPlaces(); renderPinsList(); } });
 
     function renderPinsList() {
+      document.getElementById('sidebar-panel')?.classList.toggle('radio-list-view', activeFilter === 'radio');
       resolveSharedPin();
       updatePersonalUI();
       renderRadioFailure();
