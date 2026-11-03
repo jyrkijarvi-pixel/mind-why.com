@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="fi"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#07111f">
+  <meta name="description" content="Etsi kappale YouTubesta ja lisää valitsemasi video Mind-Why Jukeboxin jonoon.">
+  <link rel="canonical" href="https://mind-why.com/jukebox/">
+  <link rel="alternate" hreflang="fi" href="https://mind-why.com/jukebox/">
+  <link rel="alternate" hreflang="en" href="https://mind-why.com/jukebox/?lang=en">
+  <title>Mind-Why Jukebox — valitse biisi</title>
+  <style>
+    :root{color-scheme:dark;--bg:#07111f;--panel:#101f31;--panel2:#0b1929;--line:#24425c;--cyan:#67e8f9;--blue:#60a5fa;--text:#eef8ff;--muted:#a9bfd1;--green:#86efac}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -10%,#12375a 0,#091829 42%,var(--bg) 78%);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;padding:20px 14px 40px}
+    main{width:min(900px,100%);margin:auto}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:4px 0 22px}.brand{color:var(--cyan);text-decoration:none;font-weight:750;letter-spacing:.02em}.langs{display:flex;gap:6px}.langs a{color:var(--muted);text-decoration:none;padding:5px 9px;border:1px solid transparent;border-radius:8px}.langs a[aria-current="page"]{color:var(--cyan);border-color:#2c6178;background:#0d2638}
+    header{text-align:center;padding:12px 10px 22px}.badge{color:var(--cyan);font-size:.78rem;letter-spacing:.13em;text-transform:uppercase}.badge i{font-style:normal;color:var(--blue)}h1{font-size:clamp(2.1rem,7vw,3.5rem);line-height:1.08;margin:12px 0;color:#f3fbff}.lead{color:var(--muted);max-width:650px;margin:0 auto}.card{background:linear-gradient(145deg,#11243a,#0c1929);border:1px solid var(--line);border-radius:18px;padding:clamp(17px,4vw,27px);margin:15px 0;box-shadow:0 18px 45px #0004}.card h2{color:var(--cyan);font-size:1.18rem;margin:0 0 12px}.label{display:block;font-weight:650;margin:12px 0 7px}.row{display:flex;gap:9px}input{flex:1;min-width:0;border:1px solid #31516b;background:#081421;border-radius:10px;padding:12px 13px;color:var(--text);font:inherit}input:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}button,.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;border-radius:10px;padding:11px 15px;background:linear-gradient(100deg,#0891b2,#2563eb);color:#fff;font:700 1rem system-ui,sans-serif;text-decoration:none;cursor:pointer;white-space:nowrap}button:hover,.btn:hover{filter:brightness(1.12)}button.alt,.btn.alt{background:#152b40;border:1px solid #31516b;color:var(--text)}.hint,.small{color:var(--muted);font-size:.9rem}.hint{margin:8px 0 0}.presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.presets button{font-size:.88rem;padding:8px 11px}.status{min-height:1.45em;color:var(--green);margin:9px 0 0}.player{aspect-ratio:16/9;width:100%;overflow:hidden;background:#030910;border:1px solid #31516b;border-radius:14px;margin-top:14px}.player iframe{display:block;width:100%;height:100%;border:0}.empty{min-height:150px;display:grid;place-items:center;text-align:center;color:var(--muted);padding:20px}.queue{display:grid;gap:8px;list-style:none;padding:0;margin:14px 0 0}.queue li{display:flex;align-items:center;gap:9px;background:#081421;border:1px solid #1e3b52;border-radius:10px;padding:9px}.track{flex:1;min-width:0}.track strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.track span{display:block;color:var(--muted);font-size:.82rem}.queue button{font-size:.88rem;padding:7px 10px}.queue button.remove{background:transparent;border:1px solid #31516b;color:var(--text)}.note{border-left:3px solid var(--cyan);padding:3px 0 3px 12px;color:var(--muted);font-size:.9rem}.foot{text-align:center;color:#8ea8bb;font-size:.82rem;padding:8px 12px}@media(max-width:560px){body{padding:14px 10px 30px}.row{flex-direction:column}.row button,.row .btn{width:100%}.queue li{flex-wrap:wrap}}
+  </style>
+</head>
+<body>
+<main>
+  <nav class="top" aria-label="Mind-Why">
+    <a class="brand" href="/" data-i18n="back">← Mind-Why World Explorer</a>
+    <div class="langs"><a id="fiLink" href="/jukebox/?lang=fi" aria-current="page">FI</a><a id="enLink" href="/jukebox/?lang=en">EN</a></div>
+  </nav>
+  <header>
+    <div class="badge"><i>♫</i> Mind-Why · Jukebox <i>♫</i></div>
+    <h1 data-i18n="title">Radioista biiseihin.</h1>
+    <p class="lead" data-i18n="lead">Hae artisti tai kappale YouTubesta, lisää valitsemasi video jonoon ja soita se omassa YouTube-soittimessa. Jukebox elää omalla sivullaan, joten Mind-Whyn radiotoiminto pysyy ennallaan.</p>
+  </header>
+  <section class="card" aria-labelledby="findTitle">
+    <h2 id="findTitle" data-i18n="findTitle">1. Etsi kappale</h2>
+    <label class="label" for="searchQuery" data-i18n="searchLabel">Artisti tai kappale</label>
+    <div class="row"><input id="searchQuery" type="search" autocomplete="off" data-placeholder="searchPlaceholder" placeholder="Esim. Juice Leskinen – Viidestoista yö"><button id="searchButton" type="button" data-i18n="searchButton">🔎 Hae YouTubesta</button></div>
+    <p class="hint" data-i18n="searchHint">Haku avautuu YouTubeen uuteen välilehteen. Valitse sieltä video ja kopioi videon osoite tänne.</p>
+    <div class="presets" aria-label="Pikahaut">
+      <button type="button" class="alt preset" data-query-fi="Juice Leskinen Viidestoista yö" data-query-en="Juice Leskinen Viidestoista yö">Juice: Viidestoista yö</button>
+      <button type="button" class="alt preset" data-query-fi="Pelle Miljoona Moottoritie on kuuma" data-query-en="Pelle Miljoona Moottoritie on kuuma">Pelle: Moottoritie on kuuma</button>
+      <button type="button" class="alt preset" data-query-fi="Irwin Goodman Rentun ruusu" data-query-en="Irwin Goodman Rentun ruusu">Irwin: Rentun ruusu</button>
+      <button type="button" class="alt preset" data-query-fi="Rauli Badding Paratiisi" data-query-en="Rauli Badding Paratiisi">Badding: Paratiisi</button>
+    </div>
+    <label class="label" for="videoUrl" data-i18n="urlLabel">Liitä YouTube-videon linkki</label>
+    <div class="row"><input id="videoUrl" type="url" autocomplete="url" data-placeholder="urlPlaceholder" placeholder="https://www.youtube.com/watch?v=…"><button id="addButton" type="button" data-i18n="addButton">＋ Lisää jonoon</button></div>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+  </section>
+  <section class="card" aria-labelledby="playerTitle">
+    <h2 id="playerTitle" data-i18n="playerTitle">2. Soitin</h2>
+    <div id="player" class="player"><div class="empty" data-i18n="empty">Soitin odottaa tilausta.<br>Jukebox ei hyväksy kolikoita — vielä.</div></div>
+    <ul id="queue" class="queue" aria-label="Kappalejono"></ul>
+  </section>
+  <section class="card">
+    <h2 data-i18n="noteTitle">Miten tämä toimii?</h2>
+    <p class="note" data-i18n="note">Sivu ei tallenna äänitteitä eikä sanoituksia. Kappaleet toistuvat YouTuben omassa soittimessa. Huumori ei itsessään poista musiikin käyttöön liittyviä oikeuksia; julkisen käytön lupa-asiat riippuvat käyttötavasta.</p>
+    <p class="small" data-i18n="embedNote">Osa videoista ei salli upotusta. Soitto vaatii toimivan yhteyden YouTubeen.</p>
+  </section>
+  <footer class="foot" data-i18n="foot">Mind-Why Jukebox · Jono tallentuu vain tähän selaimeen.</footer>
+</main>
+<script>
+(() => {
+  const en = new URLSearchParams(location.search).get('lang') === 'en';
+  const words = en ? {
+    back:'← Mind-Why World Explorer',title:'From radio to songs.',lead:'Search YouTube for an artist or song, add your chosen video to the queue, and play it in YouTube’s own player. The jukebox has its own page, so Mind-Why radio stays untouched.',findTitle:'1. Find a song',searchLabel:'Artist or song',searchPlaceholder:'E.g. Juice Leskinen – Viidestoista yö',searchButton:'🔎 Search YouTube',searchHint:'Search opens YouTube in a new tab. Choose a video there and paste its URL here.',urlLabel:'Paste a YouTube video link',urlPlaceholder:'https://www.youtube.com/watch?v=…',addButton:'＋ Add to queue',playerTitle:'2. Player',empty:'The player is waiting for a request.<br>The jukebox takes no coins — yet.',noteTitle:'How it works',note:'This page does not store audio recordings or lyrics. Songs play in YouTube’s own player. Humor itself does not remove music-use rights; licensing depends on the use.',embedNote:'Some videos do not allow embedding. Playback needs a working YouTube connection.',foot:'Mind-Why Jukebox · The queue is saved only in this browser.',queryFirst:'Enter an artist or song first.',opened:'YouTube search opened in a new tab.',badUrl:'That does not look like a YouTube video link. Copy the video URL from YouTube.',duplicate:'This song is already in the queue.',added:'Added to the queue and loaded in the player.',restored:'Your previous queue was restored from this browser.',play:'▶ Play',remove:'Remove',video:'YouTube video'
+  } : {
+    back:'← Mind-Why World Explorer',title:'Radioista biiseihin.',lead:'Hae artisti tai kappale YouTubesta, lisää valitsemasi video jonoon ja soita se omassa YouTube-soittimessa. Jukebox elää omalla sivullaan, joten Mind-Whyn radiotoiminto pysyy ennallaan.',findTitle:'1. Etsi kappale',searchLabel:'Artisti tai kappale',searchPlaceholder:'Esim. Juice Leskinen – Viidestoista yö',searchButton:'🔎 Hae YouTubesta',searchHint:'Haku avautuu YouTubeen uuteen välilehteen. Valitse sieltä video ja kopioi videon osoite tänne.',urlLabel:'Liitä YouTube-videon linkki',urlPlaceholder:'https://www.youtube.com/watch?v=…',addButton:'＋ Lisää jonoon',playerTitle:'2. Soitin',empty:'Soitin odottaa tilausta.<br>Jukebox ei hyväksy kolikoita — vielä.',noteTitle:'Miten tämä toimii?',note:'Sivu ei tallenna äänitteitä eikä sanoituksia. Kappaleet toistuvat YouTuben omassa soittimessa. Huumori ei itsessään poista musiikin käyttöön liittyviä oikeuksia; julkisen käytön lupa-asiat riippuvat käyttötavasta.',embedNote:'Osa videoista ei salli upotusta. Soitto vaatii toimivan yhteyden YouTubeen.',foot:'Mind-Why Jukebox · Jono tallentuu vain tähän selaimeen.',queryFirst:'Kirjoita ensin artisti tai kappale.',opened:'YouTube-haku avattiin uuteen välilehteen.',badUrl:'Tuo ei näytä YouTube-videon linkiltä. Kopioi videon osoite YouTubesta.',duplicate:'Tämä kappale on jo jonossa.',added:'Lisätty jonoon ja ladattu soittimeen.',restored:'Edellinen soittolista palautettiin tästä selaimesta.',play:'▶ Soita',remove:'Poista',video:'YouTube-video'
+  };
+  document.documentElement.lang = en ? 'en' : 'fi';
+  document.querySelectorAll('[data-i18n]').forEach(el => { const key=el.dataset.i18n; if(words[key]) el.innerHTML=words[key]; });
+  document.querySelectorAll('[data-placeholder]').forEach(el => { const key=el.dataset.placeholder; if(words[key]) el.placeholder=words[key]; });
+  document.getElementById(en ? 'enLink' : 'fiLink').setAttribute('aria-current','page');
+  const input=document.getElementById('searchQuery'), urlInput=document.getElementById('videoUrl'), status=document.getElementById('status'), queueEl=document.getElementById('queue'), playerEl=document.getElementById('player');
+  const key='mindWhyJukeboxQueueV1'; let queue=[];
+  try { const parsed=JSON.parse(localStorage.getItem(key)||'[]'); if(Array.isArray(parsed)) queue=parsed.filter(x=>x&&/^[\w-]{11}$/.test(x.id)&&typeof x.title==='string'); } catch {}
+  function save(){try{localStorage.setItem(key,JSON.stringify(queue))}catch{}}
+  function search(q){q=q.trim();if(!q){status.textContent=words.queryFirst;input.focus();return}window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(q),'_blank','noopener,noreferrer');status.textContent=words.opened}
+  function videoId(raw){let u;try{u=new URL(raw.trim())}catch{return null}const host=u.hostname.toLowerCase().replace(/^www\./,'');if(host==='youtu.be')return u.pathname.split('/').filter(Boolean)[0]||null;if(!['youtube.com','m.youtube.com','music.youtube.com'].includes(host))return null;if(u.pathname==='/watch')return u.searchParams.get('v');const m=u.pathname.match(/^\/(?:embed|shorts|live)\/([\w-]{11})/);return m?m[1]:null}
+  function play(id,title){const f=document.createElement('iframe');f.title='YouTube: '+title;f.src='https://www.youtube-nocookie.com/embed/'+encodeURIComponent(id)+'?playsinline=1&rel=0';f.allow='accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';f.allowFullscreen=true;f.referrerPolicy='strict-origin-when-cross-origin';playerEl.replaceChildren(f);document.getElementById('playerTitle').textContent=words.playerTitle+' · '+title;status.textContent=words.added}
+  function render(){queueEl.replaceChildren();queue.forEach((item,i)=>{const li=document.createElement('li'), info=document.createElement('div'), name=document.createElement('strong'), kind=document.createElement('span'), p=document.createElement('button'), r=document.createElement('button');info.className='track';name.textContent=item.title;kind.textContent=words.video;info.append(name,kind);p.type='button';p.textContent=words.play;p.setAttribute('aria-label',words.play+' '+item.title);p.addEventListener('click',()=>play(item.id,item.title));r.type='button';r.className='remove';r.textContent=words.remove;r.setAttribute('aria-label',words.remove+': '+item.title);r.addEventListener('click',()=>{queue.splice(i,1);save();render()});li.append(info,p,r);queueEl.append(li)})}
+  function add(){const id=videoId(urlInput.value);if(!id||!/^[\w-]{11}$/.test(id)){status.textContent=words.badUrl;urlInput.focus();return}if(queue.some(x=>x.id===id)){status.textContent=words.duplicate;return}const title=input.value.trim()||words.video;queue.push({id,title});save();render();play(id,title);urlInput.value=''}
+  document.getElementById('searchButton').addEventListener('click',()=>search(input.value));input.addEventListener('keydown',e=>{if(e.key==='Enter')search(input.value)});document.getElementById('addButton').addEventListener('click',add);urlInput.addEventListener('keydown',e=>{if(e.key==='Enter')add()});document.querySelectorAll('.preset').forEach(b=>b.addEventListener('click',()=>{const q=en?b.dataset.queryEn:b.dataset.queryFi;input.value=q;search(q)}));render();if(queue.length)status.textContent=words.restored;
+})();
+</script>
+
+
+</body>
+</html>
