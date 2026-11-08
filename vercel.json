@@ -1,0 +1,7 @@
+{
+  "git": {
+    "deploymentEnabled": {
+      "fix/seo-indexing-20261108": false
+    }
+  }
+}
